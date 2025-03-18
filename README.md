@@ -8,7 +8,6 @@ TRPG (Tabletop Role-Playing Game)를 블록체인과 결합하여 NFT와 DAO 기
 - 프론트엔드: React, Next, Tailwind, Web3.js, ethers,
 - 백엔드: Node.js
 
-test
 
 ## 주요 기능
 
