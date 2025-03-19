@@ -23,7 +23,12 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["trpg", "dao", "nft", "blockchain"],
+  "keywords": [
+    "trpg",
+    "dao",
+    "nft",
+    "blockchain"
+  ],
   "author": "",
   "license": "ISC"
 }
