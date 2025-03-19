@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract GameItems is ERC1155, Ownable {
     mapping(address => uint256[]) private _ownedTokens; // 소유자가 가진 모든 토큰 ID
-     mapping(address => mapping(uint256 => uint256)) private _ownedTokenIndex; // 토큰 ID의 인덱스 저장 (중복 방지)
+    mapping(address => mapping(uint256 => uint256)) private _ownedTokenIndex; // 토큰 ID의 인덱스 저장 (중복 방지)
     mapping(uint256 => string) private _tokenURIs;
     mapping(uint256 => uint256) private _totalSupply;
 

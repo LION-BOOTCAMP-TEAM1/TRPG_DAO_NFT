@@ -15,6 +15,12 @@ async function main() {
     await con.mint(deployer.address, 5, 300, "");
     const itemIDs = await con.getOwnedTokens(deployer.address);
     console.log(`✅ itemIDs: ${itemIDs}`);
+
+    for(var i = 0; i < itemIDs.length; i++) {
+        const balance = await con.balanceOf(deployer.address, itemIDs[i]);
+        console.log(`[${itemIDs[i]}] : ${balance}개`);
+    }
+    
 }
 
 main().catch((error) => {
