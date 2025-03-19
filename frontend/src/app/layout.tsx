@@ -5,8 +5,8 @@ import type { Metadata } from 'next';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'TRPG DAO NFT',
-  description: 'A TRPG DAO NFT project',
+  title: 'Another World Adventure',
+  description: 'A TRPG DAO NFT Web3 Game Project',
 };
 
 export default function RootLayout({
@@ -19,4 +19,4 @@ export default function RootLayout({
       <body className={inter.className}>{children}</body>
     </html>
   );
-} 
+}

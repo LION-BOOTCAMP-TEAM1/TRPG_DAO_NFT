@@ -25,6 +25,7 @@ touch .env.example
 ```
 
 `.env.example` 파일 내용:
+
 ```env
 # 공통 환경 변수
 NODE_ENV=development
@@ -38,6 +39,7 @@ cp .env.example .env
 ```
 
 이제 .env 파일을 열고 자신의 환경에 맞게 설정하세요:
+
 ```env
 DATABASE_URL="postgresql://my_user:my_password@localhost:5432/my_database"
 ```
@@ -67,10 +69,13 @@ npx prisma migrate dev --name init
 ## 4. 서버 실행 및 API 테스트
 
 ### 4.1. 서버 실행
+
 ```bash
 npm run dev
 ```
+
 ✅ 서버가 정상적으로 실행되면 다음과 같은 메시지가 출력됩니다:
+
 ```
 🚀 Server running on http://localhost:5000/api
 📡 Connected to database: postgresql://postgres@localhost:5432/trpg
@@ -79,6 +84,7 @@ npm run dev
 ### 4.2. API 테스트
 
 **사용자 생성 (`POST /api/users`)**
+
 ```bash
 curl -X POST http://localhost:5000/api/users \
 -H "Content-Type: application/json" \
@@ -86,11 +92,13 @@ curl -X POST http://localhost:5000/api/users \
 ```
 
 **사용자 목록 조회 (`GET /api/users`)**
+
 ```bash
 curl -X GET http://localhost:5000/api/users
 ```
 
 ✅ 정상적인 응답 예시:
+
 ```json
 [
   {
