@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "userId": 101,
+    "nftTokenId": "nft-xyz-001",
+    "choiceId": 1,
+    "createdAt": "2025-03-19T12:00:00Z"
+  },
+  {
+    "id": 2,
+    "name": "초보자 검",
+    "description": "이세계에서 처음 지급받은 검.",
+    "rarity": "Common",
+    "ownerId": 101
+  }
+]
