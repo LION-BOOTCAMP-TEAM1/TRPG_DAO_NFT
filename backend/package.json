@@ -5,7 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn src/server.ts"
+    "dev": "ts-node-dev --respawn src/server.ts",
+    "seed": "ts-node src/seed/seed.ts",
+    "db:sync": "ts-node -e \"import { syncDatabase } from './src/utils/dbSync'; syncDatabase({ forceMigrate: false, seed: false });\"",
+    "db:sync:full": "ts-node -e \"import { syncDatabase } from './src/utils/dbSync'; syncDatabase({ forceMigrate: true, seed: true });\"",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:status": "prisma migrate status"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +30,8 @@
     "@prisma/client": "^6.5.0",
     "@types/express": "^5.0.0",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }

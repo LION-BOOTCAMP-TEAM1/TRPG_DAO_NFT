@@ -2,6 +2,12 @@
 
 프로젝트 초기 설정팀원이 로컬 환경에서 백엔드를 실행할 수 있도록 설정하는 가이드입니다.
 
+#### swagger
+
+``` bash
+http://localhost:5001/api-docs/#/
+```
+
 ---
 
 ## 1. 프로젝트 초기 설정
@@ -72,7 +78,7 @@ npm run dev
 ```
 ✅ 서버가 정상적으로 실행되면 다음과 같은 메시지가 출력됩니다:
 ```
-🚀 Server running on http://localhost:5000/api
+🚀 Server running on http://localhost:5001/api
 📡 Connected to database: postgresql://postgres@localhost:5432/trpg
 ```
 
@@ -80,14 +86,14 @@ npm run dev
 
 **사용자 생성 (`POST /api/users`)**
 ```bash
-curl -X POST http://localhost:5000/api/users \
+curl -X POST http://localhost:5001/api/users \
 -H "Content-Type: application/json" \
 -d '{"wallet": "0x123456789abcdef"}'
 ```
 
 **사용자 목록 조회 (`GET /api/users`)**
 ```bash
-curl -X GET http://localhost:5000/api/users
+curl -X GET http://localhost:5001/api/users
 ```
 
 ✅ 정상적인 응답 예시:

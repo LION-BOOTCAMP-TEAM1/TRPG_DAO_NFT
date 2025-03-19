@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "slug": "isekai-summoning",
+    "title": "이세계로의 소환",
+    "summary": "당신은 알 수 없는 힘에 의해 이세계로 소환되었다. 이제 당신의 운명을 선택해야 한다.",
+    "quests": ["first-survival"],
+    "branchPoints": ["first-choice"]
+  },
+  {
+    "id": 2,
+    "slug": "royal-life",
+    "title": "왕국에서의 생활",
+    "summary": "당신은 왕국으로 향했다. 이제 새로운 모험이 시작된다.",
+    "quests": ["first-mission"],
+    "branchPoints": []
+  }
+]
