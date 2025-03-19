@@ -17,7 +17,7 @@ export default function Home() {
           Another World Adventure
         </h1>
         <p className="mt-4 text-center font-bold italic text-2xl">
-          Welcome to the TRPG DAO NFT project
+          Welcome to the TRPG DAO NFT project.
         </p>
       </div>
 
