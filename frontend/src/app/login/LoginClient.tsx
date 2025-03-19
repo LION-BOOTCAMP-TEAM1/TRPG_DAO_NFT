@@ -1,11 +1,12 @@
 'use client';
 
-import { ethers, JsonRpcSigner, Wallet } from 'ethers';
+import { ethers, JsonRpcSigner } from 'ethers';
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 
 export default function LoginClient() {
   const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
+  // const [users, setUsers] = useState<any[]>([]);
 
   const connectWallet = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,18 +22,22 @@ export default function LoginClient() {
       setSigner(newSigner);
 
       const address = await newSigner.getAddress();
+      console.log('wallet address', address);
 
       // setSigner(await provider.getSigner());
 
       const response = await fetch('http://localhost:5001/api/users', {
         method: 'POST',
-        headers: {
-          ContentType: 'application/json',
-          body: JSON.stringify({ address }),
-        },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: address }),
       });
-      const data = await response.json();
-      console.log(data);
+
+      if (response.ok) {
+        alert('Wallet address successfully saved!');
+      } else {
+        const data = await response.json();
+        alert('Failed to save wallet address: ' + data.error);
+      }
     } catch (error) {
       console.error('Metamask connecting Error', error);
     }
@@ -86,6 +91,7 @@ export default function LoginClient() {
           </form>
         </div>
       )}
+
       <footer className="flex z-10 absolute top-99/100 left-1/2 transform -translate-x-1/2 -translate-y-1/2    text-white drop-shadow-[0_1.2px_1.2px_rgba(1,1,1,1)] gap-4">
         <p>LLB6&copy;2025 </p>
         <button className="cursor-pointer">·Privacy</button>
