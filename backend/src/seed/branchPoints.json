@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "slug": "first-choice",
+    "storyId": "isekai-summoning",
+    "title": "이세계에서의 첫 번째 선택",
+    "description": "플레이어들은 어디에서 깨어나야 하는가?",
+    "status": "open",
+    "daoVoteId": "dao-vote-001",
+    "choices": [
+      { "text": "🏰 왕국 근처 평원", "nextStorySlug": "royal-life" },
+      { "text": "🌲 깊은 숲 속", "nextStorySlug": "wild-survival" },
+      { "text": "🏜️ 폐허가 된 사원", "nextStorySlug": "ancient-ruins" }
+    ]
+  }
+]

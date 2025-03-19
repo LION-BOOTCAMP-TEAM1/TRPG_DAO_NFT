@@ -18,9 +18,21 @@
     "format:frontend": "cd frontend && npm run format",
     "prisma:generate": "cd backend && npx prisma generate",
     "prisma:migrate": "cd backend && npx prisma migrate dev",
-    "prisma:studio": "cd backend && npx prisma studio"
+    "prisma:studio": "cd backend && npx prisma studio",
+    "seed": "cd backend && npm run seed",
+    "db:sync": "cd backend && npm run db:sync",
+    "db:sync:full": "cd backend && npm run db:sync:full",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:reset": "cd backend && npm run db:reset",
+    "db:status": "cd backend && npm run db:status",
+    "db:update": "cd backend && npx prisma generate && npx prisma migrate dev && npm run seed"
+  },
+  "prisma": {
+    "seed": "ts-node backend/prisma/seed.ts"
   },
   "devDependencies": {
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "concurrently": "^8.2.2"
   },
   "keywords": [
