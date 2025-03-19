@@ -1,5 +1,8 @@
 'use client';
 
+/**const API_URL = 'localhost:5001'
+`${API_URL}` */
+
 import { ethers, JsonRpcSigner } from 'ethers';
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
@@ -29,7 +32,7 @@ export default function LoginClient() {
       const response = await fetch('http://localhost:5001/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: address }),
+        body: JSON.stringify({ wallet: address }),
       });
 
       if (response.ok) {
