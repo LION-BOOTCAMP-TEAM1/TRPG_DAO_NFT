@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "slug": "first-survival",
+    "storySlug": "isekai-summoning",
+    "title": "낯선 세계에서의 생존",
+    "description": "당신은 이세계에 도착했다. 이제 첫 번째 결정을 내려야 한다.",
+    "choices": ["go-to-town", "survive-in-forest"]
+  },
+  {
+    "id": 2,
+    "slug": "first-mission",
+    "storySlug": "royal-life",
+    "title": "왕국의 첫 번째 임무",
+    "description": "왕국에서 도움을 받기로 한 당신은 첫 번째 임무를 맡게 된다.",
+    "choices": ["join-knights", "become-scholar"]
+  }
+]

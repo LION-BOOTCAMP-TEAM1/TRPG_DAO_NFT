@@ -1,33 +1,46 @@
 {
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.0.14",
-    "@types/node": "^22.13.10",
-    "@types/react": "^19.0.11",
-    "@types/react-dom": "^19.0.4",
-    "ethers": "^5.8.0",
-    "hardhat": "^2.22.19",
-    "next": "^15.2.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "typescript": "^5.8.2"
-  },
   "name": "trpg_dao_nft",
-  "description": "---",
   "version": "1.0.0",
-  "main": "index.js",
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.14",
-    "autoprefixer": "^10.4.21",
-    "mocha": "^10.8.2",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.0.14"
+  "description": "TRPG DAO NFT Platform - Monorepo",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "blockchain"
+  ],
+  "scripts": {
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm run start",
+    "lint:frontend": "cd frontend && npm run lint",
+    "format:frontend": "cd frontend && npm run format",
+    "prisma:generate": "cd backend && npx prisma generate",
+    "prisma:migrate": "cd backend && npx prisma migrate dev",
+    "prisma:studio": "cd backend && npx prisma studio",
+    "seed": "cd backend && npm run seed",
+    "db:sync": "cd backend && npm run db:sync",
+    "db:sync:full": "cd backend && npm run db:sync:full",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:reset": "cd backend && npm run db:reset",
+    "db:status": "cd backend && npm run db:status",
+    "db:update": "cd backend && npx prisma generate && npx prisma migrate dev && npm run seed"
   },
-  "keywords": [],
+  "prisma": {
+    "seed": "ts-node backend/prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "trpg",
+    "dao",
+    "nft",
+    "blockchain"
+  ],
   "author": "",
   "license": "ISC"
 }
