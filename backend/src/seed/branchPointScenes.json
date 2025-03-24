@@ -1,20 +1,17 @@
 [
   {
-    "id": 1,
-    "branchPointId": 1,
+    "branchPointSlug": "first-summoning-choice",
     "order": 1,
-    "text": "당신은 낯선 세계에 도착했다. 주변을 둘러보니 익숙한 것은 아무것도 없다..."
+    "text": "당신은 낯선 세계에 도착했다. 주변을 둘러보지만 익숙한 것은 아무것도 없다."
   },
   {
-    "id": 2,
-    "branchPointId": 1,
+    "branchPointSlug": "first-summoning-choice",
     "order": 2,
     "text": "머릿속이 혼란스러운데, 저 멀리 희미한 불빛이 보인다. 그곳으로 가야 할까?"
   },
   {
-    "id": 3,
-    "branchPointId": 1,
+    "branchPointSlug": "first-summoning-choice",
     "order": 3,
-    "text": "또는, 숲속 깊이로 숨어들어가야 할까? 아니면 사원 같은 곳을 탐색해봐야 할까?"
+    "text": "또는 숲속 깊이로 숨어들까? 아니면 먼지 쌓인 고대 사원의 기운이 당신을 부르는 것 같기도 하다…"
   }
 ]
