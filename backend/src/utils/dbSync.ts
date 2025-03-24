@@ -67,7 +67,9 @@ async function checkSchemaChanges(): Promise<boolean> {
     const { stdout } = await execPromise('npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma --exit-code');
     return false; // 변경 없음
   } catch (error: any) {
-    if (error.code === 1) {
+    if (error.code === 1 || error.code === 2) {
+      // 코드 1은 경미한 변경, 코드 2는 테이블 삭제 등 주요 변경 감지됨
+      console.log('스키마 변경 감지됨:', error.stdout);
       return true; // 변경 감지됨
     }
     throw error; // 다른 오류
