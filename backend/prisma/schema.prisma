@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 🏦 사용자 정보 (지갑 주소 저장)
+model User {
+  id            Int      @id @default(autoincrement())
+  walletAddress String   @unique
+  createdAt     DateTime @default(now())
+
+  storyProgress StoryProgress[]
+  playerNFTs    PlayerNFT[]
+  Character     Character?
+}
+
+// 🧙‍♂️ 캐릭터 정보
+model Character {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique // 해당 캐릭터를 소유한 유저
+  user   User @relation(fields: [userId], references: [id])
+
+  name      String
+  gender    String
+  age       Int
+  attribute String // 캐릭터의 직업 또는 특성
+
+  // ✅ 6개의 필수 스탯
+  health       Int @default(4) // 건강
+  strength     Int @default(4) // 힘
+  agility      Int @default(4) // 민첩
+  intelligence Int @default(4) // 지능
+  wisdom       Int @default(4) // 지혜
+  charisma     Int @default(4) // 매력
+
+  createdAt DateTime @default(now())
+}
+
+// 📜 스토리 (전체적인 이야기 흐름)
+model Story {
+  id            Int             @id @default(autoincrement())
+  slug          String          @unique // URL 친화적인 고유 식별자 (예: "isekai-summoning")
+  title         String // 스토리 제목
+  summary       String // 전체적인 이야기 개요
+  quests        Quest[] // 퀘스트 목록
+  createdAt     DateTime        @default(now())
+  BranchPoint   BranchPoint[]
+  StoryProgress StoryProgress[]
+  StoryScene    StoryScene[]
+}
+
+// 📖 스토리 장면 (스토리 진행 순서에 따른 장면)
+model StoryScene {
+  id        Int      @id @default(autoincrement())
+  storyId   Int
+  story     Story    @relation(fields: [storyId], references: [id])
+  order     Int // 스토리 진행 순서 (1, 2, 3...)
+  text      String // 장면 설명 텍스트
+  createdAt DateTime @default(now())
+}
+
+// 🔄 플레이어의 스토리 진행 상태
+model StoryProgress {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id])
+  storyId        Int
+  story          Story    @relation(fields: [storyId], references: [id])
+  currentQuestId Int
+  completed      Boolean  @default(false)
+  lastUpdated    DateTime @updatedAt
+}
+
+// 🎯 퀘스트 (스토리를 구성하는 개별 이벤트)
+model Quest {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique // URL 친화적인 고유 식별자 (예: "first-mission")
+  storyId     Int
+  story       Story    @relation(fields: [storyId], references: [id])
+  title       String // 퀘스트 제목
+  description String // 퀘스트 설명
+  choices     Choice[] // 선택지 목록
+}
+
+// 🗳️ 선택지 (퀘스트 진행을 위한 선택)
+model Choice {
+  id          Int         @id @default(autoincrement())
+  slug        String      @unique // URL 친화적인 고유 식별자 (예: "join-knights")
+  questId     Int
+  quest       Quest       @relation(fields: [questId], references: [id])
+  text        String // 선택 내용
+  nextStoryId Int? // 선택 결과에 따른 다음 스토리
+  PlayerNFT   PlayerNFT[]
+}
+
+// 🔀 분기점 (DAO 투표를 통한 글로벌 선택)
+model BranchPoint {
+  id               Int                @id @default(autoincrement())
+  slug             String             @unique // URL 친화적인 고유 식별자 (예: "kingdom-destiny")
+  storyId          Int
+  story            Story              @relation(fields: [storyId], references: [id])
+  title            String // 분기점 제목 (예: "왕국의 운명 결정")
+  description      String // 분기점 설명
+  status           String             @default("open") // ["open", "closed"]
+  daoVoteId        String? // DAO 투표 ID (온체인 스마트 컨트랙트)
+  BranchPointScene BranchPointScene[]
+}
+
+// 📖 분기점 장면 (DAO 투표 전 필요한 서술)
+model BranchPointScene {
+  id            Int         @id @default(autoincrement())
+  branchPointId Int
+  branchPoint   BranchPoint @relation(fields: [branchPointId], references: [id])
+  order         Int // DAO 스토리 설명 순서
+  text          String // DAO 투표 전 필요한 서술
+}
+
+// 🏆 NFT 발급 내역 (스토리 선택을 NFT로 저장)
+model PlayerNFT {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  nftTokenId String // NFT 온체인 토큰 ID
+  choiceId   Int?
+  choice     Choice?  @relation(fields: [choiceId], references: [id]) // 어떤 선택을 NFT로 발급했는지
+  createdAt  DateTime @default(now())
+}
