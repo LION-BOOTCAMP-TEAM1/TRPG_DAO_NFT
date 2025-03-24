@@ -27,8 +27,14 @@ const router = express.Router();
  *                     type: string
  *                   age:
  *                     type: integer
+ *                   classId:
+ *                     type: integer
  *                   attribute:
  *                     type: string
+ *                   hp:
+ *                     type: integer
+ *                   mp:
+ *                     type: integer
  *                   health:
  *                     type: integer
  *                   strength:
@@ -105,6 +111,7 @@ const getCharacter = async (req: Request, res: Response) => {
  *               - name
  *               - gender
  *               - age
+ *               - classId
  *               - attribute
  *             properties:
  *               userId:
@@ -115,8 +122,14 @@ const getCharacter = async (req: Request, res: Response) => {
  *                 type: string
  *               age:
  *                 type: integer
+ *               classId:
+ *                 type: integer
  *               attribute:
  *                 type: string
+ *               hp:
+ *                 type: integer
+ *               mp:
+ *                 type: integer
  *               health:
  *                 type: integer
  *               strength:
@@ -136,9 +149,9 @@ const getCharacter = async (req: Request, res: Response) => {
  *         description: 입력 데이터 오류
  */
 const createCharacter = async (req: Request, res: Response) => {
-  const { userId, name, gender, age, attribute, health, strength, agility, intelligence, wisdom, charisma } = req.body;
+  const { userId, name, gender, age, classId, attribute, hp, mp, health, strength, agility, intelligence, wisdom, charisma } = req.body;
   
-  if (!userId || !name || !gender || !age || !attribute) {
+  if (!userId || !name || !gender || !age || !classId || !attribute) {
     return res.status(400).json({ error: 'Required fields are missing' });
   }
   
@@ -158,7 +171,10 @@ const createCharacter = async (req: Request, res: Response) => {
         name,
         gender,
         age: Number(age),
+        classId: Number(classId),
         attribute,
+        hp: hp || 4,
+        mp: mp || 4,
         health: health || 4,
         strength: strength || 4,
         agility: agility || 4, 

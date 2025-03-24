@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "branchPointSlug": "first-summoning-choice",
+    "text": "🏰 왕국 근처 평원",
+    "nextStorySlug": "royal-plain"
+  },
+  {
+    "id": 2,
+    "branchPointSlug": "first-summoning-choice",
+    "text": "🌲 깊은 숲 속",
+    "nextStorySlug": "wild-forest"
+  },
+  {
+    "id": 3,
+    "branchPointSlug": "first-summoning-choice",
+    "text": "🏛️ 폐허가 된 고대 사원",
+    "nextStorySlug": "ruined-temple"
+  }
+
+  
+]

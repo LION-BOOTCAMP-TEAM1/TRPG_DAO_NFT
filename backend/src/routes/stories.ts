@@ -33,7 +33,7 @@ const getStory = async (req: express.Request, res: express.Response) => {
         BranchPoint: true,
         StoryScene: {
           orderBy: {
-            order: 'asc'
+            sequence: 'asc'
           }
         },
       },
