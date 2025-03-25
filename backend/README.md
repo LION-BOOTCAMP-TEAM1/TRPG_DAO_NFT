@@ -4,7 +4,7 @@
 
 #### swagger
 
-``` bash
+```bash
 http://localhost:5001/api-docs/#/
 ```
 
