@@ -1,1 +1,24 @@
 @import 'tailwindcss';
+
+@font-face {
+  font-family: 'continuous';
+  src: url('/continuous.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'continuous', sans-serif;
+}
+
+.bgs {
+  @apply z-0 relative w-full h-full;
+}
+
+.LoginStyleWhite {
+  @apply flex z-10 absolute transform -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_1.2px_1.2px_rgba(1,1,1,1)] text-white;
+}
+
+.LoginStyleTeal {
+  @apply flex z-10 absolute transform -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_1.2px_1.2px_rgba(1,1,1,1)] text-teal-400;
+}
