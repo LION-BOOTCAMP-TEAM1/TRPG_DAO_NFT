@@ -34,6 +34,7 @@ export default function LoginClient() {
       const response = await fetch('http://localhost:5001/api/users', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: address }),
       });
 
       if (response.ok) {
