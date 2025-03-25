@@ -1,0 +1,23 @@
+[
+  {
+    "choiceSlug": "escape-into-wild",
+    "classExclude": ["fighter"]
+  },
+
+
+  {
+    "choiceSlug": "lie-and-bluff",
+    "classOnly": "bard",
+    "minCharisma": 6
+  },
+
+  {
+    "choiceSlug": "observe-secret-deal",
+    "minAgility": 6
+  },
+  {
+    "choiceSlug": "join-market-show",
+    "classOnly": "bard",
+    "minCharisma": 6
+  }
+]
