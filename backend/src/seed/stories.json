@@ -1,18 +1,42 @@
 [
   {
-    "id": 1,
     "slug": "isekai-summoning",
     "title": "이세계로의 소환",
-    "summary": "당신은 알 수 없는 힘에 의해 이세계로 소환되었다. 이제 당신의 운명을 선택해야 한다.",
-    "quests": ["first-survival"],
-    "branchPoints": ["first-choice"]
+    "summary": "당신은 알 수 없는 힘에 의해 이세계로 소환되었다. 이제 당신의 운명을 선택해야 한다."
+  },
+
+  {
+    "slug": "royal-plain",
+    "title": "왕국 근처 평원",
+    "summary": "당신은 왕국 외곽 평원에 떨어졌다. 멀리 성과 깃발이 보이고, 기병대가 당신에게 다가온다.",
+    "quests": ["meet-royal-guards"]
+  },
+
+
+  {
+    "slug": "royal-city-gate",
+    "title": "왕국의 성문",
+    "summary": "병사들의 인도를 받아 왕국의 성문으로 향한다. 처음 접하는 도시의 모습이 눈앞에 펼쳐진다.",
+    "quests": ["first-city-encounter"]
+  },
+
+  {
+    "slug": "royal-market",
+    "title": "왕국 시장",
+    "summary": "활기찬 왕국 시장. 사람들의 웃음소리와 상인들의 외침이 어우러져 있다. 이곳에서 정보를 수집하거나, 거래를 시도할 수 있다.",
+    "quests": ["explore-market"]
+  },
+
+  {
+    "slug": "wild-forest",
+    "title": "야생의 숲",
+    "summary": "도망친 당신은 깊은 숲 속을 헤매기 시작한다. 어두운 그림자와 기묘한 소리가 들려온다.",
+    "quests": []
   },
   {
-    "id": 2,
-    "slug": "royal-life",
-    "title": "왕국에서의 생활",
-    "summary": "당신은 왕국으로 향했다. 이제 새로운 모험이 시작된다.",
-    "quests": ["first-mission"],
-    "branchPoints": []
+    "slug": "royal-deception",
+    "title": "거짓된 정체",
+    "summary": "자신을 왕실 사절이라 속인 당신. 병사들은 반신반의하며 당신을 호위한다. 그러나 그 눈빛은 예리하다.",
+    "quests": []
   }
 ]

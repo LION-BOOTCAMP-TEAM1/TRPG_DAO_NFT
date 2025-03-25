@@ -1,18 +1,25 @@
 [
   {
-    "id": 1,
-    "slug": "first-survival",
-    "storySlug": "isekai-summoning",
-    "title": "낯선 세계에서의 생존",
-    "description": "당신은 이세계에 도착했다. 이제 첫 번째 결정을 내려야 한다.",
-    "choices": ["go-to-town", "survive-in-forest"]
+    "slug": "meet-royal-guards",
+    "storySlug": "royal-plain",
+    "title": "왕국 병사들과의 조우",
+    "description": "왕국 병사들과의 첫 접촉. 이 만남은 이세계에서의 신뢰를 좌우하게 된다.",
+    "choices": ["surrender-and-explain", "escape-into-wild", "lie-and-bluff"]
   },
+
   {
-    "id": 2,
-    "slug": "first-mission",
-    "storySlug": "royal-life",
-    "title": "왕국의 첫 번째 임무",
-    "description": "왕국에서 도움을 받기로 한 당신은 첫 번째 임무를 맡게 된다.",
-    "choices": ["join-knights", "become-scholar"]
+    "slug": "first-city-encounter",
+    "storySlug": "royal-city-gate",
+    "title": "도시에서의 첫 발걸음",
+    "description": "당신은 도시의 사람들과 마주친다. 먼저 상인을 만날 것인가, 병영으로 갈 것인가?",
+    "choices": ["visit-market", "report-to-guard"]
+  },
+
+  {
+    "slug": "explore-market",
+    "storySlug": "royal-market",
+    "title": "시장 탐방",
+    "description": "당신은 시장을 자유롭게 돌아다닌다. 사람들과 대화하거나 흥미로운 아이템을 살펴볼 수 있다.",
+    "choices": ["talk-to-spice-merchant", "observe-secret-deal", "join-market-show"]
   }
 ]

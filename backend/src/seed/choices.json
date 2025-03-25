@@ -1,30 +1,63 @@
 [
   {
-    "id": 1,
-    "slug": "go-to-town",
-    "questSlug": "first-survival",
-    "text": "🏰 근처 마을을 찾아간다.",
-    "nextStorySlug": "royal-life"
+    "slug": "surrender-and-explain",
+    "questSlug": "meet-royal-guards",
+    "text": "🕊️ 손을 들고 진실을 이야기한다",
+    "nextStorySlug": "royal-city-gate"
+  },
+
+  {
+    "slug": "visit-market",
+    "questSlug": "first-city-encounter",
+    "text": "🧺 시장을 둘러본다",
+    "nextStorySlug": "royal-market"
+  },
+
+  {
+    "slug": "talk-to-spice-merchant",
+    "questSlug": "explore-market",
+    "text": "🌶️ 향신료 상인에게 말을 건다",
+    "nextStorySlug": "merchant-quest-intro"
   },
   {
-    "id": 2,
-    "slug": "survive-in-forest",
-    "questSlug": "first-survival",
-    "text": "🌲 숲에서 살아남을 방법을 찾는다.",
-    "nextStorySlug": "wild-survival"
+    "slug": "observe-secret-deal",
+    "questSlug": "explore-market",
+    "text": "🕵️‍♂️ 수상한 거래를 몰래 관찰한다",
+    "nextStorySlug": "black-market-lead"
   },
   {
-    "id": 3,
-    "slug": "join-knights",
-    "questSlug": "first-mission",
-    "text": "🛡️ 기사단에 가입한다.",
-    "nextStorySlug": "knight-life"
+    "slug": "join-market-show",
+    "questSlug": "explore-market",
+    "text": "🎪 광장 공연에 참여한다",
+    "nextStorySlug": "bard-performance"
   },
+
+  
   {
-    "id": 4,
-    "slug": "become-scholar",
-    "questSlug": "first-mission",
-    "text": "📜 학자가 되어 마법을 연구한다.",
-    "nextStorySlug": "mage-life"
+    "slug": "report-to-guard",
+    "questSlug": "first-city-encounter",
+    "text": "🛡️ 병영으로 가서 정체를 밝힌다",
+    "nextStorySlug": "royal-guard-post"
+  },
+
+  {
+    "slug": "escape-into-wild",
+    "questSlug": "meet-royal-guards",
+    "text": "🏃‍♂️ 대화를 거부하고 도망친다",
+    "nextStorySlug": "wild-forest",
+    "conditions": {
+      "classExclude": ["fighter"]
+    }
+  },
+
+  {
+    "slug": "lie-and-bluff",
+    "questSlug": "meet-royal-guards",
+    "text": "🎭 자신을 왕실 사절이라 속인다",
+    "nextStorySlug": "royal-deception",
+    "conditions": {
+      "classOnly": "bard",
+      "minCharisma": 6
+    }
   }
 ]
