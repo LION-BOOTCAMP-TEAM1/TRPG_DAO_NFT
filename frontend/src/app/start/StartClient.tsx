@@ -10,14 +10,12 @@ export default function StartClient() {
     setIsChecked(!isChecked);
   };
   return (
-    <div className="relative h-screen w-screen">
-      <img
-        src="/image5.png"
-        alt="Start Page"
-        className="object-fill h-full w-full"
-      />
-
-      <div className="flex flex-col z-10 absolute top-8/44 left-7/19 bg-[#f4e1c1] bg-gradient-to-r from-[#f8e1c1] to-[#e1d7b9] justify-center items-center gap-2 border border-gray-400 p-10 ">
+    //캐릭터 선택화면 이미지(왕국)
+    <div>
+      <div className="imgst">
+        <img src="/image5.png" alt="Start Page" />
+      </div>
+      {/* <div className="flex flex-col z-10 absolute top-8/44 left-7/19 bg-[#f4e1c1] bg-gradient-to-r from-[#f8e1c1] to-[#e1d7b9] justify-center items-center gap-2 border border-gray-400 p-10 ">
         <div>
           <h1 className="text-4xl  font-bold italic drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)] pb-20">
             Character
@@ -111,6 +109,7 @@ export default function StartClient() {
             <h1 className="text-4xl text-center font-bold italic drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)] pt-10 pb-10">
               Brave
             </h1>
+
             <input
               placeholder="User Name"
               className="text-center  border border-gray-500 rounded-2xl ml-19"
@@ -120,6 +119,7 @@ export default function StartClient() {
               check
             </button>
           </div>
+
           <div className="flex justify-center items-center p-4 mt-10">
             <Link href={'/prologue'}>
               <button className=" text-xl font-bold border-2 bg-[#c2bfb9]  rounded-2xl px-2 cursor-pointer hover:bg-gray-200">
@@ -128,7 +128,7 @@ export default function StartClient() {
             </Link>
           </div>
         </form>
-      </div>
+      </div> */}
     </div>
   );
 }
