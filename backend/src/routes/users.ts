@@ -1,5 +1,5 @@
-import express from 'express';
-import prisma from '../prismaClient';
+import express from "express";
+import prisma from "../prismaClient";
 
 const router = express.Router();
 
@@ -53,7 +53,7 @@ const getUsers = async (req: express.Request, res: express.Response) => {
  *       404:
  *         description: 사용자를 찾을 수 없습니다
  */
-router.get('/:id', (req, res) => {
+router.get("/:id", (req, res) => {
   // 실제 구현 코드
 });
 
@@ -97,19 +97,19 @@ const createUser = async (req: express.Request, res: express.Response) => {
   const { wallet } = req.body;
 
   if (!wallet) {
-    res.status(400).json({ error: 'Wallet address is required' });
+    res.status(400).json({ error: "Wallet address is required" });
     return;
   }
 
   const newUser = await prisma.user.create({
     data: { walletAddress: wallet },
   });
-  
+
   res.status(201).json(newUser);
 };
 
 // 라우터에 핸들러 연결
-router.get('/', getUsers);
-router.post('/', createUser);
+router.get("/", getUsers);
+router.post("/", createUser);
 
 export default router;
