@@ -75,6 +75,18 @@ model UserAction {
   createdAt DateTime @default(now())
 }
 
+// 스토리 세계관/테마 관련 모델
+model StoryWorld {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique // 예: "fantasy-isekai", "sci-fi-future"
+  title       String // 예: "판타지 이세계", "미래 SF"
+  description String // 세계관 설명
+  coverImage  String? // 표지 이미지 URL
+  createdAt   DateTime @default(now())
+
+  stories Story[] // 이 세계관에 속하는 스토리들
+}
+
 // 스토리 관련 모델
 model Story {
   id              Int               @id @default(autoincrement())
@@ -87,6 +99,8 @@ model Story {
   StoryProgress   StoryProgress[]
   StoryScene      StoryScene[]
   SessionProgress SessionProgress[]
+  StoryWorld      StoryWorld?       @relation(fields: [storyWorldId], references: [id])
+  storyWorldId    Int?
 }
 
 // 스토리 장면 관련 모델

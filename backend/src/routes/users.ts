@@ -101,11 +101,13 @@ const createUser = async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const newUser = await prisma.user.create({
-    data: { walletAddress: wallet },
+  const user = await prisma.user.upsert({
+    where: { walletAddress: wallet },
+    update: {}, // 업데이트할 내용이 없으면 빈 객체
+    create: { walletAddress: wallet },
   });
 
-  res.status(201).json(newUser);
+  res.status(201).json(user);
 };
 
 // 라우터에 핸들러 연결
