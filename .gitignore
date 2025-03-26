@@ -61,3 +61,7 @@ yarn-error.log*
 .idea
 *.swp
 *.swo
+
+# Data generator
+data_generator/data/*
+data_generator/images/*
