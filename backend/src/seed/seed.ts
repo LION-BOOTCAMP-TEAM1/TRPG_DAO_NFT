@@ -12,6 +12,7 @@ import branchPointScenes from './branchPointScenes.json';
 import daoChoices from './daoChoices.json';
 import storyProgress from './storyProgress.json';
 import rewards from './rewards.json';
+import storyWorlds from './storyWorlds.json';
 
 const prisma = new PrismaClient();
 
@@ -92,6 +93,15 @@ type BranchPointScene = {
   text: string;
 };
 
+// 추가: StoryWorld 타입 정의
+type StoryWorld = {
+  id?: number;
+  slug: string;
+  title: string;
+  description: string;
+  coverImage?: string;
+};
+
 async function main() {
   console.log('시작: 데이터베이스 시딩...');
   console.log(
@@ -104,9 +114,51 @@ async function main() {
   try {
     // 트랜잭션 내에서 모든 작업 수행
     await prisma.$transaction(async (tx) => {
-      // 1. 스토리 추가
+      // 0. 스토리 세계관(StoryWorld) 추가
+      console.log('스토리 세계관 데이터 추가 중...');
+      for (const storyWorld of storyWorlds as unknown as StoryWorld[]) {
+        await tx.storyWorld.upsert({
+          where: { 
+            slug: storyWorld.slug
+          },
+          update: {
+            title: storyWorld.title,
+            description: storyWorld.description,
+            coverImage: storyWorld.coverImage,
+          },
+          create: {
+            slug: storyWorld.slug,
+            title: storyWorld.title,
+            description: storyWorld.description,
+            coverImage: storyWorld.coverImage,
+          },
+        });
+      }
+
+      // 스토리월드 슬러그 -> ID 매핑 구축
+      const allStoryWorlds = await tx.storyWorld.findMany();
+      const storyWorldSlugToId = new Map();
+      for (const storyWorld of allStoryWorlds) {
+        storyWorldSlugToId.set(storyWorld.slug, storyWorld.id);
+      }
+
+      // 1. 스토리 추가 (스토리월드 연결)
       console.log('스토리 데이터 추가 중...');
       for (const story of stories as unknown as Story[]) {
+        // 이세계 관련 스토리는 fantasy-isekai 세계관으로 설정
+        let storyWorldId = null;
+        if (story.slug.includes('isekai')) {
+          storyWorldId = storyWorldSlugToId.get('fantasy-isekai');
+        } 
+        // 왕국 관련 스토리는 medieval-kingdom 세계관으로 설정
+        else if (story.slug.includes('royal') || story.slug.includes('kingdom')) {
+          storyWorldId = storyWorldSlugToId.get('medieval-kingdom');
+        }
+        // 어둡거나 야생 관련 스토리는 dark-fantasy 세계관으로 설정
+        else if (story.slug.includes('dark') || story.slug.includes('wild')) {
+          storyWorldId = storyWorldSlugToId.get('dark-fantasy');
+        }
+
         // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
         await tx.story.upsert({
           where: { 
@@ -116,11 +168,13 @@ async function main() {
             title: story.title,
             summary: story.summary,
             slug: story.slug || slugify(story.title),
+            storyWorldId: storyWorldId,
           },
           create: {
             title: story.title,
             summary: story.summary,
             slug: story.slug || slugify(story.title),
+            storyWorldId: storyWorldId,
           },
         });
       }

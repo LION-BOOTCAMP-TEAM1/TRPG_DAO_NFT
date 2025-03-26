@@ -8,6 +8,7 @@ import branchpointRoutes from './branchpoints';
 import daoRoutes from './dao';
 import sessionRoutes from './sessions';
 import playerNftRoutes from './playernfts';
+import storyWorldRoutes from './storyWorlds';
 
 const router = express.Router();
 
@@ -27,5 +28,6 @@ router.use('/branchpoints', branchpointRoutes);
 router.use('/dao', daoRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/playernfts', playerNftRoutes);
+router.use('/story-worlds', storyWorldRoutes);
 
 export default router;
