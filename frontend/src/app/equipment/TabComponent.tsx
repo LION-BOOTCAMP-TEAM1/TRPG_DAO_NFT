@@ -21,7 +21,7 @@ const TabComponent = ({ tabs, contents, defaultIndex = 0 }: TabComponentProps) =
             onClick={() => setActiveIndex(index)}
             className={`px-4 py-2 rounded-t-md border-b-2 transition-all
               ${activeIndex === index
-                ? 'text-gray-300 text-gray-300 font-semibold bg-yellow-950'
+                ? 'border-gray-500 text-gray-300 font-semibold bg-yellow-950'
                 : 'border-transparent text-gray-500 hover:text-gray-200'}
             `}
           >

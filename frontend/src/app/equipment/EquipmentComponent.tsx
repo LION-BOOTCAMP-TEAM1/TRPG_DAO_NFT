@@ -2,7 +2,6 @@
 
 import TabComponent from "./TabComponent";
 
-
 interface EquipmentComponentProps {
   open: boolean;
   onClose: () => void; // ⬅️ 추가
@@ -37,7 +36,56 @@ const EquipmentComponent = ({ open, onClose }: EquipmentComponentProps) => {
         </div>
 
         {/* 능력치 */}
+        <div className="aspect-[16/4] bg-[url('/stat.png')] bg-cover bg-center px-2 py-4 flex flex-col justify-center items-center mb-4">
+          <p className="font-semibold mb-2 text-white">추가 능력치</p>
+          <div className="flex flex-wrap gap-4 mb-4">
+            <div className="flex items-center gap-1">
+              <img src="/attack.png" alt="공격력" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+100</span>
+            </div>
 
+            <div className="flex items-center gap-1">
+              <img src="/magic.png" alt="마법력" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+100</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <img src="/defence.png" alt="방어력" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+100</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-1">
+              <img src="/str.png" alt="STR" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+10</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <img src="/agi.png" alt="AGI" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+30</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <img src="/int.png" alt="INT" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+20</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <img src="/chr.png" alt="CHR" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+40</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <img src="/health.png" alt="HEALTH" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+30</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <img src="/wis.png" alt="WIS" className="w-5 h-5" />
+              <span className="text-sm text-white font-medium">+10</span>
+            </div>
+          </div>
+        </div>
 
         {/* 내 아이템 및 NFT */}
         <TabComponent 
@@ -47,11 +95,25 @@ const EquipmentComponent = ({ open, onClose }: EquipmentComponentProps) => {
               <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
                 <div className="grid grid-cols-5 w-full justify-items-center gap-y-4">
                   {Array.from({ length: 10 }).map((_, index) => (
+                    <div className="relative w-full flex justify-center mt-2" key={index}>
+                    {/* NFT 뱃지 */}
+                    <div
+                      className="absolute rounded-md bg-red-600 text-white px-2 py-0.5 shadow-md"
+                      style={{
+                        fontSize: '8px',
+                        right: '-4px',
+                        top: '-4px',
+                      }}
+                    >
+                      NFT
+                    </div>
+                  
+                    {/* NFT 이미지 */}
                     <img 
-                      key={index}
                       src={`https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeiduz2r7r7y5dzkxw4kkgzhek2lty3rgoaey5fnvmblb6gsryiu6pe/${index+1}.png`}
-                      className="w-[80%] h-auto" 
+                      className="w-[80%] h-auto rounded-md border border-gray-300"
                     />
+                  </div>
                   ))}
                 </div>
               </div>
@@ -60,14 +122,26 @@ const EquipmentComponent = ({ open, onClose }: EquipmentComponentProps) => {
               <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
                 <div className="grid grid-cols-5 w-full justify-items-center gap-y-4">
                   {Array.from({ length: 4 }).map((_, index) => (
-                    <div className="">
-                      <div className="absolute">asd</div>
+                    <div className="relative w-full flex justify-center mt-2" key={index}>
+                      {/* NFT 뱃지 */}
+                      <div
+                        className="absolute rounded-md bg-red-600 text-white px-2 py-0.5 shadow-md"
+                        style={{
+                          fontSize: '8px',
+                          right: '-4px',
+                          top: '-4px',
+                        }}
+                      >
+                        NFT
+                      </div>
+                    
+                      {/* NFT 이미지 */}
                       <img 
-                        key={index}
                         src={`https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeiduz2r7r7y5dzkxw4kkgzhek2lty3rgoaey5fnvmblb6gsryiu6pe/${index+11}.png`}
-                        className="w-[80%] h-auto" 
+                        className="w-[80%] h-auto rounded-md border border-gray-300"
                       />
                     </div>
+                  
                   ))}
                 </div>
               </div>
@@ -76,11 +150,25 @@ const EquipmentComponent = ({ open, onClose }: EquipmentComponentProps) => {
             <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
               <div className="grid grid-cols-5 w-full justify-items-center gap-y-4">
                 {Array.from({ length: 5 }).map((_, index) => (
+                    <div className="relative w-full flex justify-center mt-2" key={index}>
+                  {/* NFT 뱃지 */}
+                  <div
+                    className="absolute rounded-md bg-red-600 text-white px-2 py-0.5 shadow-md"
+                    style={{
+                      fontSize: '8px',
+                      right: '-4px',
+                      top: '-4px',
+                    }}
+                  >
+                    NFT
+                  </div>
+                
+                  {/* NFT 이미지 */}
                   <img 
-                    key={index}
                     src={`https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeiduz2r7r7y5dzkxw4kkgzhek2lty3rgoaey5fnvmblb6gsryiu6pe/${index+15}.png`}
-                    className="w-[80%] h-auto" 
+                    className="w-[80%] h-auto rounded-md border border-gray-300"
                   />
+                </div>
                 ))}
               </div>
             </div>
