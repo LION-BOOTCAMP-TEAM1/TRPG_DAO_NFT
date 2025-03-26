@@ -40,3 +40,23 @@ html.dark {
   background-color: #1b1d25;
   color: white;
 }
+
+.equipment-wrapper {
+  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 50;
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.equipment-wrapper.slide-up {
+  opacity: 1;
+  transform: translateX(0%);
+}
+
+.equipment-wrapper.slide-down {
+  opacity: 0;
+  transform: translateX(100%);
+}
