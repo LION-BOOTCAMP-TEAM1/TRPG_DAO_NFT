@@ -6,16 +6,20 @@ contract TRPG_DAO {
     address public owner;
     mapping(address => bool) public ruleMasters;
 
-    mapping(uint256 => address[]) public sessions;
-    mapping(uint256 => uint256[]) public worlds;
-    mapping(uint256 => uint256[]) public genres;
+    struct Session {
+        address[] users; // List of users participating in the session
+        uint256 worldId; // Associated world ID
+        uint256 genreId; // Associated genre ID
+    }
 
+    mapping(uint256 => Session) public sessions; // sessionId => Session data
+    uint256[] public sessionIds; // List of all session IDs
 
     struct Proposal {
-        string description;
+        string description; // Description of the proposal
         uint256 voteEndTime; // Voting deadline (Unix timestamp)
         uint256[] votes; // Number of votes per option
-        uint256 totalVotes; // Total number of voters (unique addresses)
+        uint256 totalVotes; // Total number of voters
         uint256 proposalScope; // 0: global, 1: session, 2: world, 3: genre
         uint256 scopeId; // ID corresponding to the scope type
         bool active; // Whether voting is still open
@@ -28,12 +32,10 @@ contract TRPG_DAO {
     event RuleMasterAdded(address indexed newRuleMaster);
     event RuleMasterRemoved(address indexed removedRuleMaster);
 
-    event UserJoinedSession(uint256 sessionId, address user);
-    event UserLeftSession(uint256 sessionId, address user);
-    event SessionAddedToWorld(uint256 worldId, uint256 sessionId);
-    event SessionRemovedFromWorld(uint256 worldId, uint256 sessionId);
-    event WorldAddedToGenre(uint256 genreId, uint256 worldId);
-    event WorldRemovedFromGenre(uint256 genreId, uint256 worldId);
+    event SessionCreated(uint256 sessionId, uint256 worldId, uint256 genreId);
+    event SessionDeleted(uint256 sessionId);
+    event UserAddedToSession(uint256 sessionId, address user);
+    event UserRemovedFromSession(uint256 sessionId, address user);
 
     event ProposalCreated(uint256 proposalId, string description, uint256 voteEndTime, uint256 proposalScope, uint256 scopeId);
     event ProposalClosed(uint256 proposalId);
@@ -90,91 +92,69 @@ contract TRPG_DAO {
         emit RuleMasterRemoved(_ruleMaster);
     }
 
-    // User joins a session
-    function joinSession(uint256 sessionId) public {
-        uint256 length = sessions[sessionId].length;
-        for (uint256 i=0; i < length; i++) {
-            require(sessions[sessionId][i] != msg.sender, "User already in session");
-        }
+    // Create a new session with world and genre association
+    function createSession(uint256 sessionId, uint256 worldId, uint256 genreId) public onlyRuleMaster {
+        require(!sessionExists(sessionId), "Session already exists");
 
-        sessions[sessionId].push(msg.sender);
-        emit UserJoinedSession(sessionId, msg.sender);
+        sessions[sessionId].worldId = worldId;
+        sessions[sessionId].genreId = genreId;
+        sessionIds.push(sessionId);
+        emit SessionCreated(sessionId, worldId, genreId);
     }
 
-    // User leaves a session
-    function leaveSession(uint sessionId) public {
-        address[] storage sessionUsers = sessions[sessionId];
-        uint256 length = sessionUsers.length;
+    // Check if a session exists
+    function sessionExists(uint256 sessionId) internal view returns(bool) {
+        uint256 length = sessionIds.length;
         for (uint256 i=0;i<length;i++) {
-            if (sessionUsers[i] == msg.sender) {
-                sessionUsers[i] = sessionUsers[length -1];
-                sessionUsers.pop();
-                emit UserLeftSession(sessionId, msg.sender);
+            if (sessionIds[i] == sessionId) return true;
+        }
+        return false;
+    }
+
+    // Delete a session and remove its ID
+    function deleteSession(uint256 sessionId) public onlyRuleMaster {
+        require(sessionExists(sessionId), "Session does not exist");
+        delete sessions[sessionId];
+
+        uint256 length = sessionIds.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (sessionIds[i] == sessionId) {
+                sessionIds[i] = sessionIds[length - 1];
+                sessionIds.pop();
+                break;
+            }
+        }
+        emit SessionDeleted(sessionId);
+    }
+
+    // Add a user to a session
+    function addUserToSession(uint256 sessionId, address user) public onlyRuleMaster {
+        Session storage session = sessions[sessionId];
+        uint256 length = session.users.length;
+        for (uint256 i=0; i < length; i++) {
+            if (session.users[i] == user) revert("User already in session");
+        }
+
+        session.users.push(user);
+        emit UserAddedToSession(sessionId, user);
+    }
+
+    // Remove a user from a session
+    function removeUserFromSession(uint256 sessionId, address user) public onlyRuleMaster {
+        Session storage session = sessions[sessionId];
+        uint256 length = session.users.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (session.users[i] == user) {
+                session.users[i] = session.users[length -1];
+                session.users.pop();
+                emit UserRemovedFromSession(sessionId, user);
                 return;
             }
         }
         revert("User not found in session");
     }
 
-    // Assign a session to a world (must not already belong to any world)
-    function addSessionToWorld(uint256 worldId, uint256 sessionId) public onlyRuleMaster {
-        for (uint256 wid = 0; wid < 10000; wid++) {
-            uint256[] storage sids = worlds[wid];
-            uint256 length = sids.length;
-            for (uint256 i=0;i<length;i++) {
-                require(sids[i] != sessionId, "Session already in World");
-            }
-        }
-
-        worlds[worldId].push(sessionId);
-        emit SessionAddedToWorld(worldId, sessionId);
-    }
-
-    // Remove a session from a world
-    function removeSessionFromWorld(uint256 worldId, uint256 sessionId) public onlyRuleMaster {
-        uint256[] storage sessionIds = worlds[worldId];
-        uint256 length = sessionIds.length;
-        for (uint256 i=0;i<length;i++) {
-            if (sessionIds[i] == sessionId) {
-                sessionIds[i] = sessionIds[length -1];
-                sessionIds.pop();
-                emit SessionRemovedFromWorld(worldId, sessionId);
-                return;
-            }
-        }
-        revert("Session not found in World");
-    }
-
-    // Assign a world to a genre (must not already belong to any genre)
-    function addWorldToGenre(uint256 genreId, uint256 worldId) public onlyRuleMaster {
-        for (uint256 gid = 0; gid < 10000; gid++) {
-            uint256[] storage wids = genres[gid];
-            uint256 length = wids.length;
-            for (uint256 i=0;i<length;i++) {
-                require(wids[i] != worldId, "World already in Genre");
-            }
-        }
-
-        genres[genreId].push(worldId);
-        emit WorldAddedToGenre(genreId, worldId);
-    }
-
-    // Remove a world from a genre
-    function removeWorldFromGenre(uint256 genreId, uint256 worldId) public onlyRuleMaster {
-        uint256[] storage worldIds = genres[genreId];
-        uint256 length = worldIds.length;
-        for (uint256 i = 0; i < length; i++) {
-            if (worldIds[i] == worldId) {
-                worldIds[i] = worldIds[length - 1];
-                worldIds.pop();
-                emit WorldRemovedFromGenre(genreId, worldId);
-                return;
-            }
-        }
-        revert("World not found in Genre");
-    }
-
-    // Create a new proposal (only Rule Master can execute)
+    // Create a new proposal with given scope and duration
     function createProposal(string memory _description, uint256 _duration, uint256 _scope, uint256 _scopeId, uint256 _numOptions) public onlyRuleMaster {
         require(_scope <= 3, "Invalid proposal scope");
         require(_numOptions > 1, "Must have at least 2 voting Options");
@@ -186,16 +166,17 @@ contract TRPG_DAO {
             votes : new uint256[](_numOptions),
             totalVotes: 0,
             proposalScope: _scope,
-            scopeId: _scopeId,
+            scopeId: _scopeId, 
             active: true
         }));
 
         emit ProposalCreated(proposals.length - 1, _description, voteEndTime, _scope, _scopeId);
     }
 
-    // Vote or change vote on a proposal
+    // Vote or update vote on a proposal
     function vote(uint256 _proposalId, uint8 _option) public onlyActiveProposal(_proposalId) {
         Proposal storage proposal = proposals[_proposalId];
+
         require(isEligibleToVote(proposal.proposalScope, proposal.scopeId, msg.sender), "You are not eligible to vote in this proposal");
         require(_option > 0 && _option <= proposal.votes.length, "Invalid option");
 
@@ -209,11 +190,11 @@ contract TRPG_DAO {
         proposal.votes[_option -1]++;
         userVotes[_proposalId][msg.sender] = _option;
 
+        emit Voted(_proposalId, msg.sender, _option);
+
         if (isAllVotesCast(_proposalId)){
             _closeProposal(_proposalId);
         }
-
-        emit Voted(_proposalId, msg.sender, _option);
     }
 
     // Manually close a proposal
@@ -230,63 +211,32 @@ contract TRPG_DAO {
         emit ProposalClosed(_proposalId);
     }
 
-    // Check if a user is eligible to vote based on the scope of the proposal
+    // Check if a user is eligible to vote for a given scope and ID
     function isEligibleToVote(uint256 scope, uint256 scopeId, address user) public view returns (bool) {
-        if (scope == 0) {
-            return true;
-        } else if (scope == 1) {
-            uint256 length = sessions[scopeId].length;
-            for (uint256 i=0; i < length; i++) {
-                if (sessions[scopeId][i] == user) return true;
-            }
-        } else if (scope == 2) {
-            uint256 length = worlds[scopeId].length;
-            for (uint256 i=0; i < length; i++) {
-                if (isEligibleToVote(1, worlds[scopeId][i], user)) return true;
-            }
-        } else if (scope == 3) {
-            uint256 length = genres[scopeId].length;
-            for (uint256 i=0; i < length; i++) {
-                if (isEligibleToVote(2, genres[scopeId][i], user)) return true;
+        if (scope == 0) return true;
+        uint256 length = sessionIds.length;
+        for (uint256 i=0;i<length;i++) {
+            uint256 sessionId = sessionIds[i];
+            Session storage s = sessions[sessionId];
+            if (
+                (scope == 1 && sessionId == scopeId) ||
+                (scope == 2 && s.worldId == scopeId) ||
+                (scope == 3 && s.genreId == scopeId)
+            ) {
+                uint256 uLength = s.users.length;
+                for (uint256 j=0;j<uLength;j++) {
+                    if (s.users[j] == user) return true;
+                }
             }
         }
         return false;
     }
 
-    // Check if all token holders have voted
+    // Check if all eligible users have voted (only for session proposals)
     function isAllVotesCast(uint256 _proposalId) public view returns (bool) {
         Proposal storage proposal = proposals[_proposalId];
-
-        return proposal.totalVotes == getTotalEligibleVoters(proposal.proposalScope, proposal.scopeId);
-    }
-
-    // Calculate total number of users eligible to vote based on scope
-    function getTotalEligibleVoters(uint256 scope, uint256 scopeId) public view returns (uint256) {
-        uint256 total = 0;
-        if (scope == 0) {
-            for (uint256 sid = 0; sid < 10000; sid++) {
-                total += sessions[sid].length;
-            }
-        } else if (scope == 1) {
-            total = sessions[scopeId].length;
-        } else if (scope == 2) {
-            uint256[] memory sessionIds = worlds[scopeId];
-            uint256 length = sessionIds.length;
-            for (uint256 i=0;i<length;i++) {
-                total += sessions[sessionIds[i]].length;
-            }
-        } else if (scope == 3) {
-            uint256[] memory worldIds = genres[scopeId];
-            uint256 wLength = worldIds.length;
-            for (uint256 i=0;i<wLength;i++) {
-                uint256[] memory sessionIds = worlds[worldIds[i]];
-                uint256 sLength = sessionIds.length;
-                for (uint256 j=0;j<sLength;j++) {
-                    total += sessions[sessionIds[j]].length;
-                }
-            }
-        }
-        return total;
+        if (proposal.proposalScope != 1) return false;
+        return proposal.totalVotes == sessions[proposal.scopeId].users.length;
     }
 
     // Get proposal details

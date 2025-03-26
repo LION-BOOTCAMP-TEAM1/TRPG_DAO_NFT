@@ -236,5 +236,5 @@ model ChoiceCondition {
   minWisdom       Int?
   minCharisma     Int?
   minHp           Int?
-  minMp         Int?
+  minMp           Int?
 }
