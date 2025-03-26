@@ -22,3 +22,23 @@ body {
 .LoginStyleTeal {
   @apply flex z-10 absolute transform -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_1.2px_1.2px_rgba(1,1,1,1)] text-teal-400;
 }
+
+.equipment-wrapper {
+  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 50;
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.equipment-wrapper.slide-up {
+  opacity: 1;
+  transform: translateX(0%);
+}
+
+.equipment-wrapper.slide-down {
+  opacity: 0;
+  transform: translateX(100%);
+}
