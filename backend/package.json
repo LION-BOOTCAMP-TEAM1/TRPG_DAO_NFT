@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn src/server.ts",
-    "seed": "ts-node src/seed/seed.ts",
-    "db:sync": "ts-node -e \"import { syncDatabase } from './src/utils/dbSync'; syncDatabase({ forceMigrate: false, seed: false });\"",
-    "db:sync:full": "ts-node -e \"import { syncDatabase } from './src/utils/dbSync'; syncDatabase({ forceMigrate: true, seed: true });\"",
+    "dev": "cross-env ts-node-dev --respawn src/server.ts",
+    "seed": "cross-env ts-node src/seed/seed.ts",
+    "db:sync": "node scripts/dbSync.js --forceMigrate=false --seed=false",
+    "db:sync:full": "node scripts/dbSync.js --forceMigrate=true --seed=true",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
-    "db:status": "prisma migrate status"
+    "db:status": "prisma migrate status",
+    "start": "cross-env NODE_ENV=production ts-node src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/node": "^22.13.10",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "nodemon": "^3.1.9",
     "prisma": "^6.5.0",
@@ -33,6 +35,7 @@
     "express": "^4.21.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "ethers": "^6.13.5"
+    "ethers": "^6.13.5",
+    "path": "^0.12.7"
   }
 }
