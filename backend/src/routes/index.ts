@@ -5,6 +5,9 @@ import characterClassRoutes from './characterclasses';
 import storyRoutes from './stories';
 import questRoutes from './quests';
 import branchpointRoutes from './branchpoints';
+import daoRoutes from './dao';
+import sessionRoutes from './sessions';
+import playerNftRoutes from './playernfts';
 
 const router = express.Router();
 
@@ -21,5 +24,8 @@ router.use('/characterclasses', characterClassRoutes);
 router.use('/stories', storyRoutes);
 router.use('/quests', questRoutes);
 router.use('/branchpoints', branchpointRoutes);
+router.use('/dao', daoRoutes);
+router.use('/sessions', sessionRoutes);
+router.use('/playernfts', playerNftRoutes);
 
 export default router;

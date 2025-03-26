@@ -58,6 +58,41 @@ router.get('/:id', (req, res) => {
 });
 
 // 새 사용자 생성
+/**
+ * @swagger
+ * /api/users:
+ *   post:
+ *     summary: 새로운 사용자를 생성합니다
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - wallet
+ *             properties:
+ *               wallet:
+ *                 type: string
+ *                 description: 사용자 지갑 주소
+ *     responses:
+ *       201:
+ *         description: 생성된 사용자 정보를 반환합니다
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: 사용자 ID
+ *                 walletAddress:
+ *                   type: string
+ *                   description: 사용자 지갑 주소
+ *       400:
+ *         description: 잘못된 요청 (지갑 주소 누락)
+ */
 const createUser = async (req: express.Request, res: express.Response) => {
   const { wallet } = req.body;
 
