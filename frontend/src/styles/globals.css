@@ -27,10 +27,10 @@ body {
   transition: transform 0.4s ease-out, opacity 0.4s ease-out;
   position: fixed;
   bottom: 0;
-  left: 0;
+  right: 0;
   z-index: 50;
   opacity: 0;
-  transform: translateX(-100%);
+  transform: translateX(100%);
 }
 
 .equipment-wrapper.slide-up {
@@ -40,5 +40,5 @@ body {
 
 .equipment-wrapper.slide-down {
   opacity: 0;
-  transform: translateX(-100%);
+  transform: translateX(100%);
 }
