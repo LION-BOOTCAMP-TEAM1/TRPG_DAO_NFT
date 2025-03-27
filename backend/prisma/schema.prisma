@@ -95,6 +95,7 @@ model Story {
   slug            String            @unique // URL 친화적인 고유 식별자 (예: "isekai-summoning")
   title           String // 스토리 제목
   summary         String // 전체적인 이야기 개요
+  imageUrl        String? // 스토리를 설명하는 이미지 URL
   quests          Quest[] // 퀘스트 목록
   createdAt       DateTime          @default(now())
   BranchPoint     BranchPoint[]

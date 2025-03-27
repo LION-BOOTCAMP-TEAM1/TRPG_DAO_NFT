@@ -19,6 +19,61 @@
     "text": "🌶️ 향신료 상인에게 말을 건다",
     "nextStorySlug": "merchant-quest-intro"
   },
+
+  {
+    "slug": "accept-spice-request",
+    "questSlug": "spice-delivery-decision",
+    "text": "📦 의심 없이 상인의 부탁을 수락한다",
+    "nextStorySlug": "spice-delivery-route"
+  },
+  {
+    "slug": "reject-merchant",
+    "questSlug": "spice-delivery-decision",
+    "text": "🙅 상인의 제안을 정중히 거절한다",
+    "nextStorySlug": "merchant-displeased"
+  },
+  {
+    "slug": "investigate-package",
+    "questSlug": "spice-delivery-decision",
+    "text": "🔍 몰래 패키지를 조사한다",
+    "nextStorySlug": "contraband-discovered",
+    "conditions": {
+      "minIntelligence": 6
+    }
+  },
+
+  {
+    "slug": "give-silently",
+    "questSlug": "delivery-completion-decision",
+    "text": "🤐 아무 말 없이 꾸러미를 건넨다",
+    "nextStorySlug": "shady-deal-complete"
+  },
+  {
+    "slug": "ask-questions",
+    "questSlug": "delivery-completion-decision",
+    "text": "❓ 물건의 정체를 묻는다",
+    "nextStorySlug": "suspicious-response",
+    "conditions": {
+      "minWisdom": 6
+    }
+  },
+  {
+    "slug": "sneak-and-follow",
+    "questSlug": "delivery-completion-decision",
+    "text": "👣 몰래 뒤를 밟는다",
+    "nextStorySlug": "following-the-dealer",
+    "conditions": {
+      "minAgility": 6
+    }
+  },
+
+  {
+    "slug": "hand-package-silently",
+    "questSlug": "spice-delivery-route",
+    "text": "😶 아무 말 없이 꾸러미를 건넨다",
+    "nextStorySlug": "shady-deal-complete"
+  },
+  
   {
     "slug": "observe-secret-deal",
     "questSlug": "explore-market",
@@ -32,7 +87,6 @@
     "nextStorySlug": "bard-performance"
   },
 
-  
   {
     "slug": "report-to-guard",
     "questSlug": "first-city-encounter",

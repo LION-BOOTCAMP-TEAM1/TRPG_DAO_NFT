@@ -6,5 +6,13 @@
     "description": "플레이어들은 어디에서 깨어나야 하는가? 이 선택은 이후 스토리의 분위기와 방향성에 영향을 미친다.",
     "status": "OPEN",
     "daoVoteId": "dao-vote-001"
+  },
+  {
+    "slug": "expose-or-hide-cult",
+    "storyId": "cult-stirring",
+    "title": "이교도의 진실",
+    "description": "왕국에 진실을 폭로할 것인가, 아니면 이교도의 존재를 숨기고 더 많은 정보를 얻을 것인가?",
+    "status": "open",
+    "daoVoteId": "dao-vote-002"
   }
 ]
