@@ -11,6 +11,38 @@ function slugify(text: string): string {
     .replace(/ +/g, '-'); // 공백을 하이픈으로 변환
 }
 
+// ID 또는 슬러그로 퀘스트를 찾는 유틸리티 함수
+async function findQuestByIdOrSlug(idOrSlug: string) {
+  // 숫자인지 확인
+  const isNumber = /^\d+$/.test(idOrSlug);
+  
+  if (isNumber) {
+    return await prisma.quest.findUnique({
+      where: { id: Number(idOrSlug) }
+    });
+  } else {
+    return await prisma.quest.findUnique({
+      where: { slug: idOrSlug }
+    });
+  }
+}
+
+// ID 또는 슬러그로 스토리를 찾는 유틸리티 함수
+async function findStoryByIdOrSlug(idOrSlug: string) {
+  // 숫자인지 확인
+  const isNumber = /^\d+$/.test(idOrSlug);
+  
+  if (isNumber) {
+    return await prisma.story.findUnique({
+      where: { id: Number(idOrSlug) }
+    });
+  } else {
+    return await prisma.story.findUnique({
+      where: { slug: idOrSlug }
+    });
+  }
+}
+
 /**
  * @swagger
  * /api/quests:
@@ -29,6 +61,8 @@ function slugify(text: string): string {
  *                 properties:
  *                   id:
  *                     type: integer
+ *                   slug:
+ *                     type: string
  *                   storyId:
  *                     type: integer
  *                   title:
@@ -47,17 +81,17 @@ const getQuests = async (req: express.Request, res: express.Response) => {
 
 /**
  * @swagger
- * /api/quests/{id}:
+ * /api/quests/{idOrSlug}:
  *   get:
  *     summary: 특정 퀘스트 정보를 조회합니다
  *     tags: [Quests]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: idOrSlug
  *         required: true
  *         schema:
- *           type: integer
- *         description: 퀘스트 ID
+ *           type: string
+ *         description: 퀘스트 ID 또는 Slug
  *     responses:
  *       200:
  *         description: 퀘스트 정보를 반환합니다
@@ -65,21 +99,24 @@ const getQuests = async (req: express.Request, res: express.Response) => {
  *         description: 퀘스트를 찾을 수 없습니다
  */
 const getQuest = async (req: express.Request, res: express.Response) => {
-  const { id } = req.params;
+  const { idOrSlug } = req.params;
   
   try {
-    const quest = await prisma.quest.findUnique({
-      where: { id: Number(id) },
-      include: {
-        choices: true
-      }
-    });
+    const quest = await findQuestByIdOrSlug(idOrSlug);
     
     if (!quest) {
       return res.status(404).json({ error: 'Quest not found' });
     }
     
-    res.json(quest);
+    // 선택지 포함하여 반환
+    const questWithChoices = await prisma.quest.findUnique({
+      where: { id: quest.id },
+      include: {
+        choices: true
+      }
+    });
+    
+    res.json(questWithChoices);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch quest' });
   }
@@ -98,16 +135,20 @@ const getQuest = async (req: express.Request, res: express.Response) => {
  *           schema:
  *             type: object
  *             required:
- *               - storyId
+ *               - storyIdOrSlug
  *               - title
  *               - description
  *             properties:
- *               storyId:
- *                 type: integer
+ *               storyIdOrSlug:
+ *                 type: string
+ *                 description: 스토리 ID 또는 슬러그
  *               title:
  *                 type: string
  *               description:
  *                 type: string
+ *               slug:
+ *                 type: string
+ *                 description: 커스텀 슬러그 (없으면 제목에서 자동 생성)
  *     responses:
  *       201:
  *         description: 퀘스트 생성 성공
@@ -115,17 +156,15 @@ const getQuest = async (req: express.Request, res: express.Response) => {
  *         description: 입력 데이터 오류
  */
 const createQuest = async (req: express.Request, res: express.Response) => {
-  const { storyId, title, description } = req.body;
+  const { storyIdOrSlug, title, description } = req.body;
   
-  if (!storyId || !title || !description) {
-    return res.status(400).json({ error: 'StoryId, title and description are required' });
+  if (!storyIdOrSlug || !title || !description) {
+    return res.status(400).json({ error: 'StoryIdOrSlug, title and description are required' });
   }
   
   try {
     // 스토리가 존재하는지 확인
-    const story = await prisma.story.findUnique({
-      where: { id: Number(storyId) }
-    });
+    const story = await findStoryByIdOrSlug(storyIdOrSlug);
     
     if (!story) {
       return res.status(404).json({ error: 'Story not found' });
@@ -133,7 +172,7 @@ const createQuest = async (req: express.Request, res: express.Response) => {
     
     const newQuest = await prisma.quest.create({
       data: {
-        storyId: Number(storyId),
+        storyId: story.id,
         title,
         description,
         slug: req.body.slug || slugify(title)
@@ -149,17 +188,17 @@ const createQuest = async (req: express.Request, res: express.Response) => {
 
 /**
  * @swagger
- * /api/quests/{id}/choices:
+ * /api/quests/{idOrSlug}/choices:
  *   post:
  *     summary: 퀘스트에 새 선택지를 추가합니다
  *     tags: [Quests]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: idOrSlug
  *         required: true
  *         schema:
- *           type: integer
- *         description: 퀘스트 ID
+ *           type: string
+ *         description: 퀘스트 ID 또는 Slug
  *     requestBody:
  *       required: true
  *       content:
@@ -171,8 +210,12 @@ const createQuest = async (req: express.Request, res: express.Response) => {
  *             properties:
  *               text:
  *                 type: string
- *               nextStoryId:
- *                 type: integer
+ *               nextStoryIdOrSlug:
+ *                 type: string
+ *                 description: 다음 스토리의 ID 또는 슬러그
+ *               slug:
+ *                 type: string
+ *                 description: 커스텀 슬러그 (없으면 선택지 텍스트에서 자동 생성)
  *     responses:
  *       201:
  *         description: 선택지 추가 성공
@@ -180,8 +223,8 @@ const createQuest = async (req: express.Request, res: express.Response) => {
  *         description: 퀘스트를 찾을 수 없습니다
  */
 const addChoice = async (req: express.Request, res: express.Response) => {
-  const { id } = req.params;
-  const { text, nextStoryId } = req.body;
+  const { idOrSlug } = req.params;
+  const { text, nextStoryIdOrSlug } = req.body;
   
   if (!text) {
     return res.status(400).json({ error: 'Choice text is required' });
@@ -189,19 +232,26 @@ const addChoice = async (req: express.Request, res: express.Response) => {
   
   try {
     // 퀘스트가 존재하는지 확인
-    const quest = await prisma.quest.findUnique({
-      where: { id: Number(id) }
-    });
+    const quest = await findQuestByIdOrSlug(idOrSlug);
     
     if (!quest) {
       return res.status(404).json({ error: 'Quest not found' });
     }
     
+    // 다음 스토리 ID 찾기 (제공된 경우)
+    let nextStoryId = null;
+    if (nextStoryIdOrSlug) {
+      const nextStory = await findStoryByIdOrSlug(nextStoryIdOrSlug);
+      if (nextStory) {
+        nextStoryId = nextStory.id;
+      }
+    }
+    
     const newChoice = await prisma.choice.create({
       data: {
-        questId: Number(id),
+        questId: quest.id,
         text,
-        nextStoryId: nextStoryId ? Number(nextStoryId) : null,
+        nextStoryId,
         slug: req.body.slug || slugify(text)
       }
     });
@@ -215,8 +265,8 @@ const addChoice = async (req: express.Request, res: express.Response) => {
 
 // 라우터에 핸들러 연결
 router.get('/', getQuests as RequestHandler);
-router.get('/:id', getQuest as RequestHandler);
+router.get('/:idOrSlug', getQuest as RequestHandler);
 router.post('/', createQuest as RequestHandler);
-router.post('/:id/choices', addChoice as RequestHandler);
+router.post('/:idOrSlug/choices', addChoice as RequestHandler);
 
 export default router; 
