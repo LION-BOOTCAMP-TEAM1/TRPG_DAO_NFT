@@ -69,10 +69,63 @@ async function findStoryByIdOrSlug(idOrSlug: string) {
  *                     type: string
  *                   description:
  *                     type: string
+ *                   choices:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         questId:
+ *                           type: integer
+ *                         text:
+ *                           type: string
+ *                         nextStoryId:
+ *                           type: integer
+ *                         nextStorySlug:
+ *                           type: string
  */
 const getQuests = async (req: express.Request, res: express.Response) => {
   try {
-    const quests = await prisma.quest.findMany();
+    const quests = await prisma.quest.findMany({
+      include: {
+        choices: true // 선택지도 함께 가져오기
+      }
+    });
+    
+    // 모든 퀘스트에 대해 처리
+    if (quests.length > 0) {
+      // 모든 선택지의 nextStoryId를 수집
+      const storyIds = quests
+        .flatMap(q => q.choices)
+        .filter(choice => choice && choice.nextStoryId !== null)
+        .map(choice => choice.nextStoryId as number);
+      
+      // 중복 제거 (Set 사용)
+      const uniqueStoryIds = [...new Set(storyIds)];
+      
+      if (uniqueStoryIds.length > 0) {
+        // 관련된 모든 스토리를 한 번의 쿼리로 가져오기
+        const stories = await prisma.story.findMany({
+          where: { id: { in: uniqueStoryIds } },
+          select: { id: true, slug: true }
+        });
+        
+        // ID를 키로 사용하는 맵 생성
+        const storyMap = new Map(stories.map(story => [story.id, story.slug]));
+        
+        // 각 퀘스트의 각 선택지에 nextStorySlug 추가
+        quests.forEach(quest => {
+          if (quest.choices && quest.choices.length > 0) {
+            quest.choices = quest.choices.map(choice => ({
+              ...choice,
+              nextStorySlug: choice.nextStoryId ? storyMap.get(choice.nextStoryId) || null : null
+            }));
+          }
+        });
+      }
+    }
+    
     res.json(quests);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch quests' });
@@ -95,6 +148,36 @@ const getQuests = async (req: express.Request, res: express.Response) => {
  *     responses:
  *       200:
  *         description: 퀘스트 정보를 반환합니다
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 slug:
+ *                   type: string
+ *                 storyId:
+ *                   type: integer
+ *                 title:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 choices:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       questId:
+ *                         type: integer
+ *                       text:
+ *                         type: string
+ *                       nextStoryId:
+ *                         type: integer
+ *                       nextStorySlug:
+ *                         type: string
  *       404:
  *         description: 퀘스트를 찾을 수 없습니다
  */
@@ -115,6 +198,34 @@ const getQuest = async (req: express.Request, res: express.Response) => {
         choices: true
       }
     });
+    
+    // 각 Choice에 대해 nextStorySlug 추가
+    if (questWithChoices && questWithChoices.choices && questWithChoices.choices.length > 0) {
+      // 유효한 nextStoryId만 필터링
+      const storyIds = questWithChoices.choices
+        .filter(choice => choice.nextStoryId !== null)
+        .map(choice => choice.nextStoryId as number);
+      
+      if (storyIds.length > 0) {
+        // 관련된 모든 스토리를 한 번의 쿼리로 가져오기
+        const stories = await prisma.story.findMany({
+          where: { id: { in: storyIds } },
+          select: { id: true, slug: true }
+        });
+        
+        // ID를 키로 사용하는 맵 생성
+        const storyMap = new Map(stories.map(story => [story.id, story.slug]));
+        
+        // 각 선택지에 nextStorySlug 추가
+        const enhancedChoices = questWithChoices.choices.map(choice => ({
+          ...choice,
+          nextStorySlug: choice.nextStoryId ? storyMap.get(choice.nextStoryId) || null : null
+        }));
+        
+        // 원래 객체에 업데이트된 선택지 배열 할당
+        questWithChoices.choices = enhancedChoices;
+      }
+    }
     
     res.json(questWithChoices);
   } catch (error) {
