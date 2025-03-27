@@ -3,87 +3,20 @@
 /**const API_URL = 'localhost:5001'
 `${API_URL}` */
 
-import { ethers, JsonRpcSigner } from 'ethers';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState } from 'react';
+
+import { useEffect } from 'react';
+import useWallet from '../hook/useWallet';
 
 export default function LoginClient() {
-  const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
-  const [walletExist, setWalletExist] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  //Wallet Address Read
-  const connectWallet = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    try {
-      if (!window.ethereum) {
-        alert('MetaMask is not installed.');
-        return;
-      }
-
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const newSigner = await provider.getSigner();
-      setSigner(newSigner);
-
-      const address = await newSigner.getAddress();
-      console.log('wallet address', address);
-
-      const response = await fetch('http://localhost:5001/api/users', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: address }),
-      });
-
-      if (response.ok) {
-        const users = await response.json();
-        const userExist = users.some(
-          (user: { walletAddress: string }) => user.walletAddress === address,
-        );
-
-        setWalletExist(userExist);
-        alert('Success Connect!');
-      } else {
-        const data = await response.json();
-        alert('Failed to save wallet address: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Metamask connecting Error', error);
-    }
-  };
-
-  //Wallet Address Register
-  const registerWalletAddress = async () => {
-    if (!signer) return;
-
-    setLoading(true);
-    const address = await signer.getAddress();
-
-    try {
-      const response = await fetch('http://localhost:5001/api/users/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: address }),
-      });
-
-      if (response.ok) {
-        alert('Wallet Address Successfully Resistered.');
-        setWalletExist(true);
-      } else {
-        const data = await response.json();
-        alert('Failed to Register Wallet Address.' + data.error);
-        console.log(data);
-      }
-    } catch (error) {
-      console.error('Registering Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const disconncet = () => setSigner(null);
+  const {
+    connectWallet,
+    registerWalletAddress,
+    disconnect,
+    signer,
+    walletExist,
+    loading,
+  } = useWallet();
 
   useEffect(() => {
     if (!signer) return;
@@ -91,6 +24,22 @@ export default function LoginClient() {
 
   return (
     <div>
+      {/* 로그인 페이지 이미지 */}
+      <div className="absolute z-2 imgst">
+        <img src="/image.png" alt="Background" />
+      </div>
+
+      {/* 로그인 페이지 텍스트 */}
+      <div className="homest">
+        <h1 className="text-5xl font-bold italic text-center ">
+          Another World Adventure
+        </h1>
+        <p className="mt-4 text-center font-bold italic text-2xl">
+          Welcome to the TRPG DAO NFT project.
+        </p>
+      </div>
+
+      {/* 로그인 + 스타트 */}
       <div className="LoginStyleWhite  top-6/10 left-1/2">
         <h1 className="text-6xl font-bold italic ">
           {signer ? (
@@ -106,12 +55,13 @@ export default function LoginClient() {
         </h1>
       </div>
 
+      {/* 지갑 등록 후 */}
       {signer ? (
         <div>
           <div className="LoginStyleTeal top-13/15 left-1/2">
             <button
               className="text-2xl cursor-pointer font-bold italic hover:underline"
-              onClick={disconncet}
+              onClick={disconnect}
             >
               Disconncet Wallet
             </button>
@@ -140,6 +90,7 @@ export default function LoginClient() {
         </div>
       )}
 
+      {/* 지갑 등록 전 */}
       {!walletExist && signer && (
         <div
           className="LoginStyleTeal top-6/10 left-1/2"
@@ -155,6 +106,7 @@ export default function LoginClient() {
         </div>
       )}
 
+      {/*Footer*/}
       <footer className="LoginStyleWhite top-99/100 left-1/2  gap-4">
         <p>LLB6&copy;2025 </p>
         <button className="cursor-pointer">·Privacy</button>

@@ -8,7 +8,7 @@
 }
 
 body {
-  font-family: 'continuous', sans-serif;
+  font-family: sans-serif;
 }
 
 .bgs {
@@ -21,4 +21,42 @@ body {
 
 .LoginStyleTeal {
   @apply flex z-10 absolute transform -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_1.2px_1.2px_rgba(1,1,1,1)] text-teal-400;
+}
+
+.imgst {
+  @apply w-full h-full flex justify-center items-center;
+}
+
+.homest {
+  @apply z-10 absolute top-10 left-1/2 transform -translate-x-1/2 w-full max-w-5xl items-center text-white drop-shadow-[0_1.2px_1.2px_rgba(1,1,1,1)];
+}
+
+html {
+  background-color: white;
+  color: black;
+}
+
+html.dark {
+  background-color: #1b1d25;
+  color: white;
+}
+
+.equipment-wrapper {
+  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 50;
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.equipment-wrapper.slide-up {
+  opacity: 1;
+  transform: translateX(0%);
+}
+
+.equipment-wrapper.slide-down {
+  opacity: 0;
+  transform: translateX(100%);
 }
