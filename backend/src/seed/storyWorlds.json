@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "fantasy-isekai",
+    "title": "판타지 이세계",
+    "description": "알 수 없는 힘에 의해 다른 세계로 소환된 당신. 신비로운 마법과 낯선 종족이 살아가는 이세계에서 펼쳐지는 모험을 경험하세요.",
+    "coverImage": "https://picsum.photos/id/1018/800/600"
+  },
+  {
+    "slug": "medieval-kingdom",
+    "title": "중세 왕국",
+    "description": "기사와 성, 왕과 기사단이 존재하는 중세 세계. 왕국의 정치와 음모 속에서 자신의 길을 찾아가는 이야기를 만들어보세요.",
+    "coverImage": "https://picsum.photos/id/1040/800/600"
+  },
+  {
+    "slug": "dark-fantasy",
+    "title": "어둠의 판타지",
+    "description": "빛이 사라진 세계, 어둠과 공포가 지배하는 땅. 괴물과 불길한 존재들 사이에서 살아남기 위한 처절한 여정이 시작됩니다.",
+    "coverImage": "https://picsum.photos/id/1025/800/600"
+  }
+]

@@ -2,16 +2,18 @@
   {
     "slug": "isekai-summoning",
     "title": "이세계로의 소환",
-    "summary": "당신은 알 수 없는 힘에 의해 이세계로 소환되었다. 이제 당신의 운명을 선택해야 한다."
+    "summary": "당신은 알 수 없는 힘에 의해 이세계로 소환되었다. 이제 당신의 운명을 선택해야 한다.",
+    "quests": [],
+    "imageUrl": "/static/images/stories/isekai-summoning-story.png"
   },
 
   {
     "slug": "royal-plain",
     "title": "왕국 근처 평원",
     "summary": "당신은 왕국 외곽 평원에 떨어졌다. 멀리 성과 깃발이 보이고, 기병대가 당신에게 다가온다.",
-    "quests": ["meet-royal-guards"]
+    "quests": ["meet-royal-guards"],
+    "imageUrl": "/static/images/stories/royal-plain-story.png"
   },
-
 
   {
     "slug": "royal-city-gate",
@@ -25,6 +27,34 @@
     "title": "왕국 시장",
     "summary": "활기찬 왕국 시장. 사람들의 웃음소리와 상인들의 외침이 어우러져 있다. 이곳에서 정보를 수집하거나, 거래를 시도할 수 있다.",
     "quests": ["explore-market"]
+  },
+
+  {
+    "slug": "merchant-quest-intro",
+    "title": "수상한 향신료 상인",
+    "summary": "향신료 상인은 당신에게 다가와 친근하게 말을 걸며 은밀한 부탁을 꺼낸다. 그의 의도는 명확하지 않아, 당신은 이 의뢰를 수락할지 거절할지, 아니면 패키지를 몰래 조사할지 고민하게 된다.",
+    "quests": ["spice-delivery-decision"]
+  },
+
+  {
+    "slug": "spice-delivery-route",
+    "title": "전달 임무",
+    "summary": "당신은 향신료 상인의 꾸러미를 들고 북쪽 성벽 근처의 목적지로 향한다. 수상한 인물과의 만남이 기다리고 있다.",
+    "quests": ["delivery-completion-decision"]
+  },
+
+  {
+    "slug": "shady-deal-complete",
+    "title": "수상한 거래 완료",
+    "summary": "당신은 말없이 꾸러미를 건넨다. 외눈박이 남자는 고개를 끄덕이고, 아무 말 없이 사라진다. 무엇인가 찜찜한 기분이 남는다.",
+    "quests": ["cult-stirring"]
+  },
+
+  {
+    "slug": "cult-stirring",
+    "title": "분열의 전조",
+    "summary": "수상한 거래 이후, 당신은 마을의 수군거림과 불길한 기운을 감지한다. 도시 곳곳에서 이교도의 상징이 퍼지고 있다.",
+    "quests": []
   },
 
   {

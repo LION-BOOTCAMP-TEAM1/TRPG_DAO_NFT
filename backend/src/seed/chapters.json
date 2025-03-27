@@ -1,0 +1,30 @@
+[
+  {
+    "slug": "chapter-1-awakening",
+    "storySlugs": ["isekai-summoning"],
+    "title": "각성의 시작",
+    "description": "깊은 잠에서 깨어난 당신은 이세계에 소환되어 낯선 땅에 떨어진다. 이제 이 세계에서의 운명을 선택해야 한다.",
+    "sequence": 1,
+    "imageUrl": "/static/images/chapters/isekai-summoning.png"
+  },
+  {
+    "slug": "chapter-2-contact-with-kingdom",
+    "storySlugs": ["royal-city-gate", "royal-market", "royal-guard-post"],
+    "title": "왕국과의 첫 접촉",
+    "description": "왕국의 병사들과의 조우, 그리고 왕국 사회와의 첫 만남. 당신은 도시에 적응해가며 중요한 결정을 내리게 된다.",
+    "sequence": 2,
+    "imageUrl": ""
+  },
+  {
+    "slug": "chapter-3-paths-diverge",
+    "storySlugs": [
+      "merchant-quest-intro",
+      "black-market-lead",
+      "bard-performance"
+    ],
+    "title": "분기된 길",
+    "description": "시장에서의 선택이 당신을 새로운 운명으로 이끈다. 각자의 클래스와 선택에 따라 이야기가 갈라진다.",
+    "sequence": 3,
+    "imageUrl": ""
+  }
+]
