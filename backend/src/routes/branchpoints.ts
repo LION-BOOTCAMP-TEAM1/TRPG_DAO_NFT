@@ -3,6 +3,22 @@ import prisma from '../prismaClient';
 
 const router = express.Router();
 
+// ID 또는 슬러그로 분기점을 찾는 유틸리티 함수
+async function findBranchPointByIdOrSlug(idOrSlug: string) {
+  // 숫자인지 확인
+  const isNumber = /^\d+$/.test(idOrSlug);
+  
+  if (isNumber) {
+    return await prisma.branchPoint.findUnique({
+      where: { id: Number(idOrSlug) }
+    });
+  } else {
+    return await prisma.branchPoint.findUnique({
+      where: { slug: idOrSlug }
+    });
+  }
+}
+
 /**
  * @swagger
  * /api/branchpoints:
@@ -77,9 +93,7 @@ const getAllBranchPoints = async (_req: Request, res: Response) => {
  *         name: idOrSlug
  *         required: true
  *         schema:
- *           oneOf:
- *             - type: integer
- *             - type: string
+ *           type: string
  *         description: 분기점 ID 또는 슬러그
  *     responses:
  *       200:
@@ -134,42 +148,28 @@ const getAllBranchPoints = async (_req: Request, res: Response) => {
  *         description: 서버 오류
  */
 const getBranchPoint = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { idOrSlug } = req.params;
 
   try {
-    let branchPoint;
+    // ID 또는 슬러그로 분기점 기본 정보 찾기
+    const branchPointBase = await findBranchPointByIdOrSlug(idOrSlug);
     
-    // ID가 숫자인지 확인 (이전 코드와의 호환성을 위해)
-    if (!isNaN(Number(id)) && String(Number(id)) === id) {
-      branchPoint = await prisma.branchPoint.findUnique({
-        where: { id: Number(id) },
-        include: {
-          BranchPointScene: {
-            orderBy: {
-              order: 'asc'
-            }
-          },
-          DAOChoice: true // DAO 선택지도 함께 가져오기
-        }
-      });
-    } else {
-      // slug로 검색
-      branchPoint = await prisma.branchPoint.findUnique({
-        where: { slug: id }, // id 매개변수는 실제로 slug 값입니다
-        include: {
-          BranchPointScene: {
-            orderBy: {
-              order: 'asc'
-            }
-          },
-          DAOChoice: true // DAO 선택지도 함께 가져오기
-        }
-      });
-    }
-
-    if (!branchPoint) {
+    if (!branchPointBase) {
       return res.status(404).json({ error: '분기점을 찾을 수 없습니다' });
     }
+    
+    // 찾은 분기점의 ID로 상세 정보 조회
+    const branchPoint = await prisma.branchPoint.findUnique({
+      where: { id: branchPointBase.id },
+      include: {
+        BranchPointScene: {
+          orderBy: {
+            order: 'asc'
+          }
+        },
+        DAOChoice: true // DAO 선택지도 함께 가져오기
+      }
+    });
 
     res.json(branchPoint);
   } catch (error) {
@@ -179,7 +179,7 @@ const getBranchPoint = async (req: Request, res: Response) => {
 };
 
 // 라우터에 핸들러 연결
-router.get('/:id', getBranchPoint as RequestHandler);
+router.get('/:idOrSlug', getBranchPoint as RequestHandler);
 router.get('/', getAllBranchPoints as RequestHandler);
 
 export default router; 

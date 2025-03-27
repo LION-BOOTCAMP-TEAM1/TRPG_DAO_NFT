@@ -3,6 +3,26 @@ import prisma from '../prismaClient';
 
 const router = express.Router();
 
+// ID 또는 슬러그로 세션을 찾는 유틸리티 함수
+async function findSessionByIdOrSlug(idOrSlug: string) {
+  // 숫자인지 확인
+  const isNumber = /^\d+$/.test(idOrSlug);
+  
+  if (isNumber) {
+    return await prisma.session.findUnique({
+      where: { id: Number(idOrSlug) }
+    });
+  }
+  // 세션에는 현재 슬러그 필드가 없으므로, ID만 지원합니다.
+  // 향후 슬러그 필드가 추가되면 아래와 같이 수정 가능합니다:
+  // else {
+  //   return await prisma.session.findUnique({
+  //     where: { slug: idOrSlug }
+  //   });
+  // }
+  return null;
+}
+
 /**
  * @swagger
  * /api/sessions:
@@ -52,17 +72,17 @@ const getSessions = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/sessions/{id}:
+ * /api/sessions/{idOrSlug}:
  *   get:
  *     summary: 특정 세션 정보를 조회합니다
  *     tags: [Sessions]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: idOrSlug
  *         required: true
  *         schema:
- *           type: integer
- *         description: 세션 ID
+ *           type: string
+ *         description: 세션 ID (또는 향후 슬러그)
  *     responses:
  *       200:
  *         description: 세션 정보를 반환합니다
@@ -72,11 +92,19 @@ const getSessions = async (req: Request, res: Response) => {
  *         description: 서버 오류
  */
 const getSession = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { idOrSlug } = req.params;
 
   try {
+    // ID 또는 슬러그로 세션 기본 정보 찾기
+    const sessionBase = await findSessionByIdOrSlug(idOrSlug);
+    
+    if (!sessionBase) {
+      return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
+    }
+    
+    // 찾은 세션의 ID로 상세 정보 조회
     const session = await prisma.session.findUnique({
-      where: { id: Number(id) },
+      where: { id: sessionBase.id },
       include: {
         users: {
           select: {
@@ -98,10 +126,6 @@ const getSession = async (req: Request, res: Response) => {
         }
       }
     });
-
-    if (!session) {
-      return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
-    }
 
     res.json(session);
   } catch (error) {
@@ -211,17 +235,17 @@ const createSession = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/sessions/{id}/status:
+ * /api/sessions/{idOrSlug}/status:
  *   put:
  *     summary: 세션의 DAO 상태를 업데이트합니다
  *     tags: [Sessions]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: idOrSlug
  *         required: true
  *         schema:
- *           type: integer
- *         description: 세션 ID
+ *           type: string
+ *         description: 세션 ID (또는 향후 슬러그)
  *     requestBody:
  *       required: true
  *       content:
@@ -246,7 +270,7 @@ const createSession = async (req: Request, res: Response) => {
  *         description: 서버 오류
  */
 const updateSessionStatus = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { idOrSlug } = req.params;
   const { status } = req.body;
 
   const validStatuses = ['IDLE', 'VOTING', 'RESOLVED'];
@@ -255,8 +279,15 @@ const updateSessionStatus = async (req: Request, res: Response) => {
   }
 
   try {
+    // ID 또는 슬러그로 세션 기본 정보 찾기
+    const sessionBase = await findSessionByIdOrSlug(idOrSlug);
+    
+    if (!sessionBase) {
+      return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
+    }
+
     const sessionProgress = await prisma.sessionProgress.findUnique({
-      where: { sessionId: Number(id) }
+      where: { sessionId: sessionBase.id }
     });
 
     if (!sessionProgress) {
@@ -264,7 +295,7 @@ const updateSessionStatus = async (req: Request, res: Response) => {
     }
 
     const updatedProgress = await prisma.sessionProgress.update({
-      where: { sessionId: Number(id) },
+      where: { sessionId: sessionBase.id },
       data: { daoStatus: status }
     });
 
@@ -277,17 +308,17 @@ const updateSessionStatus = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/sessions/{id}/progress:
+ * /api/sessions/{idOrSlug}/progress:
  *   put:
  *     summary: 세션의 스토리 진행 상태를 업데이트합니다
  *     tags: [Sessions]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: idOrSlug
  *         required: true
  *         schema:
- *           type: integer
- *         description: 세션 ID
+ *           type: string
+ *         description: 세션 ID (또는 향후 슬러그)
  *     requestBody:
  *       required: true
  *       content:
@@ -309,7 +340,7 @@ const updateSessionStatus = async (req: Request, res: Response) => {
  *         description: 서버 오류
  */
 const updateSessionProgress = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { idOrSlug } = req.params;
   const { questId } = req.body;
 
   if (!questId) {
@@ -317,8 +348,15 @@ const updateSessionProgress = async (req: Request, res: Response) => {
   }
 
   try {
+    // ID 또는 슬러그로 세션 기본 정보 찾기
+    const sessionBase = await findSessionByIdOrSlug(idOrSlug);
+    
+    if (!sessionBase) {
+      return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
+    }
+
     const sessionProgress = await prisma.sessionProgress.findUnique({
-      where: { sessionId: Number(id) }
+      where: { sessionId: sessionBase.id }
     });
 
     if (!sessionProgress) {
@@ -335,7 +373,7 @@ const updateSessionProgress = async (req: Request, res: Response) => {
     }
 
     const updatedProgress = await prisma.sessionProgress.update({
-      where: { sessionId: Number(id) },
+      where: { sessionId: sessionBase.id },
       data: { currentQuestId: Number(questId) }
     });
 
@@ -348,9 +386,9 @@ const updateSessionProgress = async (req: Request, res: Response) => {
 
 // 라우터에 핸들러 연결
 router.get('/', getSessions as RequestHandler);
-router.get('/:id', getSession as RequestHandler);
+router.get('/:idOrSlug', getSession as RequestHandler);
 router.post('/', createSession as RequestHandler);
-router.put('/:id/status', updateSessionStatus as RequestHandler);
-router.put('/:id/progress', updateSessionProgress as RequestHandler);
+router.put('/:idOrSlug/status', updateSessionStatus as RequestHandler);
+router.put('/:idOrSlug/progress', updateSessionProgress as RequestHandler);
 
 export default router; 
