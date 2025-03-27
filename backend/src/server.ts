@@ -5,6 +5,7 @@ import prisma from './prismaClient';
 import { setupSwagger } from './config/swagger';
 import apiRoutes from './routes';
 import { syncDatabase } from './utils/dbSync';
+import path from 'path';
 
 dotenv.config();
 
@@ -20,6 +21,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// 정적 파일 제공 설정
+app.use('/static', express.static(path.join(__dirname, '../static')));
 
 setupSwagger(app);
 

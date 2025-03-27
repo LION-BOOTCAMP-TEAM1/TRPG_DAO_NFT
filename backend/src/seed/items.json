@@ -1,0 +1,83 @@
+[
+  {
+    "code": "healing-potion",
+    "name": "치유의 물약",
+    "description": "사용 시 체력을 10 회복합니다.",
+    "imageUrl": "",
+    "rarity": "COMMON",
+    "itemType": "CONSUMABLE",
+    "useEffect": "체력 +10 회복",
+    "isConsumable": true
+  },
+  {
+    "code": "mana-potion",
+    "name": "마나 물약",
+    "description": "사용 시 마나를 10 회복합니다.",
+    "imageUrl": "",
+    "rarity": "COMMON",
+    "itemType": "CONSUMABLE",
+    "useEffect": "마나 +10 회복",
+    "isConsumable": true
+  },
+  {
+    "code": "iron-sword",
+    "name": "철제 검",
+    "description": "기본적인 철제 검입니다. 견고하고 안정적인 무기입니다.",
+    "imageUrl": "",
+    "rarity": "COMMON",
+    "itemType": "WEAPON",
+    "statBonus": {"strength": 2},
+    "isConsumable": false
+  },
+  {
+    "code": "leather-armor",
+    "name": "가죽 갑옷",
+    "description": "가벼운 가죽 갑옷으로, 기본적인 방어력을 제공합니다.",
+    "imageUrl": "",
+    "rarity": "COMMON",
+    "itemType": "ARMOR",
+    "statBonus": {"health": 1, "agility": 1},
+    "isConsumable": false
+  },
+  {
+    "code": "magic-staff",
+    "name": "마법 지팡이",
+    "description": "기본적인 마법 지팡이로 마법 공격력을 높여줍니다.",
+    "imageUrl": "",
+    "rarity": "UNCOMMON",
+    "itemType": "WEAPON",
+    "statBonus": {"intelligence": 3},
+    "isConsumable": false
+  },
+  {
+    "code": "mystic-amulet",
+    "name": "신비한 부적",
+    "description": "고대의 힘이 깃든 부적으로, 지혜와 마력을 높여줍니다.",
+    "imageUrl": "",
+    "rarity": "RARE",
+    "itemType": "ACCESSORY",
+    "statBonus": {"wisdom": 2, "intelligence": 2},
+    "isConsumable": false
+  },
+  {
+    "code": "ancient-relic",
+    "name": "고대의 유물",
+    "description": "고대 문명의 유물로, 특별한 힘을 지니고 있습니다.",
+    "imageUrl": "",
+    "rarity": "EPIC",
+    "itemType": "QUEST_ITEM",
+    "isConsumable": false,
+    "isNFT": true
+  },
+  {
+    "code": "legendary-blade",
+    "name": "전설의 검",
+    "description": "영웅들의 이름이 새겨진 전설의 검으로, 엄청난 힘을 지니고 있습니다.",
+    "imageUrl": "",
+    "rarity": "LEGENDARY",
+    "itemType": "WEAPON",
+    "statBonus": {"strength": 5, "charisma": 2},
+    "isConsumable": false,
+    "isNFT": true
+  }
+] 

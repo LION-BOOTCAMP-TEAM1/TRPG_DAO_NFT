@@ -12,6 +12,9 @@ import branchPointScenes from './branchPointScenes.json';
 import daoChoices from './daoChoices.json';
 import storyProgress from './storyProgress.json';
 import rewards from './rewards.json';
+import storyWorlds from './storyWorlds.json';
+import chapters from './chapters.json';
+import items from './items.json';
 
 const prisma = new PrismaClient();
 
@@ -92,6 +95,43 @@ type BranchPointScene = {
   text: string;
 };
 
+// 추가: StoryWorld 타입 정의
+type StoryWorld = {
+  id?: number;
+  slug: string;
+  title: string;
+  description: string;
+  coverImage?: string;
+};
+
+// 챕터 타입 정의
+type Chapter = {
+  id?: number;
+  slug: string;
+  storySlug: string;
+  storyId?: number;
+  title: string;
+  description: string;
+  sequence: number;
+  imageUrl: string;
+  questSlugs?: string[];
+};
+
+// 아이템 타입 정의
+type Item = {
+  id?: number;
+  code: string;
+  name: string;
+  description: string;
+  imageUrl?: string;
+  rarity: string;
+  itemType: string;
+  useEffect?: string;
+  statBonus?: Record<string, number>;
+  isConsumable: boolean;
+  isNFT?: boolean;
+};
+
 async function main() {
   console.log('시작: 데이터베이스 시딩...');
   console.log(
@@ -104,9 +144,51 @@ async function main() {
   try {
     // 트랜잭션 내에서 모든 작업 수행
     await prisma.$transaction(async (tx) => {
-      // 1. 스토리 추가
+      // 0. 스토리 세계관(StoryWorld) 추가
+      console.log('스토리 세계관 데이터 추가 중...');
+      for (const storyWorld of storyWorlds as unknown as StoryWorld[]) {
+        await tx.storyWorld.upsert({
+          where: { 
+            slug: storyWorld.slug
+          },
+          update: {
+            title: storyWorld.title,
+            description: storyWorld.description,
+            coverImage: storyWorld.coverImage,
+          },
+          create: {
+            slug: storyWorld.slug,
+            title: storyWorld.title,
+            description: storyWorld.description,
+            coverImage: storyWorld.coverImage,
+          },
+        });
+      }
+
+      // 스토리월드 슬러그 -> ID 매핑 구축
+      const allStoryWorlds = await tx.storyWorld.findMany();
+      const storyWorldSlugToId = new Map();
+      for (const storyWorld of allStoryWorlds) {
+        storyWorldSlugToId.set(storyWorld.slug, storyWorld.id);
+      }
+
+      // 1. 스토리 추가 (스토리월드 연결)
       console.log('스토리 데이터 추가 중...');
       for (const story of stories as unknown as Story[]) {
+        // 이세계 관련 스토리는 fantasy-isekai 세계관으로 설정
+        let storyWorldId = null;
+        if (story.slug.includes('isekai')) {
+          storyWorldId = storyWorldSlugToId.get('fantasy-isekai');
+        } 
+        // 왕국 관련 스토리는 medieval-kingdom 세계관으로 설정
+        else if (story.slug.includes('royal') || story.slug.includes('kingdom')) {
+          storyWorldId = storyWorldSlugToId.get('medieval-kingdom');
+        }
+        // 어둡거나 야생 관련 스토리는 dark-fantasy 세계관으로 설정
+        else if (story.slug.includes('dark') || story.slug.includes('wild')) {
+          storyWorldId = storyWorldSlugToId.get('dark-fantasy');
+        }
+
         // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
         await tx.story.upsert({
           where: { 
@@ -116,11 +198,13 @@ async function main() {
             title: story.title,
             summary: story.summary,
             slug: story.slug || slugify(story.title),
+            storyWorldId: storyWorldId,
           },
           create: {
             title: story.title,
             summary: story.summary,
             slug: story.slug || slugify(story.title),
+            storyWorldId: storyWorldId,
           },
         });
       }
@@ -133,7 +217,51 @@ async function main() {
         storySlugToId.set(story.slug, story.id);
       }
 
-      // 2. 퀘스트 추가
+      // 1.5 챕터 추가
+      console.log('챕터 데이터 추가 중...');
+      for (const chapter of chapters as unknown as Chapter[]) {
+        const storyId =
+          chapter.storyId ||
+          (chapter.storySlug ? storySlugToId.get(chapter.storySlug) : null);
+
+        if (!storyId) {
+          console.warn(
+            `스토리를 찾을 수 없음 (ID: ${chapter.storyId || '없음'}, slug: ${chapter.storySlug || '없음'}). 챕터 건너뜀: ${chapter.slug}`
+          );
+          continue;
+        }
+
+        await tx.chapter.upsert({
+          where: { 
+            slug: chapter.slug 
+          },
+          update: {
+            storyId: storyId,
+            title: chapter.title,
+            description: chapter.description,
+            sequence: chapter.sequence,
+            imageUrl: chapter.imageUrl,
+          },
+          create: {
+            slug: chapter.slug,
+            storyId: storyId,
+            title: chapter.title,
+            description: chapter.description,
+            sequence: chapter.sequence,
+            imageUrl: chapter.imageUrl,
+          },
+        });
+      }
+
+      // 챕터 슬러그 -> ID 매핑 구축
+      const allChapters = await tx.chapter.findMany();
+      const chapterSlugToId = new Map();
+      for (const chapter of allChapters) {
+        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
+        chapterSlugToId.set(chapter.slug, chapter.id);
+      }
+
+      // 2. 퀘스트 추가 (챕터 연결 추가)
       console.log('퀘스트 데이터 추가 중...');
       for (const quest of quests as unknown as Quest[]) {
         const storyId =
@@ -147,20 +275,32 @@ async function main() {
           continue;
         }
 
+        // 퀘스트가 속한 챕터 찾기
+        let chapterId = null;
+        for (const chapter of chapters as unknown as Chapter[]) {
+          if (chapter.questSlugs && chapter.questSlugs.includes(quest.slug)) {
+            chapterId = chapterSlugToId.get(chapter.slug);
+            break;
+          }
+        }
+
         // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
         await tx.quest.upsert({
-          where: { slug: quest.slug || slugify(quest.title) },
+          where: { 
+            slug: quest.slug 
+          },
           update: {
-            storyId,
+            storyId: storyId,
+            chapterId: chapterId, // 챕터 연결
             title: quest.title,
             description: quest.description,
-            slug: quest.slug || slugify(quest.title),
           },
           create: {
-            storyId,
+            storyId: storyId,
+            chapterId: chapterId, // 챕터 연결
+            slug: quest.slug,
             title: quest.title,
             description: quest.description,
-            slug: quest.slug || slugify(quest.title),
           },
         });
       }
@@ -373,6 +513,39 @@ async function main() {
             branchPoint: {
               connect: { id: branchPointId }
             }
+          },
+        });
+      }
+
+      // 아이템 데이터 추가
+      console.log('아이템 데이터 추가 중...');
+      for (const item of items as unknown as Item[]) {
+        await tx.item.upsert({
+          where: { 
+            code: item.code 
+          },
+          update: {
+            name: item.name,
+            description: item.description,
+            imageUrl: item.imageUrl,
+            rarity: item.rarity,
+            itemType: item.itemType,
+            useEffect: item.useEffect,
+            statBonus: item.statBonus as any,
+            isConsumable: item.isConsumable,
+            isNFT: item.isNFT || false,
+          },
+          create: {
+            code: item.code,
+            name: item.name,
+            description: item.description,
+            imageUrl: item.imageUrl,
+            rarity: item.rarity,
+            itemType: item.itemType,
+            useEffect: item.useEffect,
+            statBonus: item.statBonus as any,
+            isConsumable: item.isConsumable,
+            isNFT: item.isNFT || false,
           },
         });
       }
