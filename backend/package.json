@@ -13,7 +13,11 @@
     "db:reset": "prisma migrate reset",
     "db:status": "prisma migrate status",
     "start": "cross-env NODE_ENV=production ts-node src/server.ts",
-    "db:prisma:generate": "prisma generate"
+    "db:prisma:generate": "prisma generate",
+    "db:init-and-seed": "npm run db:reset && npm run seed",
+    "db:fresh": "prisma migrate reset --force && npm run seed",
+    "dev:with-seed": "npm run seed && npm run dev",
+    "setup-and-dev": "npm run db:prisma:generate && npm run db:migrate && npm run seed && npm run dev"
   },
   "keywords": [],
   "author": "",
