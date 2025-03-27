@@ -34,6 +34,7 @@ type Story = {
   summary: string;
   quests?: string[];
   branchPoints?: string[];
+  imageUrl?: string;
 };
 
 type Quest = {
@@ -200,12 +201,14 @@ async function main() {
             summary: story.summary,
             slug: story.slug || slugify(story.title),
             storyWorldId: storyWorldId,
+            imageUrl: story.imageUrl,
           },
           create: {
             title: story.title,
             summary: story.summary,
             slug: story.slug || slugify(story.title),
             storyWorldId: storyWorldId,
+            imageUrl: story.imageUrl,
           },
         });
       }
