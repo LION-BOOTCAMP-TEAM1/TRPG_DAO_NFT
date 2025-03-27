@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
-import ThemeProvider from '../components/ThemeProvider';
-import '../../styles/globals.css';
-import Header from '../components/Header';
+import ThemeProvider from '../../components/ThemeProvider';
+import '../../../styles/globals.css';
+import Header from '../../components/Header';
 import Link from 'next/link';
-import useWallet from '../hook/useWallet';
+import useWallet from '../../hook/useWallet';
 
 export default function HomePage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -57,14 +57,14 @@ export default function HomePage() {
 
           {/* main footer */}
           <footer className="py-7 ">
-            <Link href={'/playpage'}>
-              <button className="bg-sky-300 px-3 pb-1 rounded-xl text-3xl font-bold border border-gray-400 drop-shadow-[0_1.2px_1.2px_rgba(1,1,1,1)] hover:bg-sky-500 cursor-pointer">
-                play
+            <Link href={'/pages/playpage'}>
+              <button className="w-30 cursor-pointer hover:bg-gray-200 rounded-2xl">
+                <img src="/playbutton.png" />
               </button>
             </Link>
           </footer>
           <div className="border-b-1 border-gray-200 py-5">
-            <img src="/Name.png" alt="name" className="w-400 h-20"></img>
+            <img src="/Name.png" alt="name" className="w-400 h-20" />
           </div>
         </main>
       </div>

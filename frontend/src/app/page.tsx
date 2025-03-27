@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import HomePage from './home/page';
+import HomePage from './pages/home/page';
 
 const metadata: Metadata = {
   title: 'Another World Adventure',
