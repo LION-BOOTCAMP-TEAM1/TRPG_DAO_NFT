@@ -155,6 +155,8 @@ model ChapterProgress {
   currentQuestId Int?
   completed      Boolean  @default(false)
   lastUpdated    DateTime @updatedAt
+
+  @@unique([userId, chapterId])
 }
 
 model Quest {
