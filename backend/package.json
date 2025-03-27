@@ -7,12 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "cross-env ts-node-dev --respawn src/server.ts",
     "seed": "cross-env ts-node src/seed/seed.ts",
-    "db:sync": "ts-node scripts/dbSync.ts --forceMigrate=false --seed=false",
-    "db:sync:full": "ts-node scripts/dbSync.ts --forceMigrate=true --seed=true",
+    "db:sync": "npm run db:prisma:generate && ts-node scripts/dbSync.ts --forceMigrate=false --seed=false",
+    "db:sync:full": "npm run db:prisma:generate && ts-node scripts/dbSync.ts --forceMigrate=true --seed=true",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:status": "prisma migrate status",
-    "start": "cross-env NODE_ENV=production ts-node src/server.ts"
+    "start": "cross-env NODE_ENV=production ts-node src/server.ts",
+    "db:prisma:generate": "prisma generate"
   },
   "keywords": [],
   "author": "",
