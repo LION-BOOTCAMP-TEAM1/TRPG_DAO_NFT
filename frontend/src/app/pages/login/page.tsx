@@ -6,7 +6,7 @@
 import Link from 'next/link';
 
 import { useEffect } from 'react';
-import useWallet from '../hook/useWallet';
+import useWallet from '../../hook/useWallet';
 
 export default function LoginClient() {
   const {

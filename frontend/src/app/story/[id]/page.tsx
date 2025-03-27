@@ -8,6 +8,6 @@ export const metadata: Metadata = {
   description: 'Select The NFT And Story',
 };
 
-export default function StoryPage() {
+export default function StoryDetailPage() {
   return <DetailClient />;
 }
