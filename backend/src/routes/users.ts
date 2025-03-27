@@ -70,16 +70,28 @@ router.get("/:id", (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - wallet
  *             properties:
  *               wallet:
  *                 type: string
- *                 description: 사용자의 지갑 주소
- *                 example: "0x1234567890abcdef"
+ *                 description: 사용자 지갑 주소
  *     responses:
  *       201:
- *         description: 새 사용자가 생성되었습니다
+ *         description: 생성된 사용자 정보를 반환합니다
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: 사용자 ID
+ *                 walletAddress:
+ *                   type: string
+ *                   description: 사용자 지갑 주소
  *       400:
- *         description: 지갑 주소가 제공되지 않았습니다
+ *         description: 잘못된 요청 (지갑 주소 누락)
  */
 const createUser = async (req: express.Request, res: express.Response) => {
   const { wallet } = req.body;
@@ -89,11 +101,13 @@ const createUser = async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const newUser = await prisma.user.create({
-    data: { walletAddress: wallet },
+  const user = await prisma.user.upsert({
+    where: { walletAddress: wallet },
+    update: {}, // 업데이트할 내용이 없으면 빈 객체
+    create: { walletAddress: wallet },
   });
 
-  res.status(201).json(newUser);
+  res.status(201).json(user);
 };
 
 // 라우터에 핸들러 연결

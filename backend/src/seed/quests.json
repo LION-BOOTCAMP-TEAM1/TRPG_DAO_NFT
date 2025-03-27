@@ -21,5 +21,27 @@
     "title": "시장 탐방",
     "description": "당신은 시장을 자유롭게 돌아다닌다. 사람들과 대화하거나 흥미로운 아이템을 살펴볼 수 있다.",
     "choices": ["talk-to-spice-merchant", "observe-secret-deal", "join-market-show"]
+  },
+
+  {
+    "slug": "spice-delivery-decision",
+    "storySlug": "merchant-quest-intro",
+    "title": "향신료 상인의 의뢰",
+    "description": "상인의 부탁을 수락할지, 정중히 거절할지, 아니면 몰래 패키지를 조사할지 결정해야 한다. 이 선택은 이후 스토리 진행과 캐릭터의 평판에 영향을 준다.",
+    "choices": [
+      "accept-spice-request",
+      "reject-merchant",
+      "investigate-package"
+    ]
+  },
+
+  {
+    "slug": "delivery-completion-decision",
+    "storySlug": "spice-delivery-route",
+    "title": "전달 직전의 결단",
+    "description": "외눈박이 남자에게 꾸러미를 건네기 직전, 당신은 결정을 내려야 한다. 아무 말 없이 건네줄 것인가, 묻거나 추적할 것인가?",
+    "choices": ["give-silently", "ask-questions", "sneak-and-follow"]
   }
+
+
 ]
