@@ -34,16 +34,16 @@ const getStory = async (req: express.Request, res: express.Response) => {
           include: {
             BranchPointScene: {
               orderBy: {
-                order: 'asc'
-              }
+                order: 'asc',
+              },
             },
-            DAOChoice: true
-          }
+            DAOChoice: true,
+          },
         },
         StoryScene: {
           orderBy: {
-            sequence: 'asc'
-          }
+            sequence: 'asc',
+          },
         },
       },
     });
@@ -89,16 +89,16 @@ const getStoryBySlug = async (req: express.Request, res: express.Response) => {
           include: {
             BranchPointScene: {
               orderBy: {
-                order: 'asc'
-              }
+                order: 'asc',
+              },
             },
-            DAOChoice: true
-          }
+            DAOChoice: true,
+          },
         },
         StoryScene: {
           orderBy: {
-            sequence: 'asc'
-          }
+            sequence: 'asc',
+          },
         },
       },
     });
