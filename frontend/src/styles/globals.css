@@ -63,10 +63,19 @@ html.dark {
   transform: translateX(100%);
 }
 
+
+.homemsst {
+  @apply cursor-pointer hover:text-gray-500;
+}
+
+.modalst {
+  @apply flex flex-row gap-2 hover:bg-gray-100 rounded-2xl px-5 cursor-pointer border-1 border-gray-200 mb-2;
+=======
 .story-list-feature-wrapper {
   @apply p-10 bg-white rounded-lg shadow text-center;
 }
 
 .story-list-h1 {
   @apply text-2xl font-bold text-[#3e2d1c] drop-shadow-md;
+
 }
