@@ -53,7 +53,11 @@ const getStory = async (req: express.Request, res: express.Response) => {
     const story = await prisma.story.findUnique({
       where: { id: storyBase.id },
       include: {
-        quests: true,
+        quests: {
+          include: {
+            choices: true
+          }
+        },
         BranchPoint: {
           include: {
             BranchPointScene: {

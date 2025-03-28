@@ -16,17 +16,17 @@
   },
 
   {
-    "branchPointId": "expose-or-hide-cult",
+    "branchPointSlug": "expose-or-hide-cult",
     "order": 1,
     "text": "수상한 조직의 흔적은 점점 명확해진다. 일부 주민은 두려움에 떨며 당신에게 소문을 전해준다."
   },
   {
-    "branchPointId": "expose-or-hide-cult",
+    "branchPointSlug": "expose-or-hide-cult",
     "order": 2,
     "text": "그러나 이 조직이 진짜 위협인지, 아니면 단순한 괴담인지는 아직 불분명하다."
   },
   {
-    "branchPointId": "expose-or-hide-cult",
+    "branchPointSlug": "expose-or-hide-cult",
     "order": 3,
     "text": "당신은 이 사실을 왕국에 알릴 것인가, 아니면 좀 더 지켜볼 것인가?"
   }
