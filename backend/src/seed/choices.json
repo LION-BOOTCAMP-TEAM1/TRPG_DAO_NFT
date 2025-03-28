@@ -73,7 +73,7 @@
     "text": "😶 아무 말 없이 꾸러미를 건넨다",
     "nextStorySlug": "shady-deal-complete"
   },
-  
+
   {
     "slug": "observe-secret-deal",
     "questSlug": "explore-market",
@@ -112,6 +112,53 @@
     "conditions": {
       "classOnly": "bard",
       "minCharisma": 6
+    }
+  },
+
+  {
+    "slug": "follow-initiation-ritual",
+    "questSlug": "cult-initiation-test",
+    "text": "🔥 의식을 따라하며 완전히 동화되는 척한다",
+    "nextStorySlug": "ritual-chamber"
+  },
+  {
+    "slug": "resist-and-escape",
+    "questSlug": "cult-initiation-test",
+    "text": "🏃‍♂️ 위기의 순간 탈출을 시도한다",
+    "nextStorySlug": "alleyway-chase",
+    "conditions": {
+      "minAgility": 7
+    }
+  },
+  {
+    "slug": "secretly-observe",
+    "questSlug": "cult-initiation-test",
+    "text": "👀 몰래 그들의 의식을 관찰하며 정보를 모은다",
+    "nextStorySlug": "cult-archives",
+    "conditions": {
+      "minIntelligence": 6
+    }
+  },
+  
+  {
+    "slug": "swear-to-cult",
+    "questSlug": "ritual-decision",
+    "text": "🩸 신에게 충성을 맹세한다",
+    "nextStorySlug": "blood-oath-bound"
+  },
+  {
+    "slug": "refuse-ritual",
+    "questSlug": "ritual-decision",
+    "text": "❌ 의식을 거부하고 도망친다",
+    "nextStorySlug": "exposed-infiltrator"
+  },
+  {
+    "slug": "pretend-and-escape",
+    "questSlug": "ritual-decision",
+    "text": "🎭 몰래 빠져나갈 타이밍을 노린다",
+    "nextStorySlug": "stealth-escape",
+    "conditions": {
+      "minAgility": 6
     }
   }
 ]
