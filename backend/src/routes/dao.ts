@@ -43,6 +43,30 @@ const getDAOChoices = async (req: Request, res: Response) => {
       orderBy: { id: 'asc' }
     });
 
+    // 각 DAOChoice에 nextStorySlug 추가 처리
+    if (daoChoices && daoChoices.length > 0) {
+      // 모든 nextStoryId를 수집
+      const storyIds = daoChoices.map(choice => choice.nextStoryId);
+      
+      // 관련된 모든 스토리를 한 번의 쿼리로 가져오기
+      const stories = await prisma.story.findMany({
+        where: { id: { in: storyIds } },
+        select: { id: true, slug: true }
+      });
+      
+      // ID를 키로 사용하는 맵 생성
+      const storyMap = new Map(stories.map(story => [story.id, story.slug]));
+      
+      // 각 선택지에 nextStorySlug 추가
+      const enhancedChoices = daoChoices.map(choice => ({
+        ...choice,
+        nextStorySlug: storyMap.get(choice.nextStoryId) || null
+      }));
+      
+      // 업데이트된 선택지 반환
+      return res.json(enhancedChoices);
+    }
+
     res.json(daoChoices);
   } catch (error) {
     console.error('DAO 선택지 조회 오류:', error);

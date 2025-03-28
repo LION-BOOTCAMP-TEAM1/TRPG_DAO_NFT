@@ -9,10 +9,10 @@
   },
   {
     "slug": "expose-or-hide-cult",
-    "storyId": "cult-stirring",
+    "storySlug": "cult-stirring",
     "title": "이교도의 진실",
-    "description": "왕국에 진실을 폭로할 것인가, 아니면 이교도의 존재를 숨기고 더 많은 정보를 얻을 것인가?",
-    "status": "open",
+    "description": "왕국에 진실을 폭로할 것인가, 아니면 이교도의 존재를 숨기고 더 많은 정보를 얻을 것인가? 커뮤니티의 선택이 세계의 흐름을 바꾼다.",
+    "status": "OPEN",
     "daoVoteId": "dao-vote-002"
   }
 ]
