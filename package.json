@@ -25,7 +25,14 @@
     "db:migrate": "cd backend && npm run db:migrate",
     "db:reset": "cd backend && npm run db:reset",
     "db:status": "cd backend && npm run db:status",
-    "db:update": "cd backend && npx prisma generate && npx prisma migrate dev && npm run seed"
+    "db:update": "cd backend && npx prisma generate && npx prisma migrate dev && npm run seed",
+    "dev:with-seed": "npm run seed && npm run dev",
+    "setup-and-dev": "npm run prisma:generate && npm run prisma:migrate && npm run seed && npm run dev",
+    "db:fresh-and-dev": "npm run db:reset && npm run seed && npm run dev",
+    "db:fix": "cd backend && npm run db:fix",
+    "db:fix:clean": "cd backend && npm run db:fix:clean",
+    "db:fix:reset": "cd backend && npm run db:fix:reset",
+    "db:fix:force": "cd backend && npm run db:fix:force"
   },
   "prisma": {
     "seed": "ts-node backend/prisma/seed.ts"
