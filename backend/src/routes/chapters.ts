@@ -3,6 +3,22 @@ import prisma from '../prismaClient';
 
 const router = express.Router();
 
+// ID 또는 슬러그로 챕터를 찾는 유틸리티 함수
+async function findChapterByIdOrSlug(idOrSlug: string) {
+  // 숫자인지 확인
+  const isNumber = /^\d+$/.test(idOrSlug);
+  
+  if (isNumber) {
+    return await prisma.chapter.findUnique({
+      where: { id: Number(idOrSlug) }
+    });
+  } else {
+    return await prisma.chapter.findUnique({
+      where: { slug: idOrSlug }
+    });
+  }
+}
+
 /**
  * @swagger
  * /api/chapters:
@@ -100,17 +116,17 @@ const getChapters = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/chapters/{slug}:
+ * /api/chapters/{idOrSlug}:
  *   get:
- *     summary: slug로 특정 챕터 정보를 조회합니다
+ *     summary: 특정 챕터 정보를 조회합니다
  *     tags: [Chapters]
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: idOrSlug
  *         required: true
  *         schema:
  *           type: string
- *         description: 챕터 Slug
+ *         description: 챕터 ID 또는 슬러그
  *     responses:
  *       200:
  *         description: 챕터 정보를 반환합니다
@@ -119,13 +135,21 @@ const getChapters = async (req: Request, res: Response) => {
  *       500:
  *         description: 서버 오류
  */
-const getChapterBySlug = async (req: Request, res: Response) => {
+const getChapter = async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
+    const { idOrSlug } = req.params;
 
+    // ID 또는 슬러그로 챕터 기본 정보 찾기
+    const chapterBase = await findChapterByIdOrSlug(idOrSlug);
+    
+    if (!chapterBase) {
+      return res.status(404).json({ error: 'Chapter not found' });
+    }
+
+    // 찾은 챕터의 ID로 상세 정보 조회
     const chapter = await prisma.chapter.findUnique({
       where: {
-        slug,
+        id: chapterBase.id,
       },
       include: {
         story: {
@@ -142,10 +166,6 @@ const getChapterBySlug = async (req: Request, res: Response) => {
       },
     });
 
-    if (!chapter) {
-      return res.status(404).json({ error: 'Chapter not found' });
-    }
-
     res.json(chapter);
   } catch (error) {
     console.error('Error fetching chapter:', error);
@@ -155,17 +175,17 @@ const getChapterBySlug = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/chapters/{slug}/stories:
+ * /api/chapters/{idOrSlug}/stories:
  *   get:
  *     summary: 특정 챕터와 연관된 스토리를 조회합니다
  *     tags: [Chapters]
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: idOrSlug
  *         required: true
  *         schema:
  *           type: string
- *         description: 챕터 Slug
+ *         description: 챕터 ID 또는 슬러그
  *       - in: query
  *         name: includeScenesAndQuests
  *         schema:
@@ -181,15 +201,12 @@ const getChapterBySlug = async (req: Request, res: Response) => {
  */
 const getChapterStories = async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
+    const { idOrSlug } = req.params;
     const { includeScenesAndQuests } = req.query;
 
-    // First get the chapter to ensure it exists
-    const chapter = await prisma.chapter.findUnique({
-      where: { slug },
-      select: { id: true, storyId: true },
-    });
-
+    // ID 또는 슬러그로 챕터 기본 정보 찾기
+    const chapter = await findChapterByIdOrSlug(idOrSlug);
+    
     if (!chapter) {
       return res.status(404).json({ error: 'Chapter not found' });
     }
@@ -240,17 +257,17 @@ const getChapterStories = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/chapters/{slug}/progress:
+ * /api/chapters/{idOrSlug}/progress:
  *   post:
  *     summary: 사용자의 챕터 진행 상황을 추적합니다
  *     tags: [Chapters]
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: idOrSlug
  *         required: true
  *         schema:
  *           type: string
- *         description: 챕터 Slug
+ *         description: 챕터 ID 또는 슬러그
  *     requestBody:
  *       required: true
  *       content:
@@ -281,19 +298,16 @@ const getChapterStories = async (req: Request, res: Response) => {
  */
 const updateChapterProgress = async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
+    const { idOrSlug } = req.params;
     const { userId, currentQuestId, completed } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
-    // Find the chapter
-    const chapter = await prisma.chapter.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
-
+    // ID 또는 슬러그로 챕터 기본 정보 찾기
+    const chapter = await findChapterByIdOrSlug(idOrSlug);
+    
     if (!chapter) {
       return res.status(404).json({ error: 'Chapter not found' });
     }
@@ -329,8 +343,8 @@ const updateChapterProgress = async (req: Request, res: Response) => {
 
 // 라우터에 핸들러 연결
 router.get('/', getChapters as RequestHandler);
-router.get('/:slug', getChapterBySlug as RequestHandler);
-router.get('/:slug/stories', getChapterStories as RequestHandler);
-router.post('/:slug/progress', updateChapterProgress as RequestHandler);
+router.get('/:idOrSlug', getChapter as RequestHandler);
+router.get('/:idOrSlug/stories', getChapterStories as RequestHandler);
+router.post('/:idOrSlug/progress', updateChapterProgress as RequestHandler);
 
 export default router;

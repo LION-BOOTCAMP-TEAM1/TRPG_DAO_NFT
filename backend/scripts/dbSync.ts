@@ -25,39 +25,21 @@ console.log(
 // 현재 실행 플랫폼 확인
 const isWindows: boolean = process.platform === 'win32';
 
-// TypeScript 실행 명령 (Windows의 경우 .cmd 확장자 필요)
-const tsNodeCmd: string = isWindows ? 'ts-node.cmd' : 'ts-node';
-
-// dbSync 모듈 경로 (OS에 맞게 경로 구분자 처리)
-const dbSyncPath: string = './src/utils/dbSync';
+// 대신 실행파일로 만듭니다
+const syncFile = path.join(__dirname, 'runSync.ts');
 
 // 명령 실행
 let syncProcess: ChildProcess;
 
 try {
-  // 플랫폼에 따라 다른 방식으로 명령 실행
-  if (isWindows) {
-    // Windows에서는 명령줄 문자열로 실행
-    const command: string = `${tsNodeCmd} -e "import { syncDatabase } from '${dbSyncPath}'; syncDatabase({ forceMigrate: ${forceMigrate}, seed: ${seed} });"`;
-
-    syncProcess = spawn(command, [], {
+  syncProcess = spawn(
+    isWindows ? 'ts-node.cmd' : 'ts-node',
+    [syncFile, forceMigrate ? '--forceMigrate=true' : '--forceMigrate=false', seed ? '--seed=true' : '--seed=false'],
+    {
       stdio: 'inherit',
       shell: true,
-    });
-  } else {
-    // Unix에서는 배열 인자로 실행
-    syncProcess = spawn(
-      tsNodeCmd,
-      [
-        '-e',
-        `import { syncDatabase } from '${dbSyncPath}'; syncDatabase({ forceMigrate: ${forceMigrate}, seed: ${seed} });`,
-      ],
-      {
-        stdio: 'inherit',
-        shell: true,
-      }
-    );
-  }
+    }
+  );
 
   syncProcess.on('error', (err: Error) => {
     console.error('프로세스 실행 중 오류 발생:', err);
