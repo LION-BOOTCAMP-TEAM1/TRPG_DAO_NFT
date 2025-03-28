@@ -6,7 +6,7 @@ module.exports = {
   paths: {
     sources: "./",
     cache: "./cache",
-    artifacts: "./artifacts"
+    artifacts: "./artifacts",
   },
   networks: {
     hardhat: {}, // 로컬 네트워크

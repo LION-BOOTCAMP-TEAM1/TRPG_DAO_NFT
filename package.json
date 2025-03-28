@@ -11,7 +11,8 @@
   "scripts": {
     "frontend": "cd frontend && npm run dev",
     "backend": "cd backend && npm run dev",
-    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "blockchain": "cd blockchain && npx hardhat node",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\" \"npm run blockchain\"",
     "build": "cd frontend && npm run build",
     "start": "cd frontend && npm run start",
     "lint:frontend": "cd frontend && npm run lint",
@@ -32,7 +33,8 @@
     "db:fix": "cd backend && npm run db:fix",
     "db:fix:clean": "cd backend && npm run db:fix:clean",
     "db:fix:reset": "cd backend && npm run db:fix:reset",
-    "db:fix:force": "cd backend && npm run db:fix:force"
+    "db:fix:force": "cd backend && npm run db:fix:force",
+    "deploy:dao": "cd blockchain && node scripts/dao.js"
   },
   "prisma": {
     "seed": "ts-node backend/prisma/seed.ts"
