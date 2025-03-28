@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Story } from '../types/story';
+'use client';
 
-export function useStoryScenePlayback(story: Story | null) {
+import { useEffect, useState, useCallback } from 'react';
+import { StoryScene } from '../types/story';
+
+export function useScenePlayback(scenes: StoryScene[] = []) {
   const [sceneIndex, setSceneIndex] = useState(0);
   const [displayedScenes, setDisplayedScenes] = useState<string[]>([]);
   const [currentText, setCurrentText] = useState('');
@@ -9,14 +11,14 @@ export function useStoryScenePlayback(story: Story | null) {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && story) {
-        const fullTexts = story.StoryScene.map((scene) => scene.text);
+      if (e.key === 'Escape') {
+        const fullTexts = scenes.map((scene) => scene.text);
         setDisplayedScenes(fullTexts);
         setCurrentText('');
-        setSceneIndex(story.StoryScene.length);
+        setSceneIndex(scenes.length);
       }
     },
-    [story],
+    [scenes],
   );
 
   useEffect(() => {
@@ -25,8 +27,8 @@ export function useStoryScenePlayback(story: Story | null) {
   }, [handleKeyDown]);
 
   useEffect(() => {
-    if (!story || sceneIndex >= story.StoryScene.length) return;
-    const currentScene = story.StoryScene[sceneIndex];
+    if (!scenes || sceneIndex >= scenes.length) return;
+    const currentScene = scenes[sceneIndex];
     let charIndex = 0;
     let interval: NodeJS.Timeout;
     let timeout: NodeJS.Timeout;
@@ -58,13 +60,11 @@ export function useStoryScenePlayback(story: Story | null) {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [sceneIndex, story, isSkipping]);
+  }, [sceneIndex, scenes, isSkipping]);
 
-  const isSceneComplete =
-    story && sceneIndex >= story.StoryScene.length && currentText === '';
+  const isSceneComplete = sceneIndex >= scenes.length && currentText === '';
 
   return {
-    sceneIndex,
     displayedScenes,
     currentText,
     setIsSkipping,

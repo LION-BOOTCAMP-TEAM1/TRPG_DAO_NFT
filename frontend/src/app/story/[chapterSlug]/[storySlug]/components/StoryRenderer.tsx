@@ -1,6 +1,6 @@
-import BranchPointList from './BranchPointList';
 import QuestList from './QuestList';
-import { Quest, BranchPoint } from '@/app/story/[id]/types/story';
+import BranchPointList from './BranchPointList';
+import { BranchPoint, Quest } from '../types/story';
 
 interface Props {
   isSceneComplete: boolean;
@@ -9,12 +9,14 @@ interface Props {
 }
 
 const StoryRenderer = ({ isSceneComplete, quests, branchPoints }: Props) => {
+  if (!isSceneComplete) return null;
+
   return (
     <>
-      {isSceneComplete && branchPoints.length > 0 && (
+      {branchPoints.length > 0 && (
         <BranchPointList branchPoints={branchPoints} />
       )}
-      {isSceneComplete && quests.length > 0 && <QuestList quests={quests} />}
+      {quests.length > 0 && <QuestList quests={quests} />}
     </>
   );
 };
