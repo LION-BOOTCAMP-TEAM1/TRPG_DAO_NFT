@@ -2,7 +2,7 @@
 
 import { Metadata } from 'next';
 import DetailClient from './DetailClient';
-import CharacterStat from '../../characterStat/CharacterStat';
+import CharacterStat from '../../../characterStat/CharacterStat';
 
 export const metadata: Metadata = {
   title: 'Story Detail',
