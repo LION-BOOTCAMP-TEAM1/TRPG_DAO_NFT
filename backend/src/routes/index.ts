@@ -9,6 +9,8 @@ import daoRoutes from './dao';
 import sessionRoutes from './sessions';
 import playerNftRoutes from './playernfts';
 import storyWorldRoutes from './storyWorlds';
+import chapterRoutes from './chapters';
+
 
 const router = express.Router();
 
@@ -29,5 +31,7 @@ router.use('/dao', daoRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/playernfts', playerNftRoutes);
 router.use('/story-worlds', storyWorldRoutes);
+router.use('/chapters', chapterRoutes);
+
 
 export default router;

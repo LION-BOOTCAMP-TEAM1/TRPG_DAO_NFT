@@ -68,7 +68,11 @@ html.dark {
 }
 
 .modalst {
+
   @apply flex items-center gap-2 p-2 rounded-2xl hover:bg-gray-100 cursor-pointer text-xs;
+
+  @apply flex flex-row gap-2 hover:bg-gray-100 rounded-2xl px-5 cursor-pointer border-1 border-gray-200 mb-2;
+
 }
 .story-list-feature-wrapper {
   @apply p-10 bg-white rounded-lg shadow text-center;
@@ -76,6 +80,7 @@ html.dark {
 
 .story-list-h1 {
   @apply text-2xl font-bold text-[#3e2d1c] drop-shadow-md;
+
 }
 
 .classst {
@@ -84,4 +89,5 @@ html.dark {
 
 .MST {
   @apply border px-2 py-1 rounded-2xl cursor-pointer hover:bg-sky-100 transition text-xl;
+
 }
