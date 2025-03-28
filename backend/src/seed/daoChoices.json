@@ -16,14 +16,14 @@
   },
 
   {
-    "branchPointId": "expose-or-hide-cult",
+    "branchPointSlug": "expose-or-hide-cult",
     "text": "⚖️ 왕국에 이교도의 존재를 알린다",
-    "nextStoryId": "reveal-the-truth"
+    "nextStorySlug": "reveal-the-truth"
   },
   {
-    "branchPointId": "expose-or-hide-cult",
+    "branchPointSlug": "expose-or-hide-cult",
     "text": "🤫 아무 말도 하지 않고 이교도 조직에 더 접근한다",
-    "nextStoryId": "deeper-infiltration"
+    "nextStorySlug": "deeper-infiltration"
   }
 
   

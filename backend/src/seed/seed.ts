@@ -1,4 +1,4 @@
-import { PrismaClient, BranchPointStatus } from '@prisma/client';
+import { PrismaClient, BranchPointStatus, ItemRarity, ItemType } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 
@@ -34,6 +34,7 @@ type Story = {
   summary: string;
   quests?: string[];
   branchPoints?: string[];
+  imageUrl?: string;
 };
 
 type Quest = {
@@ -108,7 +109,8 @@ type StoryWorld = {
 type Chapter = {
   id?: number;
   slug: string;
-  storySlug: string;
+  storySlug?: string;
+  storySlugs?: string[];
   storyId?: number;
   title: string;
   description: string;
@@ -124,8 +126,8 @@ type Item = {
   name: string;
   description: string;
   imageUrl?: string;
-  rarity: string;
-  itemType: string;
+  rarity: ItemRarity;
+  itemType: ItemType;
   useEffect?: string;
   statBonus?: Record<string, number>;
   isConsumable: boolean;
@@ -199,12 +201,14 @@ async function main() {
             summary: story.summary,
             slug: story.slug || slugify(story.title),
             storyWorldId: storyWorldId,
+            imageUrl: story.imageUrl,
           },
           create: {
             title: story.title,
             summary: story.summary,
             slug: story.slug || slugify(story.title),
             storyWorldId: storyWorldId,
+            imageUrl: story.imageUrl,
           },
         });
       }
@@ -220,13 +224,21 @@ async function main() {
       // 1.5 챕터 추가
       console.log('챕터 데이터 추가 중...');
       for (const chapter of chapters as unknown as Chapter[]) {
-        const storyId =
-          chapter.storyId ||
-          (chapter.storySlug ? storySlugToId.get(chapter.storySlug) : null);
+        let storyId = chapter.storyId;
+        
+        // 단일 storySlug가 있는 경우
+        if (!storyId && chapter.storySlug) {
+          storyId = storySlugToId.get(chapter.storySlug);
+        }
+        
+        // storySlugs 배열이 있는 경우 첫 번째 항목 사용
+        if (!storyId && chapter.storySlugs && chapter.storySlugs.length > 0) {
+          storyId = storySlugToId.get(chapter.storySlugs[0]);
+        }
 
         if (!storyId) {
           console.warn(
-            `스토리를 찾을 수 없음 (ID: ${chapter.storyId || '없음'}, slug: ${chapter.storySlug || '없음'}). 챕터 건너뜀: ${chapter.slug}`
+            `스토리를 찾을 수 없음 (ID: ${chapter.storyId || '없음'}, slug: ${chapter.storySlug || '없음'}, storySlugs: ${chapter.storySlugs ? chapter.storySlugs.join(', ') : '없음'}). 챕터 건너뜀: ${chapter.slug}`
           );
           continue;
         }
@@ -484,15 +496,21 @@ async function main() {
         }
 
         let nextStoryId = null;
-        if (choice.nextStoryId) {
+        if (typeof choice.nextStoryId === 'number') {
           nextStoryId = choice.nextStoryId;
         } else if (choice.nextStorySlug) {
           nextStoryId = storySlugToId.get(choice.nextStorySlug) || null;
+        } else if (typeof choice.nextStoryId === 'string' && !isNaN(parseInt(choice.nextStoryId))) {
+          // 문자열 형태의 숫자인 경우
+          nextStoryId = parseInt(choice.nextStoryId);
+        } else if (typeof choice.nextStoryId === 'string') {
+          // 문자열이 슬러그인 경우
+          nextStoryId = storySlugToId.get(choice.nextStoryId) || null;
         }
         
         // nextStoryId가 없으면 기본값 사용
         if (nextStoryId === null) {
-          console.warn(`다음 스토리를 찾을 수 없음 (slug: ${choice.nextStorySlug || '없음'}). 기본값 사용: ${defaultStoryId}`);
+          console.warn(`다음 스토리를 찾을 수 없음 (slug: ${choice.nextStorySlug || choice.nextStoryId || '없음'}). 기본값 사용: ${defaultStoryId}`);
           nextStoryId = defaultStoryId;
         }
 
@@ -528,8 +546,8 @@ async function main() {
             name: item.name,
             description: item.description,
             imageUrl: item.imageUrl,
-            rarity: item.rarity,
-            itemType: item.itemType,
+            rarity: item.rarity as ItemRarity,
+            itemType: item.itemType as ItemType,
             useEffect: item.useEffect,
             statBonus: item.statBonus as any,
             isConsumable: item.isConsumable,
@@ -540,8 +558,8 @@ async function main() {
             name: item.name,
             description: item.description,
             imageUrl: item.imageUrl,
-            rarity: item.rarity,
-            itemType: item.itemType,
+            rarity: item.rarity as ItemRarity,
+            itemType: item.itemType as ItemType,
             useEffect: item.useEffect,
             statBonus: item.statBonus as any,
             isConsumable: item.isConsumable,
