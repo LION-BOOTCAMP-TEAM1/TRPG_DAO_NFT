@@ -41,6 +41,38 @@
     "title": "전달 직전의 결단",
     "description": "외눈박이 남자에게 꾸러미를 건네기 직전, 당신은 결정을 내려야 한다. 아무 말 없이 건네줄 것인가, 묻거나 추적할 것인가?",
     "choices": ["give-silently", "ask-questions", "sneak-and-follow"]
+  },
+
+  {
+    "slug": "cult-pursuit-or-contact",
+    "storySlug": "cult-stirring",
+    "title": "이교도의 흔적",
+    "description": "마을 안에서 퍼지는 이교도의 기운. 추적하여 실체를 밝힐 것인가, 혹은 그들과 은밀히 접촉할 것인가?",
+    "choices": ["follow-cult-symbols", "contact-cult-agent"]
+  },
+
+  {
+    "slug": "cult-initiation-test",
+    "storySlug": "deeper-infiltration",
+    "title": "이교도 입단 테스트",
+    "description": "이교도들은 당신에게 신의 뜻을 증명할 기회를 준다. 당신은 그들의 시험을 받아들여야 한다.",
+    "choices": [
+      "follow-initiation-ritual",
+      "resist-and-escape",
+      "secretly-observe"
+    ]
+  },
+
+  {
+    "slug": "ritual-decision",
+    "storySlug": "ritual-chamber",
+    "title": "의식의 결정",
+    "description": "당신은 이교도의 의식에 참여하며, 그들의 진정한 신뢰를 얻을 기회를 갖게 된다. 그러나 이 선택은 돌이킬 수 없다.",
+    "choices": [
+      "swear-to-cult",
+      "refuse-ritual",
+      "pretend-and-escape"
+    ]
   }
 
 
