@@ -281,7 +281,7 @@ export async function seedDatabase() {
     await prisma.$queryRaw`SELECT 1`;
     console.log('데이터베이스 연결 성공!');
     
-    // 트랜잭션 내에서 모든 작업 수행
+    // 트랜잭션 내에서 모든 작업 수행 (타임아웃 시간 늘림: 30초)
     await prisma.$transaction(async (tx) => {
       // 장르 데이터 추가
       console.log('장르 데이터 추가 중...');
