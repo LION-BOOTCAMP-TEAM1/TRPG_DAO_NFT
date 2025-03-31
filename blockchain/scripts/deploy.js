@@ -10,11 +10,16 @@ async function main() {
     const con = await NTF.deploy();
 
     await con.waitForDeployment();
-    await con.mint(deployer.address, 1, 100, "");
-    await con.mint(deployer.address, 3, 200, "");
-    await con.mint(deployer.address, 5, 300, "");
+    await con.mint(deployer.address, 1, 100);
+    await con.mint(deployer.address, 3, 200);
+    await con.mint(deployer.address, 5, 300);
     const itemIDs = await con.getOwnedTokens(deployer.address);
     console.log(`✅ itemIDs: ${itemIDs}`);
+
+    const addresses = itemIDs.map(() => deployer.address);
+    console.log(addresses, itemIDs);
+    const res = await con.balanceOfBatch(addresses, [1, 3, 5]);
+    console.log(res);
 
     for(var i = 0; i < itemIDs.length; i++) {
         const balance = await con.balanceOf(deployer.address, itemIDs[i]);
