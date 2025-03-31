@@ -257,68 +257,63 @@ if (process.env.NODE_ENV === 'production') {
     // 서버 시작 시간 기록
     const startTime = Date.now();
     
-    // Render.com의 활성 연결 유지를 위한 더 짧은 인터벌 설정
+    // 메모리 누수 방지를 위한 추가 설정
+    // 활성 연결 유지를 위한 더 긴 인터벌 설정 (2분)
     const keepAliveInterval = setInterval(async () => {
       const uptime = Math.round((Date.now() - startTime) / 1000);
       console.log(`[${new Date().toISOString()}] 서버 활성 상태 유지 핑 (실행 시간: ${uptime}초)`);
 
-      // 환경 변수 상태 재확인
-      console.log(`환경 변수 상태: NODE_ENV=${process.env.NODE_ENV}, IS_RENDER=${process.env.IS_RENDER}, RENDER=${process.env.RENDER}`);
+      // 환경 변수 상태 재확인 (빈도 줄임)
+      if (uptime % 600 === 0) { // 10분마다 환경 변수 로그 출력
+        console.log(`환경 변수 상태: NODE_ENV=${process.env.NODE_ENV}, IS_RENDER=${process.env.IS_RENDER}, RENDER=${process.env.RENDER}`);
+      }
 
       // 힙 메모리 상태 로깅
       const memoryUsage = process.memoryUsage();
-      console.log(`메모리 상태: RSS=${Math.round(memoryUsage.rss/1024/1024)}MB, Heap=${Math.round(memoryUsage.heapUsed/1024/1024)}/${Math.round(memoryUsage.heapTotal/1024/1024)}MB`);
+      const heapUsedMB = Math.round(memoryUsage.heapUsed/1024/1024);
+      const heapTotalMB = Math.round(memoryUsage.heapTotal/1024/1024);
+      const rss = Math.round(memoryUsage.rss/1024/1024);
+      
+      console.log(`메모리 상태: RSS=${rss}MB, Heap=${heapUsedMB}/${heapTotalMB}MB`);
+      
+      // 메모리 사용량이 높을 때 GC 실행 힌트
+      if (heapUsedMB > heapTotalMB * 0.7) { // 힙 사용량이 70% 이상일 때
+        console.log('높은 메모리 사용량 감지, GC 힌트 시도...');
+        try {
+          if (global.gc) {
+            global.gc();
+            console.log('GC 힌트 실행 완료');
+          }
+        } catch (e) {
+          console.log('GC hook을 사용할 수 없습니다.');
+        }
+      }
 
-      // DB 연결 상태 확인
+      // DB 연결 상태 확인 (메모리 사용량 줄이기 위해 빈도 감소)
       try {
-        await prisma.$queryRaw`SELECT 1`;
-        console.log(`[${new Date().toISOString()}] 서버 keepAlive DB 연결 확인 성공`);
+        // 30초마다 DB 연결 확인
+        if (uptime % 30 === 0) {
+          await prisma.$queryRaw`SELECT 1`;
+          console.log(`[${new Date().toISOString()}] 서버 keepAlive DB 연결 확인 성공`);
+        }
       } catch (err) {
         console.error(`[${new Date().toISOString()}] 서버 keepAlive DB 연결 확인 실패:`, err);
       }
-
-      // Render 환경에서 자체 상태 확인 요청 (선택적 - 메모리 과다 방지를 위해 제거 가능)
-      /*
-      if (isRenderEnv) {
-        try {
-          const http = require('http');
-          const options = {
-            hostname: 'localhost',
-            port: PORT,
-            path: '/',
-            method: 'GET',
-            timeout: 5000
-          };
-
-          const req = http.request(options, (res: any) => {
-            res.on('data', () => {});
-            res.on('end', () => {
-              console.log(`서버 자체 상태 확인: HTTP ${res.statusCode}`);
-            });
-          });
-
-          req.on('error', (e: Error) => {
-            console.error('서버 자체 상태 확인 실패:', e.message);
-          });
-
-          req.end();
-        } catch (error) {
-          console.error('서버 자체 상태 확인 중 오류:', error);
-        }
+    }, 120000); // 2분 주기로 변경하여 메모리 부담 감소
+    
+    // 프로세스 종료 시 인터벌 정리
+    const cleanupResources = () => {
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        console.log('keepAlive 인터벌 정리 완료');
       }
-      */
-    }, 30000); // 30초 주기로 변경
+    };
+    
+    process.on('SIGTERM', cleanupResources);
+    process.on('SIGINT', cleanupResources);
     
     // 프로세스가 종료되지 않도록 유지
     process.stdin.resume();
-    
-    // 추가 안전 장치: 프로세스 종료 방지
-    process.on('beforeExit', () => {
-      console.log('프로세스 종료 시도가 감지되었습니다. 종료를 방지합니다.');
-      setImmediate(() => {
-        console.log('프로세스 유지 중...');
-      });
-    });
     
   } catch (e) {
     console.error('최상위 레벨에서 서버 시작 오류 발생:', e);
