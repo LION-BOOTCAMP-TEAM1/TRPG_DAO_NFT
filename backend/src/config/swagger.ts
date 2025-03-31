@@ -24,6 +24,12 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
+        },
+        apiKey: {
+          type: 'apiKey',
+          name: 'x-api-key',
+          in: 'header',
+          description: '관리자 API 키 (ADMIN_API_KEY)',
         }
       }
     }
@@ -41,7 +47,8 @@ export function setupSwagger(app: Express) {
     next();
   });
   
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // 타입 어설션으로 타입 문제 해결 (Express 버전 호환성 이슈)
+  (app as any).use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   
   // Swagger JSON 엔드포인트 추가 (선택사항)
   app.get('/swagger.json', (req, res) => {
