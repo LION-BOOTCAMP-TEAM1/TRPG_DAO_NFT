@@ -3,8 +3,8 @@ export interface Item {
     name: string;
     description: string | null;
     image: string;
-    type: string; // 무기 방어구 악세
-    rarity: string;
+    type: number; // 무기 방어구 악세
+    rarity: number;
     isNFT: boolean; // front
     stat?: Partial<{
         attack: number | null;

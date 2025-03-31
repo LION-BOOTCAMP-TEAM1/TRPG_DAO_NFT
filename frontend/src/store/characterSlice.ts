@@ -58,26 +58,44 @@ const characterSlice = createSlice({
   name: "character",
   initialState,
   reducers: {
-    setStats(state, action: PayloadAction<Partial<CharacterState["stats"]>>) {
-      state.stats = { ...state.stats, ...action.payload };
-    },
     equipItem(state, action: PayloadAction<Item>) {
-      
+        const slot = action.payload.type;
+        switch(slot) {
+            case 1:
+                state.equipment.weapon = action.payload;
+                break;
+            case 2:
+                state.equipment.armor = action.payload;
+                break;
+            case 3:
+                state.equipment.accessory = action.payload;
+                break;
+            case 4:
+                state.equipment.title = action.payload;
+                break;
+        }
     },
     addItemToInventory(state, action: PayloadAction<Item>) {
-      state.inventory.push(action.payload);
-    },
-    removeItemFromInventory(state, action: PayloadAction<number>) {
-      state.inventory = state.inventory.filter(item => item.id !== action.payload);
-    },
+        state.inventory.push(action.payload);
+      
+        // 정렬: rarity → id → isNFT (false < true)
+        state.inventory.sort((a, b) => {
+          // rarity가 클수록 우선
+          if (a.rarity !== b.rarity) return b.rarity - a.rarity;
+      
+          // rarity 같으면 id가 작을수록 우선
+          if (a.id !== b.id) return a.id - b.id;
+      
+          // rarity, id 같으면 NFT가 먼저 오도록 (true < false → false가 우선)
+          return (a.isNFT === b.isNFT) ? 0 : (a.isNFT ? 1 : -1);
+        });
+      }      
   },
 });
 
 export const {
-  setStats,
   equipItem,
   addItemToInventory,
-  removeItemFromInventory,
 } = characterSlice.actions;
 
 export default characterSlice.reducer;
