@@ -40,6 +40,42 @@ let isConnected = false;
 let retryCount = 0;
 const MAX_RETRIES = 5;
 
+// 데이터베이스 연결 유지 간격 (20초)
+const DB_KEEPALIVE_INTERVAL = 20000;
+
+// 데이터베이스 핑 쿼리를 통한 연결 유지 함수
+async function keepDatabaseAlive() {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log(`[${new Date().toISOString()}] 데이터베이스 연결 유지 쿼리 성공`);
+    }
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] 데이터베이스 연결 유지 쿼리 실패:`, error);
+    isConnected = false;
+    
+    // 연결이 끊긴 경우 재연결 시도
+    try {
+      await connectWithRetry();
+    } catch (reconnectError) {
+      console.error('재연결 시도 실패:', reconnectError);
+    }
+  }
+}
+
+// 데이터베이스 연결 유지 인터벌 설정
+let keepAliveInterval: NodeJS.Timeout | undefined;
+if (process.env.NODE_ENV === 'production') {
+  keepAliveInterval = setInterval(keepDatabaseAlive, DB_KEEPALIVE_INTERVAL);
+  
+  // Node.js 프로세스가 종료될 때 인터벌 정리
+  process.on('beforeExit', () => {
+    if (keepAliveInterval) {
+      clearInterval(keepAliveInterval);
+    }
+  });
+}
+
 async function connectWithRetry() {
   if (isConnected) return; // 이미 연결되어 있으면 아무것도 하지 않음
   
