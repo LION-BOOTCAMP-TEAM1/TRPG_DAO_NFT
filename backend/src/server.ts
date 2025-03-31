@@ -10,8 +10,8 @@ import path from 'path';
 dotenv.config();
 
 const app = express();
-// Render.com은 PORT 환경 변수를 사용합니다. 이 값이 필요합니다.
-const PORT = parseInt(process.env.PORT || '10000', 10); // string을 number로 변환
+// Render.com에서는 할당된 PORT 환경 변수를 반드시 사용해야 함
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const API_PREFIX = '/api';
 
 // 환경 변수 디버깅 로그
@@ -26,9 +26,7 @@ if (process.env.DATABASE_URL) {
 
 // CORS 설정
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-domain.com', 'https://trpg-dao-nft.onrender.com']
-    : 'http://localhost:3000',
+  origin: '*', // 개발 목적으로 임시로 모든 오리진 허용
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
 }));
@@ -51,7 +49,19 @@ app.get('/', (req, res) => {
 // 데이터베이스 상태 체크 엔드포인트
 app.get('/health', async (req, res) => {
   try {
+    // 타임아웃 설정 (5초)
+    const timeout = setTimeout(() => {
+      console.log("데이터베이스 상태 체크 타임아웃");
+      res.status(500).json({ 
+        status: 'error', 
+        message: 'Database connection timeout',
+        timestamp: new Date().toISOString()
+      });
+    }, 5000);
+    
     await prisma.$queryRaw`SELECT 1`;
+    clearTimeout(timeout);
+    
     res.status(200).json({ 
       status: 'ok', 
       message: 'Database connection successful',
@@ -78,62 +88,65 @@ if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'tru
 
 // 데이터베이스 연결 지연 처리 및 서버 시작
 async function startServer() {
+  let server: any = null;
+  
   try {
     const isProduction = process.env.NODE_ENV === 'production';
     
     console.log(`🚀 서버 시작 준비 중... 모드: ${isProduction ? 'production' : 'development'}`);
     console.log(`🔌 사용할 포트: ${PORT}`);
     
-    // 서버 먼저 시작
-    const server = app.listen(PORT, '0.0.0.0', () => {
+    // 서버 먼저 시작 - 모든 인터페이스에서 수신
+    server = app.listen(PORT, () => {
       console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
       console.log(`🚀 서버 URL: ${isProduction ? 'https://trpg-dao-nft.onrender.com' : `http://localhost:${PORT}`}`);
     });
     
-    // 서버가 시작된 후 DB 연결 시도 - 에러 처리 강화
-    console.log('데이터베이스 연결 확인 중...');
+    // 서버가 시작된 후 별도 스레드에서 DB 연결 시도
+    // 이렇게 하면 DB 연결 실패해도 서버 자체는 계속 실행
+    console.log('별도 스레드에서 데이터베이스 연결 확인 중...');
     
-    // 데이터베이스 연결 타임아웃 설정 (10초)
-    const dbConnectionTimeout = setTimeout(() => {
-      console.warn('⚠️ 데이터베이스 연결 시간 초과. 서버는 계속 실행됩니다.');
-    }, 10000);
-    
-    try {
-      // 간단한 쿼리로 연결 테스트
-      await prisma.$queryRaw`SELECT 1`;
-      clearTimeout(dbConnectionTimeout);
-      console.log('✅ 데이터베이스 연결 성공!');
-    } catch (dbError) {
-      clearTimeout(dbConnectionTimeout);
-      console.error('⚠️ 데이터베이스 연결 실패:', dbError);
-      console.log('기본 기능은 계속 작동하지만 데이터베이스 기능이 제한됩니다.');
-      
-      // 에러 세부 정보 로깅
-      if (dbError instanceof Error) {
-        console.error('에러 메시지:', dbError.message);
-        console.error('에러 스택:', dbError.stack);
-      } else {
-        console.error('알 수 없는 에러:', dbError);
+    // DB 연결 확인 함수
+    const checkDbConnection = async () => {
+      try {
+        console.log('데이터베이스 연결 시도 중...');
+        await prisma.$queryRaw`SELECT 1`;
+        console.log('✅ 데이터베이스 연결 성공!');
+      } catch (dbError) {
+        console.error('⚠️ 데이터베이스 연결 실패:');
+        
+        // 에러 세부 정보 로깅
+        if (dbError instanceof Error) {
+          console.error('에러 메시지:', dbError.message);
+          console.error('에러 타입:', dbError.name);
+          console.error('에러 스택:', dbError.stack);
+        } else {
+          console.error('알 수 없는 에러:', dbError);
+        }
+        
+        console.log('기본 기능은 계속 작동하지만 데이터베이스 기능이 제한됩니다.');
       }
-      
-      // 데이터베이스 연결 실패해도 서버는 계속 실행 (중요)
-    }
+    };
     
-    // 시드 데이터는 API 엔드포인트를 통해 수동으로 적용하도록 변경
-    // SEED_ON_START 옵션은 비활성화
+    // 블로킹하지 않게 DB 연결 시도
+    setTimeout(checkDbConnection, 1000);
     
     // 애플리케이션 종료 시 데이터베이스 연결 정상 종료
     const gracefulShutdown = async () => {
       console.log('서버를 종료합니다...');
-      server.close(async () => {
-        try {
-          await prisma.$disconnect();
-          console.log('데이터베이스 연결이 안전하게 종료되었습니다.');
-        } catch (error) {
-          console.error('데이터베이스 연결 종료 중 오류:', error);
-        }
+      if (server) {
+        server.close(async () => {
+          try {
+            await prisma.$disconnect();
+            console.log('데이터베이스 연결이 안전하게 종료되었습니다.');
+          } catch (error) {
+            console.error('데이터베이스 연결 종료 중 오류:', error);
+          }
+          process.exit(0);
+        });
+      } else {
         process.exit(0);
-      });
+      }
       
       // 10초 후에도 종료되지 않으면 강제 종료
       setTimeout(() => {
@@ -161,15 +174,23 @@ async function startServer() {
     
   } catch (error) {
     console.error('서버 시작 중 오류가 발생했습니다:', error);
+    
     try {
+      // 서버가 죽기 전에 데이터베이스 연결 종료 시도
       await prisma.$disconnect();
     } catch (disconnectError) {
       console.error('데이터베이스 연결 종료 중 오류:', disconnectError);
     }
     
-    // 오류 발생해도 서버는 계속 시도
-    console.log('오류에도 불구하고 서버를 다시 시작합니다...');
-    startServer(); // 다시 시도
+    // 서버가 이미 시작되었다면 계속 실행 시도
+    if (server) {
+      console.log('서버가 이미 실행 중입니다. 계속 실행합니다.');
+    } else {
+      console.log('5초 후에 서버를 다시 시작합니다...');
+      setTimeout(() => {
+        startServer();
+      }, 5000);
+    }
   }
 }
 
@@ -183,4 +204,13 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
-startServer();
+// 서버 시작 (오류 발생해도 계속 실행)
+try {
+  startServer();
+} catch (error) {
+  console.error('최상위 레벨 오류:', error);
+  console.log('5초 후에 서버를 다시 시작합니다...');
+  setTimeout(() => {
+    startServer();
+  }, 5000);
+}
