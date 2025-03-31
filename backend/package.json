@@ -13,7 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:status": "prisma migrate status",
-    "start": "cross-env NODE_ENV=production ts-node src/server.ts",
+    "start": "cross-env NODE_ENV=production NODE_OPTIONS=\"--max-old-space-size=2048\" ts-node src/server.ts",
     "db:prisma:generate": "prisma generate",
     "db:init-and-seed": "npm run db:reset && npm run seed",
     "db:fresh": "prisma migrate reset --force && npm run seed",

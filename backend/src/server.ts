@@ -27,54 +27,60 @@ app.use(express.json());
 // 정적 파일 제공 설정
 app.use('/static', express.static(path.join(__dirname, '../static')));
 
-setupSwagger(app);
-
 // API 라우터 등록
 app.use(API_PREFIX, apiRoutes);
 
-// 데이터베이스 동기화 후 서버 시작
+// Swagger 설정은 메모리를 많이 사용할 수 있으므로 프로덕션에서는 선택적으로 활성화
+if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'true') {
+  setupSwagger(app);
+}
+
+// 데이터베이스 연결 지연 처리 및 서버 시작
 async function startServer() {
   try {
-    console.log('데이터베이스 연결 확인 중...');
-    
-    // 개발 환경에서만 자동 확인 요청, 프로덕션에서는 autoApprove: true로 설정하여 자동 적용
     const isProduction = process.env.NODE_ENV === 'production';
     
-    await syncDatabase({
-      forceMigrate: isProduction, // 프로덕션 환경에서는 항상 마이그레이션 적용
-      seed: false,         // 시드 데이터는 별도로 처리
-      autoApprove: isProduction // 개발 환경에서는 확인 메시지 표시, 프로덕션에서는 자동 승인
-    });
+    console.log(`🚀 Server running on ${isProduction ? 'production' : 'development'} mode`);
     
-    // 데이터베이스 연결 테스트
-    await prisma.$queryRaw`SELECT 1`;
-    console.log('✅ 데이터베이스 연결 성공!');
-    
-    // 환경 변수에 따라 시드 데이터 적용
-    if (process.env.SEED_ON_START === 'true') {
-      console.log('🌱 시작 시 시드 데이터 적용 중...');
-      try {
-        await runSeed();
-        console.log('✅ 시드 데이터가 성공적으로 적용되었습니다.');
-      } catch (seedError) {
-        console.error('❌ 시드 데이터 적용 중 오류 발생:', seedError);
-        // 시드 오류는 서버 시작에 치명적이지 않으므로 계속 진행
-      }
-    }
-    
+    // 서버 먼저 시작
     const server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on ${isProduction ? 'production' : 'development'} mode`);
       console.log(`🚀 Server URL: ${isProduction ? 'https://trpg-dao-nft.onrender.com' : `http://localhost:${PORT}`}`);
     });
+    
+    // 서버가 시작된 후 DB 연결 시도
+    console.log('데이터베이스 연결 확인 중...');
+    
+    try {
+      // 간단한 쿼리로 연결 테스트
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('✅ 데이터베이스 연결 성공!');
+    } catch (dbError) {
+      console.error('⚠️ 데이터베이스 연결 실패:', dbError);
+      console.log('기본 기능은 계속 작동하지만 데이터베이스 기능이 제한될 수 있습니다.');
+      // 데이터베이스 연결 실패해도 서버는 계속 실행
+    }
+    
+    // 시드 데이터는 API 엔드포인트를 통해 수동으로 적용하도록 변경
+    // SEED_ON_START 옵션은 비활성화
     
     // 애플리케이션 종료 시 데이터베이스 연결 정상 종료
     const gracefulShutdown = async () => {
       console.log('서버를 종료합니다...');
       server.close(async () => {
-        await prisma.$disconnect();
-        console.log('데이터베이스 연결이 안전하게 종료되었습니다.');
+        try {
+          await prisma.$disconnect();
+          console.log('데이터베이스 연결이 안전하게 종료되었습니다.');
+        } catch (error) {
+          console.error('데이터베이스 연결 종료 중 오류:', error);
+        }
         process.exit(0);
       });
+      
+      // 10초 후에도 종료되지 않으면 강제 종료
+      setTimeout(() => {
+        console.error('서버가 10초 내에 정상 종료되지 않아 강제 종료합니다.');
+        process.exit(1);
+      }, 10000);
     };
     
     // SIGTERM, SIGINT 시그널 처리
@@ -83,8 +89,22 @@ async function startServer() {
     
   } catch (error) {
     console.error('서버 시작 중 오류가 발생했습니다:', error);
-    await prisma.$disconnect();
+    try {
+      await prisma.$disconnect();
+    } catch (disconnectError) {
+      console.error('데이터베이스 연결 종료 중 오류:', disconnectError);
+    }
     process.exit(1);
+  }
+}
+
+// GC 효율을 위한 힙 최적화 힌트 (V8 엔진)
+if (process.env.NODE_ENV === 'production') {
+  try {
+    // @ts-ignore
+    global.gc && global.gc();
+  } catch (e) {
+    console.log('No GC hook');
   }
 }
 
