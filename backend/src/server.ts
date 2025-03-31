@@ -6,6 +6,10 @@ import { setupSwagger } from './config/swagger';
 import apiRoutes from './routes';
 import path from 'path';
 
+// Render 환경 감지 로직 통합
+const isRenderEnv = process.env.IS_RENDER === 'true' || process.env.RENDER === 'true';
+console.log(`Render 환경 감지: ${isRenderEnv}`);
+
 // 환경 변수 로드 - 최우선 실행
 try {
   dotenv.config();
@@ -21,6 +25,18 @@ console.log(`SKIP_DB_SYNC: ${process.env.SKIP_DB_SYNC || 'false'}`);
 console.log(`PORT: ${process.env.PORT || '3000'}`);
 console.log(`실행 시간: ${new Date().toISOString()}`);
 console.log('===================');
+
+// Render 진단 정보 로깅
+console.log('==== Render 진단 정보 ====');
+console.log('환경변수 상세:');
+[
+  'NODE_ENV', 'PORT', 'SKIP_DB_SYNC', 'IS_RENDER', 'RENDER',
+  'DATABASE_URL', 'DATABASE_URL_UNPOOLED'
+].forEach(key => {
+  const value = process.env[key];
+  console.log(`${key}: ${value ? (key.includes('DATABASE') ? '설정됨(값 숨김)' : value) : '설정안됨'}`);
+});
+console.log('========================');
 
 // 전역 에러 핸들러 설정
 process.on('uncaughtException', (error) => {
@@ -238,16 +254,32 @@ if (process.env.NODE_ENV === 'production') {
       console.log('서버 상태 확인: 서버가 여전히 실행 중입니다.');
     }, 5000);
     
+    // 서버 시작 시간 기록
+    const startTime = Date.now();
+    
     // Render.com의 활성 연결 유지를 위한 더 짧은 인터벌 설정
     const keepAliveInterval = setInterval(() => {
-      console.log('서버 활성 상태 유지: ' + new Date().toISOString());
+      const uptime = Math.round((Date.now() - startTime) / 1000);
+      console.log(`[${new Date().toISOString()}] 서버 활성 상태 유지 핑 (실행 시간: ${uptime}초)`);
+      
+      // Render 환경 변수 상태 재확인
+      console.log(`환경 변수 상태: NODE_ENV=${process.env.NODE_ENV}, IS_RENDER=${process.env.IS_RENDER}, RENDER=${process.env.RENDER}`);
       
       // 힙 메모리 상태 로깅 (메모리 누수 감지용)
       const memoryUsage = process.memoryUsage();
       console.log(`메모리 상태: RSS=${Math.round(memoryUsage.rss/1024/1024)}MB, Heap=${Math.round(memoryUsage.heapUsed/1024/1024)}/${Math.round(memoryUsage.heapTotal/1024/1024)}MB`);
       
+      // DB 연결 상태 강제 확인
+      try {
+        prisma.$queryRaw`SELECT 1`
+          .then(() => console.log(`[${new Date().toISOString()}] 서버 keepAlive DB 연결 확인 성공`))
+          .catch(err => console.error(`[${new Date().toISOString()}] 서버 keepAlive DB 연결 확인 실패:`, err));
+      } catch (error) {
+        console.error(`[${new Date().toISOString()}] keepAlive DB 체크 예외:`, error);
+      }
+      
       // Render.com에서 TCP 연결 유지를 위한 추가 조치
-      if (process.env.IS_RENDER === 'true') {
+      if (isRenderEnv) {
         // 자신의 status URL에 요청하여 연결 유지 (Render-specific)
         try {
           const http = require('http');
@@ -279,7 +311,7 @@ if (process.env.NODE_ENV === 'production') {
           console.error('서버 자체 상태 확인 중 오류:', error);
         }
       }
-    }, 25000); // 25초마다 수행 (Neon DB 타임아웃보다 짧은 주기)
+    }, 15000); // 15초마다 수행 (Neon DB 타임아웃보다 짧은 주기)
     
     // 프로세스가 종료되지 않도록 유지
     process.stdin.resume();
