@@ -16,7 +16,7 @@ const API_PREFIX = '/api';
 // CORS 설정
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL || 'https://crpg.xyz' 
+    ? ['https://your-frontend-domain.com', 'https://trpg-dao-nft.onrender.com']
     : 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
