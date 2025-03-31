@@ -1,0 +1,17 @@
+[
+  {
+    "code": "01-fantasy",
+    "name": "판타지",
+    "description": "마법과 전설이 가득한 세계"
+  },
+  {
+    "code": "02-modern",
+    "name": "현대",
+    "description": "현대 도시와 일상적인 배경"
+  },
+  {
+    "code": "03-cyberpunk",
+    "name": "사이버 펑크",
+    "description": "기술과 디스토피아가 혼합된 미래 세계"
+  }
+]

@@ -13,12 +13,13 @@ model User {
   walletAddress String   @unique
   createdAt     DateTime @default(now())
 
-  storyProgress   StoryProgress[]
-  chapterProgress ChapterProgress[]
-  playerNFTs      PlayerNFT[]
-  Character       Character?
-  Session         Session[]         @relation("UserSession")
-  UserAction      UserAction[]
+  storyProgress      StoryProgress[]
+  chapterProgress    ChapterProgress[]
+  playerNFTs         PlayerNFT[]
+  Character          Character?
+  Session            Session[]            @relation("UserSession")
+  UserAction         UserAction[]
+  SessionParticipant SessionParticipant[]
 }
 
 // 캐릭터 클래스 관련 모델
@@ -77,6 +78,15 @@ model UserAction {
   createdAt DateTime @default(now())
 }
 
+model Genre {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique // 예: "01-fantasy"
+  name        String // 예: "판타지"
+  description String?
+
+  storyWorlds StoryWorld[]
+}
+
 // 스토리 세계관/테마 관련 모델
 model StoryWorld {
   id          Int      @id @default(autoincrement())
@@ -86,7 +96,11 @@ model StoryWorld {
   coverImage  String? // 표지 이미지 URL
   createdAt   DateTime @default(now())
 
+  genreId Int?
+  genre   Genre? @relation(fields: [genreId], references: [id])
+
   stories Story[] // 이 세계관에 속하는 스토리들
+  Session Session[]
 }
 
 // 스토리 관련 모델
@@ -312,8 +326,27 @@ model Session {
   name      String
   createdAt DateTime @default(now())
 
-  users    User[]           @relation("UserSession")
-  progress SessionProgress?
+  storyWorldId Int
+  storyWorld   StoryWorld @relation(fields: [storyWorldId], references: [id])
+
+  users        User[]               @relation("UserSession") // 유지
+  participants SessionParticipant[] // 새로운 중간 테이블
+  progress     SessionProgress?
+}
+
+model SessionParticipant {
+  id        Int     @id @default(autoincrement())
+  sessionId Int
+  userId    Int
+  session   Session @relation(fields: [sessionId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  isReady  Boolean  @default(false)
+  hasVoted Boolean  @default(false) // DAO 투표 여부
+  role     String? // 예: "leader", "scribe", "voter"
+  joinedAt DateTime @default(now())
+
+  @@unique([sessionId, userId])
 }
 
 // 세션 상태 열거형
@@ -332,9 +365,12 @@ model SessionProgress {
   storyId Int
   story   Story @relation(fields: [storyId], references: [id])
 
-  currentQuestId Int
-  daoStatus      SessionStatus @default(IDLE)
-  lastUpdated    DateTime      @updatedAt
+  currentChapterId Int?
+  currentQuestId   Int?
+  currentSceneId   Int?
+
+  daoStatus   SessionStatus @default(IDLE)
+  lastUpdated DateTime      @updatedAt
 }
 
 // 선택지 조건 관련 모델
