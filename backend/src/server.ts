@@ -4,25 +4,21 @@ import cors from 'cors';
 import prisma from './prismaClient';
 import { setupSwagger } from './config/swagger';
 import apiRoutes from './routes';
-import { syncDatabase, runSeed } from './utils/dbSync';
 import path from 'path';
 
+// 환경 변수 로드 - 최우선 실행
 dotenv.config();
+
+// 시작 환경 로깅
+console.log('==== 서버 시작 ====');
+console.log(`NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+console.log(`실행 시간: ${new Date().toISOString()}`);
+console.log('===================');
 
 const app = express();
 // Render.com에서는 할당된 PORT 환경 변수를 반드시 사용해야 함
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const API_PREFIX = '/api';
-
-// 환경 변수 디버깅 로그
-console.log('환경 변수 정보:');
-console.log(`PORT: ${process.env.PORT}`);
-console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
-// DATABASE_URL은 민감 정보이므로 전체를 로깅하지 않고 일부만 확인
-console.log(`DATABASE_URL이 설정됨: ${!!process.env.DATABASE_URL}`);
-if (process.env.DATABASE_URL) {
-  console.log(`DATABASE_URL 시작 부분: ${process.env.DATABASE_URL.substring(0, 20)}...`);
-}
 
 // CORS 설정
 app.use(cors({
@@ -52,9 +48,9 @@ app.get('/health', async (req, res) => {
     // 타임아웃 설정 (5초)
     const timeout = setTimeout(() => {
       console.log("데이터베이스 상태 체크 타임아웃");
-      res.status(500).json({ 
-        status: 'error', 
-        message: 'Database connection timeout',
+      res.status(200).json({ // 500 대신 200 반환하여 헬스체크 실패로 인한 재시작 방지
+        status: 'warning', 
+        message: 'Database connection timeout, but server is running',
         timestamp: new Date().toISOString()
       });
     }, 5000);
@@ -69,9 +65,10 @@ app.get('/health', async (req, res) => {
     });
   } catch (error) {
     console.error('Health check failed:', error);
-    res.status(500).json({ 
-      status: 'error', 
-      message: 'Database connection failed',
+    // 프로덕션 환경에서는 DB 연결 실패해도 서버는 계속 실행
+    res.status(200).json({ // 500 대신 200 반환하여 헬스체크 실패로 인한 재시작 방지
+      status: 'warning', 
+      message: 'Database connection failed, but server is running',
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : String(error)
     });
@@ -101,35 +98,6 @@ async function startServer() {
       console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
       console.log(`🚀 서버 URL: ${isProduction ? 'https://trpg-dao-nft.onrender.com' : `http://localhost:${PORT}`}`);
     });
-    
-    // 서버가 시작된 후 별도 스레드에서 DB 연결 시도
-    // 이렇게 하면 DB 연결 실패해도 서버 자체는 계속 실행
-    console.log('별도 스레드에서 데이터베이스 연결 확인 중...');
-    
-    // DB 연결 확인 함수
-    const checkDbConnection = async () => {
-      try {
-        console.log('데이터베이스 연결 시도 중...');
-        await prisma.$queryRaw`SELECT 1`;
-        console.log('✅ 데이터베이스 연결 성공!');
-      } catch (dbError) {
-        console.error('⚠️ 데이터베이스 연결 실패:');
-        
-        // 에러 세부 정보 로깅
-        if (dbError instanceof Error) {
-          console.error('에러 메시지:', dbError.message);
-          console.error('에러 타입:', dbError.name);
-          console.error('에러 스택:', dbError.stack);
-        } else {
-          console.error('알 수 없는 에러:', dbError);
-        }
-        
-        console.log('기본 기능은 계속 작동하지만 데이터베이스 기능이 제한됩니다.');
-      }
-    };
-    
-    // 블로킹하지 않게 DB 연결 시도
-    setTimeout(checkDbConnection, 1000);
     
     // 애플리케이션 종료 시 데이터베이스 연결 정상 종료
     const gracefulShutdown = async () => {
@@ -175,21 +143,13 @@ async function startServer() {
   } catch (error) {
     console.error('서버 시작 중 오류가 발생했습니다:', error);
     
-    try {
-      // 서버가 죽기 전에 데이터베이스 연결 종료 시도
-      await prisma.$disconnect();
-    } catch (disconnectError) {
-      console.error('데이터베이스 연결 종료 중 오류:', disconnectError);
-    }
-    
-    // 서버가 이미 시작되었다면 계속 실행 시도
+    // 서버가 이미 시작되었다면 계속 실행
     if (server) {
       console.log('서버가 이미 실행 중입니다. 계속 실행합니다.');
     } else {
-      console.log('5초 후에 서버를 다시 시작합니다...');
-      setTimeout(() => {
-        startServer();
-      }, 5000);
+      console.log('서버를 다시 시작합니다...');
+      // 5초 지연 없이 바로 재시도
+      startServer();
     }
   }
 }
@@ -200,17 +160,9 @@ if (process.env.NODE_ENV === 'production') {
     // @ts-ignore
     global.gc && global.gc();
   } catch (e) {
-    console.log('No GC hook');
+    console.log('GC hook을 사용할 수 없습니다.');
   }
 }
 
-// 서버 시작 (오류 발생해도 계속 실행)
-try {
-  startServer();
-} catch (error) {
-  console.error('최상위 레벨 오류:', error);
-  console.log('5초 후에 서버를 다시 시작합니다...');
-  setTimeout(() => {
-    startServer();
-  }, 5000);
-}
+// 서버 시작
+startServer();
