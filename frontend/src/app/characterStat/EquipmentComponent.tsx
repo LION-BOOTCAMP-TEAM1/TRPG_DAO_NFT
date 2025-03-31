@@ -1,24 +1,86 @@
 'use client';
 
 import TabComponent from "./TabComponent";
+import ItemComponent from "./ItemComponent";
+import { useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../../store";
+import { Item } from "../../store/types";
+import { useEffect, useState } from "react";
+import ItemModal from "./ItemModal";
+import {equipItem} from "../../store/characterSlice"
+import { useDispatch } from "react-redux";
 
 const EquipmentComponent = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const myNFTs = useSelector((state: RootState) => state.character);
+  const [weapons, setWeapons] = useState<Item[]>([]);
+  const [armors, setArmors] = useState<Item[]>([]);
+  const [accessories, setAccessories] = useState<Item[]>([]);
+  const [titles, setTitles] = useState<Item[]>([]);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [equippedItem, setEquippedItem] = useState<Item | null>(null);
+
+  useEffect(() => {
+    if(selectedItem) {
+      switch(selectedItem.type){
+        case 1:
+          setEquippedItem(myNFTs.equipment.weapon)
+          break;
+        case 2:
+          setEquippedItem(myNFTs.equipment.armor)
+          break;
+        case 3:
+          setEquippedItem(myNFTs.equipment.accessory)
+          break;
+        case 4:
+          setEquippedItem(myNFTs.equipment.title)
+          break;
+      }      
+    }    
+  }, [selectedItem]);
+
+  useEffect(() => {
+    setWeapons(myNFTs.inventory.filter(i => i.type === 1));
+    setArmors(myNFTs.inventory.filter(i => i.type === 2));
+    setAccessories(myNFTs.inventory.filter(i => i.type === 3));
+    setTitles(myNFTs.inventory.filter(i => i.type === 4));
+  }, [myNFTs]);
 
   return (
     <div>
       <div className='flex flex-col justify-start'>
-        {/* 슬롯 아이콘 */}
+        {/* 장비중 아이템 */}
+        <p className="">장비중 아이템</p>
         <div className="flex flex-wrap justify-between mb-4">
-          <img src="/slot1.png" className="w-[22%] h-auto" />
-          <img src="/slot2.png" className="w-[22%] h-auto" />
-          <img src="/slot3.png" className="w-[22%] h-auto" />
-          <img src="/slot4.png" className="w-[22%] h-auto" />
+          <div className="p-1 bg-gray-600 w-[22%] h-auto">
+            <img 
+              src={myNFTs.equipment.weapon ? myNFTs.equipment.weapon.image : "/slot1.png"} 
+              className="rounded"
+            />
+          </div>
+          <div className="p-1 bg-gray-600 w-[22%] h-auto">
+            <img 
+              src={myNFTs.equipment.armor ? myNFTs.equipment.armor.image : "/slot2.png"}
+              className="rounded"
+            />
+          </div>
+          <div className="p-1 bg-gray-600 w-[22%] h-auto">
+            <img 
+              src={myNFTs.equipment.accessory ? myNFTs.equipment.accessory.image : "/slot3.png"}
+              className="rounded"
+            />
+          </div>
+          <div className="p-1 bg-gray-600 w-[22%] h-auto">
+            <img 
+              src={myNFTs.equipment.title ? myNFTs.equipment.title.image : "/slot4.png"}
+              className="rounded"
+            />
+          </div>
         </div>
 
         {/* 능력치 */}
         <div className="aspect-[16/4] bg-[url('/stat.png')] bg-cover bg-center px-2 py-4 flex flex-col justify-center items-center mb-4">
-          <p className="font-semibold mb-2 text-white">추가 능력치</p>
-          <div className="grid grid-cols-3 gap-4 p-1 rounded shadow-inner w-full">
+          <div className="grid grid-cols-2 gap-4 p-1 rounded shadow-inner w-full">
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/attack.png" alt="공격력" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+100</span>
@@ -28,11 +90,8 @@ const EquipmentComponent = () => {
               <img src="/magic.png" alt="마법력" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+100</span>
             </div>
-
-            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-              <img src="/defence.png" alt="방어력" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+100</span>
-            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4 p-1 rounded shadow-inner w-full">
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/str.png" alt="STR" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+10</span>
@@ -66,93 +125,58 @@ const EquipmentComponent = () => {
 
         {/* 내 아이템 및 NFT */}
         <TabComponent 
-          tabs={['무기', '방어구', '칭호']}
+          tabs={['무기', '방어구', '악세사리', '칭호']}
           contents={[
             <div key="1">
               <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
-                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4">
-                  {Array.from({ length: 10 }).map((_, index) => (
-                    <div className="relative w-full flex justify-center mt-2" key={index}>
-                    {/* NFT 뱃지 */}
-                    <div
-                      className="absolute rounded-md bg-red-600 text-white px-2 py-0.5 shadow-md"
-                      style={{
-                        fontSize: '8px',
-                        right: '-4px',
-                        top: '-4px',
-                      }}
-                    >
-                      NFT
-                    </div>
-                  
-                    {/* NFT 이미지 */}
-                    <img 
-                      src={`https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeiduz2r7r7y5dzkxw4kkgzhek2lty3rgoaey5fnvmblb6gsryiu6pe/${index+1}.png`}
-                      className="w-[80%] h-auto rounded-md border border-gray-300"
-                    />
-                  </div>
-                  ))}
+                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
+                {Object.values(weapons).map((item, index) => (
+                  <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
+                ))}
                 </div>
               </div>
             </div>,
             <div key="2">
               <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
-                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4">
-                  {Array.from({ length: 4 }).map((_, index) => (
-                    <div className="relative w-full flex justify-center mt-2" key={index}>
-                      {/* NFT 뱃지 */}
-                      <div
-                        className="absolute rounded-md bg-red-600 text-white px-2 py-0.5 shadow-md"
-                        style={{
-                          fontSize: '8px',
-                          right: '-4px',
-                          top: '-4px',
-                        }}
-                      >
-                        NFT
-                      </div>
-                    
-                      {/* NFT 이미지 */}
-                      <img 
-                        src={`https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeiduz2r7r7y5dzkxw4kkgzhek2lty3rgoaey5fnvmblb6gsryiu6pe/${index+11}.png`}
-                        className="w-[80%] h-auto rounded-md border border-gray-300"
-                      />
-                    </div>
-                  
+                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
+                  {Object.values(armors).map((item, index) => (
+                    <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
                   ))}
                 </div>
               </div>
             </div>,
             <div key="3">
-            <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
-              <div className="grid grid-cols-5 w-full justify-items-center gap-y-4">
-                {Array.from({ length: 5 }).map((_, index) => (
-                    <div className="relative w-full flex justify-center mt-2" key={index}>
-                  {/* NFT 뱃지 */}
-                  <div
-                    className="absolute rounded-md bg-red-600 text-white px-2 py-0.5 shadow-md"
-                    style={{
-                      fontSize: '8px',
-                      right: '-4px',
-                      top: '-4px',
-                    }}
-                  >
-                    NFT
-                  </div>
-                
-                  {/* NFT 이미지 */}
-                  <img 
-                    src={`https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeiduz2r7r7y5dzkxw4kkgzhek2lty3rgoaey5fnvmblb6gsryiu6pe/${index+15}.png`}
-                    className="w-[80%] h-auto rounded-md border border-gray-300"
-                  />
+              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
+                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
+                  {Object.values(accessories).map((item, index) => (
+                    <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
+                  ))}
                 </div>
-                ))}
+              </div>
+            </div>,
+            <div key="4">
+              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
+                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
+                  {Object.values(titles).map((item, index) => (
+                    <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
           ]}
         />
       </div>
+      {selectedItem && (
+        <ItemModal
+          item={selectedItem}
+          equippedItem={equippedItem}
+          onClose={() => setSelectedItem(null)}
+          onEquip={(v) => {
+            dispatch(equipItem(v));
+            setSelectedItem(null);
+          }}
+        />
+      )}
     </div>
   );
 };

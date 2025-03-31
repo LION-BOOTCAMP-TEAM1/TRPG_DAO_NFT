@@ -5,10 +5,17 @@ import {Item} from "../store/types";
 import {addItemToInventory} from "../store/characterSlice"
 
 const CONTRACT_ADDRESS = "0x6a25a7a2627f37A6fF4C2e4c490F290309d0B561"; 
-const provider = new ethers.BrowserProvider((window as any).ethereum);
+
+export function getProvider() {
+  if (typeof window !== "undefined" && (window as any).ethereum) {
+    return new ethers.BrowserProvider((window as any).ethereum);
+  } else {
+    throw new Error("클라이언트 환경이 아닙니다.");
+  }
+}
 
 async function getSigner() {
-    return await provider.getSigner();
+    return await getProvider().getSigner();
 }
 
 async function getContract() {
