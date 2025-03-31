@@ -15,6 +15,8 @@ import rewards from './rewards.json';
 import storyWorlds from './storyWorlds.json';
 import chapters from './chapters.json';
 import items from './items.json';
+import genres from './genres.json';
+import choiceConditions from './choiceCondition.json';
 
 const prisma = new PrismaClient();
 
@@ -96,6 +98,14 @@ type BranchPointScene = {
   text: string;
 };
 
+// 추가: Genre 타입 정의
+type Genre = {
+  id?: number;
+  code: string;
+  name: string;
+  description?: string;
+}
+
 // 추가: StoryWorld 타입 정의
 type StoryWorld = {
   id?: number;
@@ -103,6 +113,7 @@ type StoryWorld = {
   title: string;
   description: string;
   coverImage?: string;
+  genreCode?: string; // 장르 코드 추가
 };
 
 // 챕터 타입 정의
@@ -134,6 +145,53 @@ type Item = {
   isNFT?: boolean;
 };
 
+// 추가: ChoiceCondition 타입 정의
+type ChoiceCondition = {
+  id?: number;
+  choiceSlug: string;
+  choiceId?: number;
+  classOnly?: string;
+  classExclude?: string[]; // Schema에는 없지만 데이터에 있는 필드
+  minHealth?: number;
+  minStrength?: number;
+  minAgility?: number;
+  minIntelligence?: number;
+  minWisdom?: number;
+  minCharisma?: number;
+  minHp?: number;
+  minMp?: number;
+};
+
+// 추가: Reward (PlayerNFT) 타입 정의
+type Reward = {
+  id?: number;
+  userId?: number;
+  nftTokenId: string;
+  choiceId?: number;
+  choiceSlug?: string;
+  itemId?: number;
+  itemCode?: string;
+  createdAt?: string;
+  name?: string;
+  description?: string;
+  rarity?: string;
+  ownerId?: number;
+};
+
+// 추가: StoryProgress 타입 정의
+type StoryProgressData = {
+  id?: number;
+  userId: number;
+  storyId: number;
+  storySlug?: string;
+  currentQuestId?: number;
+  currentQuestSlug?: string;
+  currentChapterId?: number;
+  currentChapterSlug?: string;
+  completed: boolean;
+  lastUpdated?: string;
+};
+
 async function main() {
   console.log('시작: 데이터베이스 시딩...');
   console.log(
@@ -146,9 +204,50 @@ async function main() {
   try {
     // 트랜잭션 내에서 모든 작업 수행
     await prisma.$transaction(async (tx) => {
+      // 장르 데이터 추가
+      console.log('장르 데이터 추가 중...');
+      for (const genre of genres as unknown as Genre[]) {
+        await tx.genre.upsert({
+          where: { 
+            code: genre.code
+          },
+          update: {
+            name: genre.name,
+            description: genre.description,
+          },
+          create: {
+            code: genre.code,
+            name: genre.name,
+            description: genre.description,
+          },
+        });
+      }
+      
+      // 장르 코드 -> ID 매핑 구축
+      const allGenres = await tx.genre.findMany();
+      const genreCodeToId = new Map();
+      for (const genre of allGenres) {
+        genreCodeToId.set(genre.code, genre.id);
+      }
+
       // 0. 스토리 세계관(StoryWorld) 추가
       console.log('스토리 세계관 데이터 추가 중...');
       for (const storyWorld of storyWorlds as unknown as StoryWorld[]) {
+        // 장르 연결 (기본적으로 판타지 장르로 설정, 특정 장르가 명시되어 있으면 해당 장르 사용)
+        let genreId = null;
+        if (storyWorld.genreCode) {
+          genreId = genreCodeToId.get(storyWorld.genreCode);
+        } else if (storyWorld.slug.includes('fantasy') || storyWorld.slug.includes('isekai')) {
+          // 판타지 관련 세계관은 01-fantasy 장르로 설정
+          genreId = genreCodeToId.get('01-fantasy');
+        } else if (storyWorld.slug.includes('modern') || storyWorld.slug.includes('city')) {
+          // 현대 관련 세계관은 02-modern 장르로 설정
+          genreId = genreCodeToId.get('02-modern');
+        } else if (storyWorld.slug.includes('cyber') || storyWorld.slug.includes('punk')) {
+          // 사이버펑크 관련 세계관은 03-cyberpunk 장르로 설정
+          genreId = genreCodeToId.get('03-cyberpunk');
+        }
+
         await tx.storyWorld.upsert({
           where: { 
             slug: storyWorld.slug
@@ -157,12 +256,14 @@ async function main() {
             title: storyWorld.title,
             description: storyWorld.description,
             coverImage: storyWorld.coverImage,
+            genreId: genreId,
           },
           create: {
             slug: storyWorld.slug,
             title: storyWorld.title,
             description: storyWorld.description,
             coverImage: storyWorld.coverImage,
+            genreId: genreId,
           },
         });
       }
@@ -362,6 +463,14 @@ async function main() {
             slug: choice.slug || slugify(choice.text),
           },
         });
+      }
+
+      // 선택지 슬러그 -> ID 매핑 구축
+      const allChoices = await tx.choice.findMany();
+      const choiceSlugToId = new Map();
+      for (const choice of allChoices) {
+        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
+        choiceSlugToId.set(choice.slug, choice.id);
       }
 
       // 4. 스토리 장면 추가
@@ -566,6 +675,204 @@ async function main() {
             isNFT: item.isNFT || false,
           },
         });
+      }
+
+      // Reward (PlayerNFT) 데이터 추가
+      console.log('보상 (PlayerNFT) 데이터 추가 중...');
+      
+      // 유저 데이터가 있는지 확인
+      const usersCount = await tx.user.count();
+      if (usersCount === 0) {
+        console.warn('사용자 데이터가 없어 PlayerNFT 시딩을 건너뜁니다. 사용자 계정을 먼저 생성하세요.');
+      } else {
+        // 아이템 코드 -> ID 매핑 구축
+        const allItems = await tx.item.findMany();
+        const itemCodeToId = new Map();
+        for (const item of allItems) {
+          itemCodeToId.set(item.code, item.id);
+        }
+        
+        // allChoices와 choiceSlugToId는 이미 위에서 정의됨
+        
+        for (const reward of rewards as unknown as Reward[]) {
+          // userId가 유효한지 확인
+          let userId = reward.userId || reward.ownerId;
+          if (!userId) {
+            console.warn(`사용자 ID가 없어 보상 건너뜀: ${reward.nftTokenId || reward.name}`);
+            continue;
+          }
+          
+          // 해당 유저가 있는지 확인
+          const userExists = await tx.user.findUnique({
+            where: { id: userId }
+          });
+          
+          if (!userExists) {
+            console.warn(`사용자를 찾을 수 없음 (ID: ${userId}). 보상 건너뜀: ${reward.nftTokenId || reward.name}`);
+            continue;
+          }
+          
+          // choiceId 결정
+          let choiceId = reward.choiceId;
+          if (!choiceId && reward.choiceSlug) {
+            choiceId = choiceSlugToId.get(reward.choiceSlug);
+          }
+          
+          // itemId 결정
+          let itemId = reward.itemId;
+          if (!itemId && reward.itemCode) {
+            itemId = itemCodeToId.get(reward.itemCode);
+          }
+          
+          try {
+            await tx.playerNFT.upsert({
+              where: { 
+                nftTokenId: reward.nftTokenId || `dummy-token-${reward.id || Date.now()}`
+              },
+              update: {
+                userId: userId,
+                choiceId: choiceId,
+                itemId: itemId,
+              },
+              create: {
+                userId: userId,
+                nftTokenId: reward.nftTokenId || `dummy-token-${reward.id || Date.now()}`,
+                choiceId: choiceId,
+                itemId: itemId,
+                createdAt: reward.createdAt ? new Date(reward.createdAt) : new Date(),
+              },
+            });
+          } catch (error) {
+            console.error(`보상 데이터 추가 중 오류 발생: ${error}`);
+          }
+        }
+      }
+
+      // 선택지 조건 데이터 추가
+      console.log('선택지 조건 데이터 추가 중...');
+      
+      for (const condition of choiceConditions as unknown as ChoiceCondition[]) {
+        const choiceId = choiceSlugToId.get(condition.choiceSlug);
+        
+        if (!choiceId) {
+          console.warn(
+            `선택지를 찾을 수 없음 (slug: ${condition.choiceSlug}). 선택지 조건 건너뜀`
+          );
+          continue;
+        }
+        
+        // classExclude 필드는 현재 스키마에 없으므로 로그 출력
+        if (condition.classExclude && condition.classExclude.length > 0) {
+          console.warn(
+            `선택지 (${condition.choiceSlug})에 classExclude 필드가 있지만 스키마에 정의되어 있지 않습니다. 이 정보는 저장되지 않습니다: [${condition.classExclude.join(', ')}]`
+          );
+        }
+        
+        await tx.choiceCondition.upsert({
+          where: { 
+            id: condition.id || 0
+          },
+          update: {
+            choiceId: choiceId,
+            classOnly: condition.classOnly,
+            minHealth: condition.minHealth,
+            minStrength: condition.minStrength,
+            minAgility: condition.minAgility,
+            minIntelligence: condition.minIntelligence,
+            minWisdom: condition.minWisdom,
+            minCharisma: condition.minCharisma,
+            minHp: condition.minHp,
+            minMp: condition.minMp,
+          },
+          create: {
+            choiceId: choiceId,
+            classOnly: condition.classOnly,
+            minHealth: condition.minHealth,
+            minStrength: condition.minStrength,
+            minAgility: condition.minAgility,
+            minIntelligence: condition.minIntelligence,
+            minWisdom: condition.minWisdom,
+            minCharisma: condition.minCharisma,
+            minHp: condition.minHp,
+            minMp: condition.minMp,
+          },
+        });
+      }
+
+      // StoryProgress 데이터 추가
+      console.log('스토리 진행 데이터 추가 중...');
+      
+      // 유저 데이터가 있는지 확인
+      if (usersCount === 0) {
+        console.warn('사용자 데이터가 없어 StoryProgress 시딩을 건너뜁니다. 사용자 계정을 먼저 생성하세요.');
+      } else {
+        for (const progress of storyProgress as unknown as StoryProgressData[]) {
+          // userId가 유효한지 확인
+          const userId = progress.userId;
+          if (!userId) {
+            console.warn(`사용자 ID가 없어 스토리 진행 건너뜀: ${progress.id}`);
+            continue;
+          }
+          
+          // 해당 유저가 있는지 확인
+          const userExists = await tx.user.findUnique({
+            where: { id: userId }
+          });
+          
+          if (!userExists) {
+            console.warn(`사용자를 찾을 수 없음 (ID: ${userId}). 스토리 진행 건너뜀: ${progress.id}`);
+            continue;
+          }
+          
+          // storyId 결정
+          let storyId = progress.storyId;
+          if (!storyId && progress.storySlug) {
+            storyId = storySlugToId.get(progress.storySlug);
+          }
+          
+          if (!storyId) {
+            console.warn(`스토리를 찾을 수 없음. 스토리 진행 건너뜀: ${progress.id}`);
+            continue;
+          }
+          
+          // questId 결정
+          let currentQuestId = progress.currentQuestId;
+          if (!currentQuestId && progress.currentQuestSlug) {
+            currentQuestId = questSlugToId.get(progress.currentQuestSlug);
+          }
+          
+          // chapterId 결정
+          let currentChapterId = progress.currentChapterId;
+          if (!currentChapterId && progress.currentChapterSlug) {
+            currentChapterId = chapterSlugToId.get(progress.currentChapterSlug);
+          }
+          
+          try {
+            await tx.storyProgress.upsert({
+              where: { 
+                id: progress.id || 0
+              },
+              update: {
+                userId: userId,
+                storyId: storyId,
+                currentQuestId: currentQuestId,
+                currentChapterId: currentChapterId,
+                completed: progress.completed,
+                lastUpdated: progress.lastUpdated ? new Date(progress.lastUpdated) : new Date(),
+              },
+              create: {
+                userId: userId,
+                storyId: storyId,
+                currentQuestId: currentQuestId,
+                currentChapterId: currentChapterId,
+                completed: progress.completed,
+                lastUpdated: progress.lastUpdated ? new Date(progress.lastUpdated) : new Date(),
+              },
+            });
+          } catch (error) {
+            console.error(`스토리 진행 데이터 추가 중 오류 발생: ${error}`);
+          }
+        }
       }
     });
 

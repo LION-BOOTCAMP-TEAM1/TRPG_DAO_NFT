@@ -51,7 +51,7 @@
     "slug": "shady-deal-complete",
     "title": "수상한 거래 완료",
     "summary": "당신은 말없이 꾸러미를 건넨다. 외눈박이 남자는 고개를 끄덕이고, 아무 말 없이 사라진다. 무엇인가 찜찜한 기분이 남는다.",
-    "quests": ["cult-stirring"],
+    "quests": ["cult-pursuit-or-contact"],
     "imageUrl": "/static/images/stories/shady-deal-complete.png"
   },
 
