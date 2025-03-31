@@ -23,7 +23,9 @@
     "db:fix:clean": "node scripts/fix-db.js clean",
     "db:fix:reset": "node scripts/fix-db.js reset",
     "db:fix:force": "node scripts/fix-db.js force",
-    "db:fix:seed": "node scripts/fix-db.js seed"
+    "db:fix:seed": "node scripts/fix-db.js seed",
+    "prod:setup": "cross-env NODE_ENV=production npm run db:prisma:generate && npx prisma migrate deploy",
+    "prod:seed:batch": "cross-env NODE_ENV=production BATCH_SIZE=5 BATCH_DELAY=2000 ts-node src/seed/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -37,7 +39,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
-    "@types/express": "^5.0.0",
+    "@types/express": "^4.17.21",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^8.2.3",
     "@types/swagger-jsdoc": "^6.0.4",
@@ -46,7 +48,7 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "ethers": "^6.13.5",
-    "express": "^4.21.2",
+    "express": "^4.18.2",
     "path": "^0.12.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
