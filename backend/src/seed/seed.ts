@@ -1,6 +1,10 @@
 import { PrismaClient, BranchPointStatus, ItemRarity, ItemType } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
+
+// 환경 변수 로드
+dotenv.config();
 
 // Import seed data
 import stories from './stories.json';
@@ -19,6 +23,17 @@ import genres from './genres.json';
 import choiceConditions from './choiceCondition.json';
 
 const prisma = new PrismaClient();
+
+// 환경 변수로 중복 데이터 처리 방식 제어
+// SEED_OVERWRITE=true: 중복 데이터 덮어쓰기 (기본값)
+// SEED_OVERWRITE=false: 중복 데이터 건너뛰기
+const OVERWRITE_DUPLICATES = process.env.SEED_OVERWRITE !== 'false';
+
+// 중복 체크 카운터
+let duplicatesFound = 0;
+let newItemsCreated = 0;
+let updatedItems = 0;
+let skippedItems = 0;
 
 // 문자열을 URL 친화적인 slug로 변환하는 함수
 function slugify(text: string): string {
@@ -192,14 +207,70 @@ type StoryProgressData = {
   lastUpdated?: string;
 };
 
-async function main() {
+// 중복 확인 및 처리를 위한 커스텀 upsert 함수
+async function customUpsert<T extends { id?: number }>(
+  model: any,
+  where: any,
+  data: any,
+  entityName: string,
+  identifierValue: string | number, // string 또는 number 허용
+) {
+  // 먼저 해당 데이터가 이미 존재하는지 확인
+  const existing = await model.findUnique({
+    where
+  });
+
+  if (existing) {
+    duplicatesFound++;
+    
+    if (OVERWRITE_DUPLICATES) {
+      // 덮어쓰기 모드: 업데이트 실행
+      await model.update({
+        where: { id: existing.id },
+        data
+      });
+      updatedItems++;
+      
+      if (duplicatesFound % 10 === 0) { // 로그 줄이기 위해 10개마다 출력
+        console.log(`🔄 중복 ${entityName} 업데이트: ${identifierValue} (총 ${duplicatesFound}개 중복 발견)`);
+      }
+      
+      return existing.id;
+    } else {
+      // 건너뛰기 모드: 업데이트 없이 기존 ID 반환
+      skippedItems++;
+      
+      if (duplicatesFound % 10 === 0) {
+        console.log(`⏭️ 중복 ${entityName} 건너뜀: ${identifierValue} (총 ${duplicatesFound}개 중복 발견)`);
+      }
+      
+      return existing.id;
+    }
+  } else {
+    // 새 데이터 생성
+    const result = await model.create({
+      data
+    });
+    newItemsCreated++;
+    
+    if (newItemsCreated % 10 === 0) {
+      console.log(`✅ 새 ${entityName} 생성: ${identifierValue} (총 ${newItemsCreated}개 생성)`);
+    }
+    
+    return result.id;
+  }
+}
+
+// 데이터베이스 시드 함수 (기존 코드를 이 함수로 감싸 외부에서 호출 가능하게 함)
+export async function seedDatabase() {
   console.log('시작: 데이터베이스 시딩...');
-  console.log(
-    '⚠️ 주의: 이 스크립트는 slug 필드가 추가된 새 스키마를 사용합니다.'
-  );
-  console.log(
-    '먼저 "npx prisma migrate dev --name add_slugs" 명령어로 마이그레이션을 실행하세요.'
-  );
+  console.log(`중복 데이터 처리 모드: ${OVERWRITE_DUPLICATES ? '덮어쓰기' : '건너뛰기'}`);
+  
+  // 카운터 초기화
+  duplicatesFound = 0;
+  newItemsCreated = 0;
+  updatedItems = 0;
+  skippedItems = 0;
 
   try {
     // 트랜잭션 내에서 모든 작업 수행
@@ -207,20 +278,17 @@ async function main() {
       // 장르 데이터 추가
       console.log('장르 데이터 추가 중...');
       for (const genre of genres as unknown as Genre[]) {
-        await tx.genre.upsert({
-          where: { 
-            code: genre.code
-          },
-          update: {
-            name: genre.name,
-            description: genre.description,
-          },
-          create: {
+        await customUpsert(
+          tx.genre,
+          { code: genre.code },
+          {
             code: genre.code,
             name: genre.name,
             description: genre.description,
           },
-        });
+          '장르',
+          genre.code
+        );
       }
       
       // 장르 코드 -> ID 매핑 구축
@@ -248,24 +316,19 @@ async function main() {
           genreId = genreCodeToId.get('03-cyberpunk');
         }
 
-        await tx.storyWorld.upsert({
-          where: { 
-            slug: storyWorld.slug
-          },
-          update: {
-            title: storyWorld.title,
-            description: storyWorld.description,
-            coverImage: storyWorld.coverImage,
-            genreId: genreId,
-          },
-          create: {
+        await customUpsert(
+          tx.storyWorld,
+          { slug: storyWorld.slug },
+          {
             slug: storyWorld.slug,
             title: storyWorld.title,
             description: storyWorld.description,
             coverImage: storyWorld.coverImage,
             genreId: genreId,
           },
-        });
+          '스토리 세계관',
+          storyWorld.slug
+        );
       }
 
       // 스토리월드 슬러그 -> ID 매핑 구축
@@ -292,33 +355,26 @@ async function main() {
           storyWorldId = storyWorldSlugToId.get('dark-fantasy');
         }
 
-        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
-        await tx.story.upsert({
-          where: { 
-            slug: story.slug || slugify(story.title) 
-          },
-          update: {
+        const slug = story.slug || slugify(story.title);
+        await customUpsert(
+          tx.story,
+          { slug },
+          {
             title: story.title,
             summary: story.summary,
-            slug: story.slug || slugify(story.title),
+            slug,
             storyWorldId: storyWorldId,
             imageUrl: story.imageUrl,
           },
-          create: {
-            title: story.title,
-            summary: story.summary,
-            slug: story.slug || slugify(story.title),
-            storyWorldId: storyWorldId,
-            imageUrl: story.imageUrl,
-          },
-        });
+          '스토리',
+          slug
+        );
       }
 
       // 스토리 슬러그 -> ID 매핑 구축
       const allStories = await tx.story.findMany();
       const storySlugToId = new Map();
       for (const story of allStories) {
-        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
         storySlugToId.set(story.slug, story.id);
       }
 
@@ -344,18 +400,10 @@ async function main() {
           continue;
         }
 
-        await tx.chapter.upsert({
-          where: { 
-            slug: chapter.slug 
-          },
-          update: {
-            storyId: storyId,
-            title: chapter.title,
-            description: chapter.description,
-            sequence: chapter.sequence,
-            imageUrl: chapter.imageUrl,
-          },
-          create: {
+        await customUpsert(
+          tx.chapter,
+          { slug: chapter.slug },
+          {
             slug: chapter.slug,
             storyId: storyId,
             title: chapter.title,
@@ -363,14 +411,15 @@ async function main() {
             sequence: chapter.sequence,
             imageUrl: chapter.imageUrl,
           },
-        });
+          '챕터',
+          chapter.slug
+        );
       }
 
       // 챕터 슬러그 -> ID 매핑 구축
       const allChapters = await tx.chapter.findMany();
       const chapterSlugToId = new Map();
       for (const chapter of allChapters) {
-        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
         chapterSlugToId.set(chapter.slug, chapter.id);
       }
 
@@ -397,32 +446,24 @@ async function main() {
           }
         }
 
-        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
-        await tx.quest.upsert({
-          where: { 
-            slug: quest.slug 
-          },
-          update: {
+        await customUpsert(
+          tx.quest,
+          { slug: quest.slug },
+          {
             storyId: storyId,
             chapterId: chapterId, // 챕터 연결
             title: quest.title,
             description: quest.description,
           },
-          create: {
-            storyId: storyId,
-            chapterId: chapterId, // 챕터 연결
-            slug: quest.slug,
-            title: quest.title,
-            description: quest.description,
-          },
-        });
+          '퀘스트',
+          quest.slug
+        );
       }
 
       // 퀘스트 슬러그 -> ID 매핑 구축
       const allQuests = await tx.quest.findMany();
       const questSlugToId = new Map();
       for (const quest of allQuests) {
-        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
         questSlugToId.set(quest.slug, quest.id);
       }
 
@@ -447,29 +488,24 @@ async function main() {
           nextStoryId = storySlugToId.get(choice.nextStorySlug) || null;
         }
 
-        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
-        await tx.choice.upsert({
-          where: { slug: choice.slug || slugify(choice.text) },
-          update: {
+        await customUpsert(
+          tx.choice,
+          { slug: choice.slug || slugify(choice.text) },
+          {
             questId,
             text: choice.text,
             nextStoryId,
             slug: choice.slug || slugify(choice.text),
           },
-          create: {
-            questId,
-            text: choice.text,
-            nextStoryId,
-            slug: choice.slug || slugify(choice.text),
-          },
-        });
+          '선택지',
+          choice.slug || choice.text.substring(0, 20)
+        );
       }
 
       // 선택지 슬러그 -> ID 매핑 구축
       const allChoices = await tx.choice.findMany();
       const choiceSlugToId = new Map();
       for (const choice of allChoices) {
-        // @ts-ignore - slug 필드가 추가된 새 스키마를 사용합니다
         choiceSlugToId.set(choice.slug, choice.id);
       }
 
@@ -485,19 +521,17 @@ async function main() {
           continue;
         }
 
-        await tx.storyScene.upsert({
-          where: { id: scene.id || 0 },
-          update: {
+        await customUpsert(
+          tx.storyScene,
+          { id: scene.id || 0 },
+          {
             storyId: storyId,
             sequence: scene.sequence,
             text: scene.text,
           },
-          create: {
-            storyId: storyId,
-            sequence: scene.sequence,
-            text: scene.text,
-          },
-        });
+          '스토리 장면',
+          scene.storySlug
+        );
       }
 
       // 5. 분기점 추가
@@ -528,9 +562,10 @@ async function main() {
             ? BranchPointStatus.OPEN
             : BranchPointStatus.CLOSED;
 
-        await tx.branchPoint.upsert({
-          where: { slug: bp.slug || slugify(bp.title) },
-          update: {
+        await customUpsert(
+          tx.branchPoint,
+          { slug: bp.slug || slugify(bp.title) },
+          {
             storyId: Number(storyId),
             title: bp.title,
             description: bp.description,
@@ -538,16 +573,9 @@ async function main() {
             daoVoteId: bp.daoVoteId,
             slug: bp.slug || slugify(bp.title),
           },
-          create: {
-            // id 필드 제거 - 자동 생성됨
-            storyId: Number(storyId),
-            title: bp.title,
-            description: bp.description,
-            status: status,
-            daoVoteId: bp.daoVoteId,
-            slug: bp.slug || slugify(bp.title),
-          },
-        });
+          '분기점',
+          bp.slug || bp.title
+        );
       }
 
       // 분기점 슬러그 -> ID 매핑 구축
@@ -569,19 +597,17 @@ async function main() {
           continue;
         }
 
-        await tx.branchPointScene.upsert({
-          where: { id: bpScene.id || 0 },
-          update: {
+        await customUpsert(
+          tx.branchPointScene,
+          { id: bpScene.id || 0 },
+          {
             branchPointId: branchPointId,
             order: bpScene.order,
             text: bpScene.text,
           },
-          create: {
-            branchPointId: branchPointId,
-            order: bpScene.order,
-            text: bpScene.text,
-          },
-        });
+          '분기점 장면',
+          bpScene.branchPointSlug
+        );
       }
 
       // 7. DAO 선택지 추가
@@ -623,9 +649,10 @@ async function main() {
           nextStoryId = defaultStoryId;
         }
 
-        await tx.dAOChoice.upsert({
-          where: { id: choice.id || 0 }, // DAOChoice에는 slug가 없어서 id로 검색
-          update: {
+        await customUpsert(
+          tx.dAOChoice,
+          { id: choice.id || 0 }, // DAOChoice에는 slug가 없어서 id로 검색
+          {
             text: choice.text,
             nextStoryId,
             voteCount: choice.voteCount || 0,
@@ -633,25 +660,18 @@ async function main() {
               connect: { id: branchPointId }
             }
           },
-          create: {
-            text: choice.text,
-            nextStoryId,
-            voteCount: choice.voteCount || 0,
-            branchPoint: {
-              connect: { id: branchPointId }
-            }
-          },
-        });
+          'DAO 선택지',
+          choice.id || choice.text.substring(0, 20)
+        );
       }
 
       // 아이템 데이터 추가
       console.log('아이템 데이터 추가 중...');
       for (const item of items as unknown as Item[]) {
-        await tx.item.upsert({
-          where: { 
-            code: item.code 
-          },
-          update: {
+        await customUpsert(
+          tx.item,
+          { code: item.code },
+          {
             name: item.name,
             description: item.description,
             imageUrl: item.imageUrl,
@@ -662,19 +682,9 @@ async function main() {
             isConsumable: item.isConsumable,
             isNFT: item.isNFT || false,
           },
-          create: {
-            code: item.code,
-            name: item.name,
-            description: item.description,
-            imageUrl: item.imageUrl,
-            rarity: item.rarity as ItemRarity,
-            itemType: item.itemType as ItemType,
-            useEffect: item.useEffect,
-            statBonus: item.statBonus as any,
-            isConsumable: item.isConsumable,
-            isNFT: item.isNFT || false,
-          },
-        });
+          '아이템',
+          item.code
+        );
       }
 
       // Reward (PlayerNFT) 데이터 추가
@@ -725,23 +735,17 @@ async function main() {
           }
           
           try {
-            await tx.playerNFT.upsert({
-              where: { 
-                nftTokenId: reward.nftTokenId || `dummy-token-${reward.id || Date.now()}`
-              },
-              update: {
+            await customUpsert(
+              tx.playerNFT,
+              { nftTokenId: reward.nftTokenId || `dummy-token-${reward.id || Date.now()}` },
+              {
                 userId: userId,
                 choiceId: choiceId,
                 itemId: itemId,
               },
-              create: {
-                userId: userId,
-                nftTokenId: reward.nftTokenId || `dummy-token-${reward.id || Date.now()}`,
-                choiceId: choiceId,
-                itemId: itemId,
-                createdAt: reward.createdAt ? new Date(reward.createdAt) : new Date(),
-              },
-            });
+              '보상 (PlayerNFT)',
+              reward.nftTokenId || `dummy-token-${reward.id || Date.now()}`
+            );
           } catch (error) {
             console.error(`보상 데이터 추가 중 오류 발생: ${error}`);
           }
@@ -768,11 +772,10 @@ async function main() {
           );
         }
         
-        await tx.choiceCondition.upsert({
-          where: { 
-            id: condition.id || 0
-          },
-          update: {
+        await customUpsert(
+          tx.choiceCondition,
+          { id: condition.id || 0 },
+          {
             choiceId: choiceId,
             classOnly: condition.classOnly,
             minHealth: condition.minHealth,
@@ -784,19 +787,9 @@ async function main() {
             minHp: condition.minHp,
             minMp: condition.minMp,
           },
-          create: {
-            choiceId: choiceId,
-            classOnly: condition.classOnly,
-            minHealth: condition.minHealth,
-            minStrength: condition.minStrength,
-            minAgility: condition.minAgility,
-            minIntelligence: condition.minIntelligence,
-            minWisdom: condition.minWisdom,
-            minCharisma: condition.minCharisma,
-            minHp: condition.minHp,
-            minMp: condition.minMp,
-          },
-        });
+          '선택지 조건',
+          condition.id || 0
+        );
       }
 
       // StoryProgress 데이터 추가
@@ -848,11 +841,10 @@ async function main() {
           }
           
           try {
-            await tx.storyProgress.upsert({
-              where: { 
-                id: progress.id || 0
-              },
-              update: {
+            await customUpsert(
+              tx.storyProgress,
+              { id: progress.id || 0 },
+              {
                 userId: userId,
                 storyId: storyId,
                 currentQuestId: currentQuestId,
@@ -860,15 +852,9 @@ async function main() {
                 completed: progress.completed,
                 lastUpdated: progress.lastUpdated ? new Date(progress.lastUpdated) : new Date(),
               },
-              create: {
-                userId: userId,
-                storyId: storyId,
-                currentQuestId: currentQuestId,
-                currentChapterId: currentChapterId,
-                completed: progress.completed,
-                lastUpdated: progress.lastUpdated ? new Date(progress.lastUpdated) : new Date(),
-              },
-            });
+              '스토리 진행',
+              progress.id || 0
+            );
           } catch (error) {
             console.error(`스토리 진행 데이터 추가 중 오류 발생: ${error}`);
           }
@@ -877,12 +863,23 @@ async function main() {
     });
 
     console.log('완료: 데이터베이스 시딩 성공!');
+    console.log(`통계: ${newItemsCreated}개 새로 생성, ${updatedItems}개 업데이트, ${skippedItems}개 건너뜀, 총 ${duplicatesFound}개 중복 발견`);
   } catch (error) {
     console.error('시딩 중 오류 발생:', error);
-    process.exit(1);
+    throw error;
   } finally {
     await prisma.$disconnect();
   }
 }
 
-main();
+// 기존 스크립트에서 직접 실행할 경우
+if (require.main === module) {
+  seedDatabase()
+    .then(() => {
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('시딩 실패:', error);
+      process.exit(1);
+    });
+}
