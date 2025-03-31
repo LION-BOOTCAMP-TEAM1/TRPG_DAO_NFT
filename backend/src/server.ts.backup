@@ -1,0 +1,363 @@
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import prisma from './prismaClient';
+import { setupSwagger } from './config/swagger';
+import apiRoutes from './routes';
+import path from 'path';
+import { 
+  createTrackedInterval, 
+  createTrackedTimeout, 
+  clearAllTimers, 
+  setupMemoryMonitoring,
+  forceGC,
+  clearTimeout
+} from './utils/intervalManager';
+import { trackMemoryUsage, generateMemoryReport } from './utils/memoryLeakDetector';
+
+// 환경 변수 로드 - 최우선 실행
+try {
+  dotenv.config();
+  console.log('환경 변수 로드 성공');
+} catch (e) {
+  console.error('환경 변수 로드 실패:', e);
+}
+
+// 서버 중복 시작 방지를 위한 플래그
+let isServerStarting = false;
+let isServerRunning = false;
+
+// Render 환경 감지 로직 통합
+const isRenderEnv = process.env.IS_RENDER === 'true' || process.env.RENDER === 'true';
+console.log(`Render 환경 감지: ${isRenderEnv}`);
+
+// 시작 환경 로깅
+console.log('==== 서버 시작 ====');
+console.log(`NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+console.log(`SKIP_DB_SYNC: ${process.env.SKIP_DB_SYNC || 'false'}`);
+console.log(`PORT: ${process.env.PORT || '3000'}`);
+console.log(`실행 시간: ${new Date().toISOString()}`);
+console.log('===================');
+
+// Render 진단 정보 로깅
+console.log('==== Render 진단 정보 ====');
+console.log('환경변수 상세:');
+[
+  'NODE_ENV', 'PORT', 'SKIP_DB_SYNC', 'IS_RENDER', 'RENDER',
+  'DATABASE_URL', 'DATABASE_URL_UNPOOLED'
+].forEach(key => {
+  const value = process.env[key];
+  console.log(`${key}: ${value ? (key.includes('DATABASE') ? '설정됨(값 숨김)' : value) : '설정안됨'}`);
+});
+console.log('========================');
+
+// 전역 에러 핸들러 설정
+process.on('uncaughtException', (error) => {
+  console.error('===== 치명적인 처리되지 않은 예외 발생 =====');
+  console.error('오류 메시지:', error.message);
+  console.error('오류 이름:', error.name);
+  console.error('오류 스택:', error.stack);
+  console.error('=========================================');
+  
+  // 프로덕션에서는 계속 실행 - 메모리 누수 방지를 위해 GC 힌트 추가
+  if (process.env.NODE_ENV === 'production') {
+    forceGC();
+  } else {
+    process.exit(1);
+  }
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('===== 처리되지 않은 Promise 거부 =====');
+  console.error('사유:', reason);
+  console.error('=========================================');
+  
+  // 메모리 누수 방지를 위해 GC 힌트 추가
+  forceGC();
+});
+
+const app = express();
+// Render.com에서는 할당된 PORT 환경 변수를 반드시 사용해야 함
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const API_PREFIX = '/api';
+
+// Express 에러 핸들링 미들웨어
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Express 오류 발생:', err);
+  res.status(500).json({
+    status: 'error',
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'production' ? 'Internal error' : err.message
+  });
+});
+
+try {
+  // CORS 설정
+  app.use(cors({
+    origin: '*', // 개발 목적으로 임시로 모든 오리진 허용
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
+  }));
+
+  app.use(express.json());
+
+  // 정적 파일 제공 설정
+  app.use('/static', express.static(path.join(__dirname, '../static')));
+
+  console.log('기본 라우트 설정 중...');
+
+  // 기본 상태 체크 엔드포인트
+  app.get('/', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok', 
+      message: 'Server is running', 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
+  // 데이터베이스 상태 체크 엔드포인트
+  app.get('/health', async (req, res) => {
+    try {
+      // 타임아웃 설정 (5초) - 추적 가능한 타임아웃 사용
+      const timeoutId = createTrackedTimeout(() => {
+        console.log("데이터베이스 상태 체크 타임아웃");
+        res.status(200).json({ // 500 대신 200 반환하여 헬스체크 실패로 인한 재시작 방지
+          status: 'warning', 
+          message: 'Database connection timeout, but server is running',
+          timestamp: new Date().toISOString()
+        });
+      }, 5000);
+      
+      await prisma.$queryRaw`SELECT 1`;
+      clearTimeout(timeoutId);
+      
+      res.status(200).json({ 
+        status: 'ok', 
+        message: 'Database connection successful',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Health check failed:', error);
+      // 프로덕션 환경에서는 DB 연결 실패해도 서버는 계속 실행
+      res.status(200).json({ // 500 대신 200 반환하여 헬스체크 실패로 인한 재시작 방지
+        status: 'warning', 
+        message: 'Database connection failed, but server is running',
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  console.log('API 라우터 등록 시도...');
+  try {
+    // API 라우터 등록
+    app.use(API_PREFIX, apiRoutes);
+    console.log('API 라우터 등록 성공');
+  } catch (routerError) {
+    console.error('API 라우터 등록 실패:', routerError);
+  }
+
+  console.log('스웨거 설정 시도...');
+  // Swagger 설정은 메모리를 많이 사용할 수 있으므로 프로덕션에서는 선택적으로 활성화
+  if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'true') {
+    try {
+      setupSwagger(app);
+      console.log('스웨거 설정 완료');
+    } catch (swaggerError) {
+      console.error('스웨거 설정 실패:', swaggerError);
+    }
+  }
+} catch (setupError) {
+  console.error('서버 설정 중 오류:', setupError);
+}
+
+// 데이터베이스 연결 지연 처리 및 서버 시작
+async function startServer() {
+  // 중복 시작 방지
+  if (isServerStarting) {
+    console.log('서버가 이미 시작 중입니다. 중복 시작 방지');
+    return null;
+  }
+  
+  if (isServerRunning) {
+    console.log('서버가 이미 실행 중입니다.');
+    return null;
+  }
+  
+  isServerStarting = true;
+  let server: any = null;
+  
+  try {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    console.log(`🚀 서버 시작 준비 중... 모드: ${isProduction ? 'production' : 'development'}`);
+    console.log(`🔌 사용할 포트: ${PORT}`);
+    
+    // 서버 먼저 시작 - 모든 인터페이스에서 수신
+    return new Promise((resolve, reject) => {
+      try {
+        server = app.listen(PORT, () => {
+          console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
+          console.log(`🚀 서버 URL: ${isProduction ? 'https://trpg-dao-nft.onrender.com' : `http://localhost:${PORT}`}`);
+          
+          // 서버가 정상적으로 시작되었음을 확인하기 위한 추가 코드
+          if (server && server.listening) {
+            console.log('✅ 서버가 정상적으로 실행 중이며 요청 대기 중입니다.');
+            isServerStarting = false;
+            isServerRunning = true;
+            resolve(server);
+          } else {
+            console.error('❌ 서버가 시작되었지만 정상 작동 중인지 확인할 수 없습니다.');
+            isServerStarting = false;
+            reject(new Error('Server is not properly listening'));
+          }
+        });
+        
+        server.on('error', (err: any) => {
+          console.error('서버 시작 중 오류 발생:', err);
+          isServerStarting = false;
+          reject(err);
+        });
+        
+        // 애플리케이션 종료 시 데이터베이스 연결 정상 종료
+        const gracefulShutdown = async () => {
+          console.log('서버를 종료합니다...');
+          
+          // 상태 플래그 업데이트
+          isServerRunning = false;
+          
+          // 모든 타이머 정리 (인터벌 + 타임아웃)
+          clearAllTimers();
+          
+          if (server) {
+            server.close(async () => {
+              try {
+                console.log('데이터베이스 연결 정리 중...');
+                await prisma.$disconnect();
+                console.log('데이터베이스 연결이 안전하게 종료되었습니다.');
+              } catch (error) {
+                console.error('데이터베이스 연결 종료 중 오류:', error);
+              } finally {
+                // 메모리 정리 힌트
+                forceGC();
+                console.log('서버가 정상적으로 종료되었습니다.');
+                // 정상 종료 코드 사용
+                process.exit(0);
+              }
+            });
+            
+            // HTTP 요청 강제 종료 시간 알림
+            createTrackedTimeout(() => {
+              console.log('서버가 여전히 활성 연결을 닫는 중입니다...');
+            }, 5000);
+            
+            // 10초 후에도 종료되지 않으면 강제 종료
+            createTrackedTimeout(() => {
+              console.error('서버가 10초 내에 정상 종료되지 않아 강제 종료합니다.');
+              process.exit(1);
+            }, 10000);
+          } else {
+            console.log('서버 인스턴스를 찾을 수 없습니다. 즉시 종료합니다.');
+            process.exit(0);
+          }
+        };
+        
+        // 이벤트 리스너 중복 등록 방지
+        ['SIGTERM', 'SIGINT'].forEach(signal => {
+          process.removeAllListeners(signal);
+          process.on(signal, gracefulShutdown);
+        });
+        
+      } catch (startError) {
+        console.error('서버 시작 과정에서 예외 발생:', startError);
+        isServerStarting = false;
+        reject(startError);
+      }
+    });
+  } catch (error) {
+    console.error('서버 시작 준비 중 오류가 발생했습니다:', error);
+    isServerStarting = false;
+    
+    // 서버가 이미 시작되었다면 계속 실행
+    if (server && server.listening) {
+      console.log('서버가 이미 실행 중입니다. 계속 실행합니다.');
+      isServerRunning = true;
+      return server;
+    } else {
+      console.log('서버 시작 시도 실패');
+      throw error; // 재귀 호출 대신 오류 전파
+    }
+  }
+}
+
+// GC 효율을 위한 힙 최적화 힌트 (V8 엔진)
+if (process.env.NODE_ENV === 'production') {
+  forceGC();
+}
+
+// 서버 시작 (재시도 로직 포함)
+(async () => {
+  let retryCount = 0;
+  const MAX_RETRIES = 3;
+  let server = null;
+
+  while (retryCount < MAX_RETRIES && !isServerRunning) {
+    try {
+      console.log(`서버 시작 시도 ${retryCount + 1}/${MAX_RETRIES}`);
+      server = await startServer();
+      
+      if (server) {
+        console.log('서버 시작 완료');
+        break;
+      } else if (isServerRunning) {
+        console.log('서버가 이미 실행 중입니다.');
+        break;
+      }
+    } catch (e) {
+      console.error(`서버 시작 시도 ${retryCount + 1} 실패:`, e);
+      retryCount++;
+      
+      if (retryCount < MAX_RETRIES) {
+        console.log(`5초 후 다시 시도합니다... (${retryCount}/${MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+  }
+
+  if (!server && !isServerRunning) {
+    console.error(`서버 시작 실패: ${MAX_RETRIES}회 시도 후 중단`);
+    process.exit(1);
+  }
+  
+  // 서버가 성공적으로 시작되면 모니터링 설정
+  console.log('서버 모니터링 설정 중...');
+  
+  // 서버 시작 시간 기록
+  const startTime = Date.now();
+  
+  // 통합 메모리 및 상태 모니터링 (2분마다 - 빈도 감소)
+  const monitoringInterval = createTrackedInterval(() => {
+    // 메모리 상태 출력
+    const memoryUsage = process.memoryUsage();
+    console.log('===== 메모리 및 상태 모니터링 =====');
+    console.log(`[${new Date().toISOString()}] 실행 시간: ${Math.round((Date.now() - startTime) / 1000 / 60)}분`);
+    console.log(`RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB, Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`);
+    
+    // GC 실행
+    console.log('가비지 컬렉션 실행...');
+    forceGC();
+  }, 120000); // 2분마다 실행
+  
+  // 메모리 누수 감지 (15분마다 - 빈도 감소)
+  const leakDetectionInterval = createTrackedInterval(() => {
+    console.log('메모리 누수 감지 실행...');
+    trackMemoryUsage();
+  }, 900000); // 15분마다
+  
+  // 이벤트 리스너 중복 등록 방지
+  process.removeAllListeners('beforeExit');
+  
+  // 프로세스가 종료되지 않도록 유지
+  process.stdin.resume();
+})();
