@@ -100,7 +100,7 @@ async function runMigration() {
 /**
  * 시드 데이터 적용
  */
-async function runSeed() {
+export async function runSeed() {
   console.log('시드 데이터 적용 중...');
   await execPromise('npm run seed');
   console.log('시드 데이터가 성공적으로 적용되었습니다.');
