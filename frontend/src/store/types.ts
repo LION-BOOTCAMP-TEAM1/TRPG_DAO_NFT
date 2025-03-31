@@ -1,15 +1,16 @@
 export interface Item {
     id: number;
     name: string;
+    description: string | null;
     image: string;
-    type: number;
-    tier: number;
-    isNFT: boolean;
+    type: string; // 무기 방어구 악세
+    rarity: string;
+    isNFT: boolean; // front
     stat?: Partial<{
         attack: number | null;
         magic: number | null;
         defence: number | null;
-        strenth: number | null;
+        strength: number | null;
         agility: number | null;
         intelligence: number | null;
         charisma: number | null;
@@ -28,7 +29,7 @@ export interface Character {
         attack: number;
         magic: number;
         defence: number;
-        strenth: number;
+        strength: number;
         agility: number;
         intelligence: number;
         charisma: number;
