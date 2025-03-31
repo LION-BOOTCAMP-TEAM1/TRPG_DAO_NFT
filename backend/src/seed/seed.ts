@@ -263,8 +263,11 @@ async function customUpsert<T extends { id?: number }>(
 
 // 데이터베이스 시드 함수 (기존 코드를 이 함수로 감싸 외부에서 호출 가능하게 함)
 export async function seedDatabase() {
+  console.log('==================================================');
   console.log('시작: 데이터베이스 시딩...');
   console.log(`중복 데이터 처리 모드: ${OVERWRITE_DUPLICATES ? '덮어쓰기' : '건너뛰기'}`);
+  console.log(`NODE_ENV: ${process.env.NODE_ENV || '(설정되지 않음)'}`);
+  console.log('==================================================');
   
   // 카운터 초기화
   duplicatesFound = 0;
@@ -273,6 +276,11 @@ export async function seedDatabase() {
   skippedItems = 0;
 
   try {
+    // 연결 테스트
+    console.log('데이터베이스 연결 테스트 중...');
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('데이터베이스 연결 성공!');
+    
     // 트랜잭션 내에서 모든 작업 수행
     await prisma.$transaction(async (tx) => {
       // 장르 데이터 추가
@@ -446,17 +454,24 @@ export async function seedDatabase() {
           }
         }
 
+        // slug 필드가 있는지 확인하고, 없으면 title로부터 생성
+        const questSlug = quest.slug || slugify(quest.title);
+        
+        // 로그 출력하여 디버깅에 도움이 되도록 함
+        console.log(`퀘스트 추가: ${quest.title}, slug: ${questSlug}`);
+
         await customUpsert(
           tx.quest,
-          { slug: quest.slug },
+          { slug: questSlug },
           {
+            slug: questSlug,  // 명시적으로 slug 필드를 데이터에 포함
             storyId: storyId,
             chapterId: chapterId, // 챕터 연결
             title: quest.title,
             description: quest.description,
           },
           '퀘스트',
-          quest.slug
+          questSlug
         );
       }
 
@@ -488,14 +503,20 @@ export async function seedDatabase() {
           nextStoryId = storySlugToId.get(choice.nextStorySlug) || null;
         }
 
+        // 선택지 slug 생성 확인
+        const choiceSlug = choice.slug || slugify(choice.text);
+        
+        // 로그 출력
+        console.log(`선택지 추가: ${choice.text.substring(0, 30)}..., slug: ${choiceSlug}`);
+
         await customUpsert(
           tx.choice,
-          { slug: choice.slug || slugify(choice.text) },
+          { slug: choiceSlug },
           {
+            slug: choiceSlug,  // 명시적으로 slug 필드 포함
             questId,
             text: choice.text,
             nextStoryId,
-            slug: choice.slug || slugify(choice.text),
           },
           '선택지',
           choice.slug || choice.text.substring(0, 20)
@@ -562,16 +583,22 @@ export async function seedDatabase() {
             ? BranchPointStatus.OPEN
             : BranchPointStatus.CLOSED;
 
+        // 분기점 slug 설정
+        const bpSlug = bp.slug || slugify(bp.title);
+        
+        // 로그 출력
+        console.log(`분기점 추가: ${bp.title}, slug: ${bpSlug}`);
+
         await customUpsert(
           tx.branchPoint,
-          { slug: bp.slug || slugify(bp.title) },
+          { slug: bpSlug },
           {
+            slug: bpSlug,  // 명시적으로 slug 필드 포함
             storyId: Number(storyId),
             title: bp.title,
             description: bp.description,
             status: status,
             daoVoteId: bp.daoVoteId,
-            slug: bp.slug || slugify(bp.title),
           },
           '분기점',
           bp.slug || bp.title
