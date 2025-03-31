@@ -238,6 +238,22 @@ if (process.env.NODE_ENV === 'production') {
       console.log('서버 상태 확인: 서버가 여전히 실행 중입니다.');
     }, 5000);
     
+    // 프로세스가 종료되지 않도록 유지
+    process.stdin.resume();
+    
+    // 명시적으로 Node.js 이벤트 루프를 유지하는 인터벌 설정
+    setInterval(() => {
+      console.log('서버 활성 상태 유지: ' + new Date().toISOString());
+    }, 60000); // 1분마다 로그 출력
+    
+    // 추가 안전 장치: 프로세스 종료 방지
+    process.on('beforeExit', () => {
+      console.log('프로세스 종료 시도가 감지되었습니다. 종료를 방지합니다.');
+      setImmediate(() => {
+        console.log('프로세스 유지 중...');
+      });
+    });
+    
   } catch (e) {
     console.error('최상위 레벨에서 서버 시작 오류 발생:', e);
   }
