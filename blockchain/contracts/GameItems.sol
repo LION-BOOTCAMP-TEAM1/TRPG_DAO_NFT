@@ -5,19 +5,35 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract GameItems is ERC1155, Ownable {
+    address public admin;
     mapping(address => uint256[]) private _ownedTokens; // 소유자가 가진 모든 토큰 ID
     mapping(address => mapping(uint256 => uint256)) private _ownedTokenIndex; // 토큰 ID의 인덱스 저장 (중복 방지)
-    mapping(uint256 => string) private _tokenURIs;
-    mapping(uint256 => uint256) private _totalSupply;
 
-    constructor() ERC1155("") Ownable(msg.sender) {}
+    constructor() ERC1155("https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeicr6hlq6sommzbslgk3o6hhg4ljd4aegu3g6cd747qtqwe4nwjice/{id}.json") Ownable(msg.sender) {
+        admin = msg.sender;
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin allowed");
+        _;
+    }
+
+    function setAdmin(address _addr) public onlyAdmin {
+        admin = _addr;
+    }
 
     // 새로운 아이템 민팅
-    function mint(address to, uint256 id, uint256 amount, string memory metadataURI) public onlyOwner {
+    function mint(address to, uint256 id, uint256 amount) public onlyAdmin {
         _mint(to, id, amount, "");
-        _tokenURIs[id] = metadataURI;
         _addTokenToOwnerEnumeration(to, id);
-        _totalSupply[id] += amount;
+    }
+
+    // 관리자만 여러 개 한 번에 발행
+    function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts) external onlyOwner {
+        _mintBatch(to, ids, amounts, "");
+        for(uint i = 0; i < ids.length; i++) {
+            _addTokenToOwnerEnumeration(to, ids[i]);
+        }
     }
 
     // 소유자가 보유한 모든 아이템 ID 조회
@@ -31,10 +47,6 @@ contract GameItems is ERC1155, Ownable {
             _ownedTokenIndex[owner][tokenId] = _ownedTokens[owner].length + 1;
             _ownedTokens[owner].push(tokenId);
         }
-    }
-
-    function totalSupply(uint256 id) public view returns (uint256) {
-        return _totalSupply[id];
     }
 
     // Transfer 발생시 아래함수 실행하도록
