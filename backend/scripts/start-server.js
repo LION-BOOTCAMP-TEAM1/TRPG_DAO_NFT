@@ -42,7 +42,7 @@ function startServer() {
   serverProcess.on('close', (code) => {
     console.log(`[${new Date().toISOString()}] 서버 프로세스가 종료됨 (코드: ${code})`);
     
-    // 비정상 종료인 경우 재시작
+    // 비정상 종료인 경우 재시작 (code === null은 외부에서 강제 종료된 경우)
     if (code !== 0) {
       console.log(`[${new Date().toISOString()}] 비정상 종료 감지됨, 5초 후 재시작...`);
       setTimeout(startServer, 5000);

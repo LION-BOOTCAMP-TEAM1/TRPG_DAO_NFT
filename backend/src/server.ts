@@ -238,13 +238,51 @@ if (process.env.NODE_ENV === 'production') {
       console.log('서버 상태 확인: 서버가 여전히 실행 중입니다.');
     }, 5000);
     
+    // Render.com의 활성 연결 유지를 위한 더 짧은 인터벌 설정
+    const keepAliveInterval = setInterval(() => {
+      console.log('서버 활성 상태 유지: ' + new Date().toISOString());
+      
+      // 힙 메모리 상태 로깅 (메모리 누수 감지용)
+      const memoryUsage = process.memoryUsage();
+      console.log(`메모리 상태: RSS=${Math.round(memoryUsage.rss/1024/1024)}MB, Heap=${Math.round(memoryUsage.heapUsed/1024/1024)}/${Math.round(memoryUsage.heapTotal/1024/1024)}MB`);
+      
+      // Render.com에서 TCP 연결 유지를 위한 추가 조치
+      if (process.env.IS_RENDER === 'true') {
+        // 자신의 status URL에 요청하여 연결 유지 (Render-specific)
+        try {
+          const http = require('http');
+          const options = {
+            hostname: 'localhost',
+            port: PORT,
+            path: '/',
+            method: 'GET',
+            timeout: 5000 // 5초 타임아웃
+          };
+          
+          const req = http.request(options, (res: any) => {
+            let data = '';
+            res.on('data', (chunk: any) => {
+              data += chunk;
+            });
+            res.on('end', () => {
+              // 로그를 너무 많이 남기지 않도록 응답 코드만 출력
+              console.log(`서버 자체 상태 확인: HTTP ${res.statusCode}`);
+            });
+          });
+          
+          req.on('error', (e: Error) => {
+            console.error('서버 자체 상태 확인 실패:', e.message);
+          });
+          
+          req.end();
+        } catch (error) {
+          console.error('서버 자체 상태 확인 중 오류:', error);
+        }
+      }
+    }, 25000); // 25초마다 수행 (Neon DB 타임아웃보다 짧은 주기)
+    
     // 프로세스가 종료되지 않도록 유지
     process.stdin.resume();
-    
-    // 명시적으로 Node.js 이벤트 루프를 유지하는 인터벌 설정
-    setInterval(() => {
-      console.log('서버 활성 상태 유지: ' + new Date().toISOString());
-    }, 60000); // 1분마다 로그 출력
     
     // 추가 안전 장치: 프로세스 종료 방지
     process.on('beforeExit', () => {
