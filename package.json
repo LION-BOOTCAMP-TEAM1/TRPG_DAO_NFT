@@ -11,8 +11,8 @@
   "scripts": {
     "frontend": "cd frontend && npm run dev",
     "backend": "cd backend && npm run dev",
-    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
-    "build": "cd frontend && npm run build",
+    "dev": "concurrently \"npm run frontend\"",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
     "start": "cd frontend && npm run start",
     "lint:frontend": "cd frontend && npm run lint",
     "format:frontend": "cd frontend && npm run format",
@@ -20,19 +20,13 @@
     "prisma:migrate": "cd backend && npx prisma migrate dev",
     "prisma:studio": "cd backend && npx prisma studio",
     "seed": "cd backend && npm run seed",
-    "db:sync": "cd backend && npm run db:sync",
-    "db:sync:full": "cd backend && npm run db:sync:full",
-    "db:migrate": "cd backend && npm run db:migrate",
-    "db:reset": "cd backend && npm run db:reset",
     "db:status": "cd backend && npm run db:status",
     "db:update": "cd backend && npx prisma generate && npx prisma migrate dev && npm run seed",
-    "dev:with-seed": "npm run seed && npm run dev",
-    "setup-and-dev": "npm run prisma:generate && npm run prisma:migrate && npm run seed && npm run dev",
-    "db:fresh-and-dev": "npm run db:reset && npm run seed && npm run dev",
+    "deploy:backend": "cd backend && npm run build",
+    "deploy:frontend": "cd frontend && npm run build",
+    "deploy": "npm run deploy:backend && npm run deploy:frontend",
     "db:fix": "cd backend && npm run db:fix",
-    "db:fix:clean": "cd backend && npm run db:fix:clean",
-    "db:fix:reset": "cd backend && npm run db:fix:reset",
-    "db:fix:force": "cd backend && npm run db:fix:force"
+    "db:fix:clean": "cd backend && npm run db:fix:clean"
   },
   "prisma": {
     "seed": "ts-node backend/prisma/seed.ts"
