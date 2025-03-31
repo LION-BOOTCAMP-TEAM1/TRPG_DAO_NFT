@@ -2,10 +2,17 @@
 
 import EquipmentComponent from "./EquipmentComponent";
 import {getNFTList} from "../../utils/web3";
+import { AppDispatch } from "../../store";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
 const CharacterStat = () => {
+  const myNFTs = useSelector((state: RootState) => state.character.inventory);
+  const dispatch = useDispatch<AppDispatch>();
   const test = () => {
-    getNFTList();
+    getNFTList(dispatch);
+    console.log(myNFTs)
   }
 
   return (
