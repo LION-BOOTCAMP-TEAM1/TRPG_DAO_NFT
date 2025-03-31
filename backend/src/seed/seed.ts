@@ -699,6 +699,7 @@ export async function seedDatabase() {
           tx.item,
           { code: item.code },
           {
+            code: item.code,
             name: item.name,
             description: item.description,
             imageUrl: item.imageUrl,
