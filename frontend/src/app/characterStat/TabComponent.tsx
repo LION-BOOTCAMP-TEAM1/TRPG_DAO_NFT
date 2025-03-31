@@ -31,7 +31,7 @@ const TabComponent = ({ tabs, contents, defaultIndex = 0 }: TabComponentProps) =
       </div>
 
       {/* 콘텐츠 영역 */}
-      <div className="bg-[#413029] rounded-b-md p-4 shadow-inner">
+      <div className="bg-[#413029] rounded-b-md shadow-inner">
         {contents[activeIndex]}
       </div>
     </div>
