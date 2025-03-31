@@ -4,7 +4,7 @@ import cors from 'cors';
 import prisma from './prismaClient';
 import { setupSwagger } from './config/swagger';
 import apiRoutes from './routes';
-import { syncDatabase } from './utils/dbSync';
+import { syncDatabase, runSeed } from './utils/dbSync';
 import path from 'path';
 
 dotenv.config();
@@ -41,8 +41,8 @@ async function startServer() {
     const isProduction = process.env.NODE_ENV === 'production';
     
     await syncDatabase({
-      forceMigrate: false, // 강제 마이그레이션 적용 여부 
-      seed: false,         // 시드 데이터 적용 여부 (필요시 true로 변경)
+      forceMigrate: isProduction, // 프로덕션 환경에서는 항상 마이그레이션 적용
+      seed: false,         // 시드 데이터는 별도로 처리
       autoApprove: isProduction // 개발 환경에서는 확인 메시지 표시, 프로덕션에서는 자동 승인
     });
     
@@ -50,8 +50,21 @@ async function startServer() {
     await prisma.$queryRaw`SELECT 1`;
     console.log('✅ 데이터베이스 연결 성공!');
     
+    // 환경 변수에 따라 시드 데이터 적용
+    if (process.env.SEED_ON_START === 'true') {
+      console.log('🌱 시작 시 시드 데이터 적용 중...');
+      try {
+        await runSeed();
+        console.log('✅ 시드 데이터가 성공적으로 적용되었습니다.');
+      } catch (seedError) {
+        console.error('❌ 시드 데이터 적용 중 오류 발생:', seedError);
+        // 시드 오류는 서버 시작에 치명적이지 않으므로 계속 진행
+      }
+    }
+    
     const server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🚀 Server running on ${isProduction ? 'production' : 'development'} mode`);
+      console.log(`🚀 Server URL: ${isProduction ? 'https://trpg-dao-nft.onrender.com' : `http://localhost:${PORT}`}`);
     });
     
     // 애플리케이션 종료 시 데이터베이스 연결 정상 종료
