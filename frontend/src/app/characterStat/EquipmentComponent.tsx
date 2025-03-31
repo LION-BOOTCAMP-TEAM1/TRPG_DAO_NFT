@@ -2,31 +2,11 @@
 
 import TabComponent from "./TabComponent";
 
-interface EquipmentComponentProps {
-  open: boolean;
-  onClose: () => void; // ⬅️ 추가
-}
+const EquipmentComponent = () => {
 
-const EquipmentComponent = ({ open, onClose }: EquipmentComponentProps) => {
   return (
-    <div
-      className={`equipment-wrapper ${open ? 'slide-up' : 'slide-down'}
-        h-full aspect-[2/3] p-10 absolute shadow-lg 
-        bg-[url('/equipment.png')] bg-cover bg-center
-        flex justify-center items-start
-      `}
-    >
+    <div>
       <div className='flex flex-col justify-start'>
-        {/* 닫기 버튼 */}
-        <div className='w-full flex flex-row justify-end mb-2'>
-          <button
-            onClick={onClose}
-            className="text-white text-xl bg-black/50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70 transition"
-          >
-            ×
-          </button>
-        </div>
-
         {/* 슬롯 아이콘 */}
         <div className="flex flex-wrap justify-between mb-4">
           <img src="/slot1.png" className="w-[22%] h-auto" />
@@ -38,52 +18,49 @@ const EquipmentComponent = ({ open, onClose }: EquipmentComponentProps) => {
         {/* 능력치 */}
         <div className="aspect-[16/4] bg-[url('/stat.png')] bg-cover bg-center px-2 py-4 flex flex-col justify-center items-center mb-4">
           <p className="font-semibold mb-2 text-white">추가 능력치</p>
-          <div className="flex flex-wrap gap-4 mb-4">
-            <div className="flex items-center gap-1">
+          <div className="grid grid-cols-3 gap-4 p-1 rounded shadow-inner w-full">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/attack.png" alt="공격력" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+100</span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/magic.png" alt="마법력" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+100</span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/defence.png" alt="방어력" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+100</span>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/str.png" alt="STR" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+10</span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/agi.png" alt="AGI" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+30</span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/int.png" alt="INT" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+20</span>
             </div>
-
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/chr.png" alt="CHR" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+40</span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/health.png" alt="HEALTH" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+30</span>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/wis.png" alt="WIS" className="w-5 h-5" />
               <span className="text-sm text-white font-medium">+10</span>
-            </div>
+            </div>            
           </div>
         </div>
 
