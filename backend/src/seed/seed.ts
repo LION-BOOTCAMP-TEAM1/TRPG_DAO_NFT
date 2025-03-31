@@ -99,6 +99,7 @@ type Quest = {
   title: string;
   description: string;
   choices?: string[];
+  chapterSlug?: string;
 };
 
 type Choice = {
@@ -395,22 +396,109 @@ export async function seedDatabase() {
     // 4. 챕터 데이터 추가
     console.log('챕터 데이터 추가 중...');
     try {
-      // 챕터 데이터 추가 로직
-      // ... 이하 챕터 추가 코드 ...
+      await seedChapters();
     } catch (error) {
       console.error('챕터 데이터 추가 중 오류:', error);
     }
     
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
     // 5. 퀘스트 데이터 추가
     console.log('퀘스트 데이터 추가 중...');
     try {
-      // 퀘스트 데이터 추가 로직
-      // ... 이하 퀘스트 추가 코드 ...
+      await seedQuests();
     } catch (error) {
       console.error('퀘스트 데이터 추가 중 오류:', error);
     }
     
-    // 이하 다른 시드 함수들도 비슷한 방식으로 수정
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
+    // 6. 선택지 데이터 추가
+    console.log('선택지 데이터 추가 중...');
+    try {
+      await seedChoices();
+    } catch (error) {
+      console.error('선택지 데이터 추가 중 오류:', error);
+    }
+    
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
+    // 7. 스토리 씬 데이터 추가
+    console.log('스토리 씬 데이터 추가 중...');
+    try {
+      await seedStoryScenes();
+    } catch (error) {
+      console.error('스토리 씬 데이터 추가 중 오류:', error);
+    }
+    
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
+    // 8. 브랜치 포인트 데이터 추가
+    console.log('브랜치 포인트 데이터 추가 중...');
+    try {
+      await seedBranchPoints();
+    } catch (error) {
+      console.error('브랜치 포인트 데이터 추가 중 오류:', error);
+    }
+    
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
+    // 9. 브랜치 포인트 씬 데이터 추가
+    console.log('브랜치 포인트 씬 데이터 추가 중...');
+    try {
+      await seedBranchPointScenes();
+    } catch (error) {
+      console.error('브랜치 포인트 씬 데이터 추가 중 오류:', error);
+    }
+    
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
+    // 10. DAO 선택지 데이터 추가
+    console.log('DAO 선택지 데이터 추가 중...');
+    try {
+      await seedDAOChoices();
+    } catch (error) {
+      console.error('DAO 선택지 데이터 추가 중 오류:', error);
+    }
+    
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
+    // 11. 아이템 데이터 추가
+    console.log('아이템 데이터 추가 중...');
+    try {
+      await seedItems();
+    } catch (error) {
+      console.error('아이템 데이터 추가 중 오류:', error);
+    }
+    
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
+    // 12. 선택지 조건 데이터 추가
+    console.log('선택지 조건 데이터 추가 중...');
+    try {
+      await seedChoiceConditions();
+    } catch (error) {
+      console.error('선택지 조건 데이터 추가 중 오류:', error);
+    }
+    
+    // 처리 사이에 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    
+    // 13. 보상 데이터 추가
+    console.log('보상 데이터 추가 중...');
+    try {
+      await seedRewards();
+    } catch (error) {
+      console.error('보상 데이터 추가 중 오류:', error);
+    }
 
     console.log('완료: 데이터베이스 시딩 성공!');
     console.log(`통계: ${newItemsCreated}개 새로 생성, ${updatedItems}개 업데이트, ${skippedItems}개 건너뜀, 총 ${duplicatesFound}개 중복 발견`);
@@ -494,8 +582,509 @@ export async function seedStoryWorlds() {
   return storyWorldSlugToId;
 }
 
-// 나머지 엔티티별 시드 함수들도 비슷한 형태로 구현...
-// ... existing code ...
+// 챕터 데이터 시드
+export async function seedChapters() {
+  const chapterSlugToId = new Map();
+  
+  // 스토리 ID 매핑 구축
+  const allStories = await prisma.story.findMany();
+  const storySlugToId = new Map();
+  for (const story of allStories) {
+    storySlugToId.set(story.slug, story.id);
+  }
+  
+  // 챕터 추가
+  for (const chapter of chapters as unknown as Chapter[]) {
+    // 연관된 스토리 ID 찾기
+    const storyId = storySlugToId.get(chapter.storySlug || "");
+    
+    if (!storyId) {
+      console.warn(`⚠️ 경고: 챕터 "${chapter.slug}"가 참조하는 스토리 "${chapter.storySlug}"를 찾을 수 없습니다. 건너뜁니다.`);
+      continue;
+    }
+    
+    const id = await customUpsert(
+      prisma.chapter,
+      { slug: chapter.slug },
+      {
+        slug: chapter.slug,
+        title: chapter.title,
+        description: chapter.description,
+        sequence: chapter.sequence,
+        imageUrl: chapter.imageUrl || "https://via.placeholder.com/400x200?text=Chapter+Image",
+        storyId: storyId,
+      },
+      '챕터',
+      chapter.slug
+    );
+    chapterSlugToId.set(chapter.slug, id);
+  }
+  
+  return chapterSlugToId;
+}
+
+// 퀘스트 데이터 시드
+export async function seedQuests() {
+  const questSlugToId = new Map();
+  
+  // 스토리 및 챕터 ID 매핑 구축
+  const allStories = await prisma.story.findMany();
+  const storySlugToId = new Map();
+  for (const story of allStories) {
+    storySlugToId.set(story.slug, story.id);
+  }
+  
+  const allChapters = await prisma.chapter.findMany();
+  const chapterSlugToId = new Map();
+  for (const chapter of allChapters) {
+    chapterSlugToId.set(chapter.slug, chapter.id);
+  }
+  
+  // 퀘스트 추가 - 배치 처리 사용
+  await processBatch(
+    quests as unknown as Quest[],
+    async (quest) => {
+      // 연관된 스토리 ID 찾기
+      const storyId = storySlugToId.get(quest.storySlug);
+      
+      if (!storyId) {
+        console.warn(`⚠️ 경고: 퀘스트 "${quest.slug}"가 참조하는 스토리 "${quest.storySlug}"를 찾을 수 없습니다. 건너뜁니다.`);
+        return;
+      }
+      
+      // 챕터 찾기 (있는 경우)
+      let chapterId = null;
+      if (quest.chapterSlug) {
+        chapterId = chapterSlugToId.get(quest.chapterSlug);
+      }
+      
+      const id = await customUpsert(
+        prisma.quest,
+        { slug: quest.slug },
+        {
+          slug: quest.slug,
+          title: quest.title,
+          description: quest.description,
+          storyId: storyId,
+          chapterId: chapterId,
+        },
+        '퀘스트',
+        quest.slug
+      );
+      questSlugToId.set(quest.slug, id);
+    },
+    '퀘스트'
+  );
+  
+  return questSlugToId;
+}
+
+// 선택지(Choice) 데이터 시드
+export async function seedChoices() {
+  const choiceSlugToId = new Map();
+  
+  // 퀘스트 및 스토리 ID 매핑 구축
+  const allQuests = await prisma.quest.findMany();
+  const questSlugToId = new Map();
+  for (const quest of allQuests) {
+    questSlugToId.set(quest.slug, quest.id);
+  }
+  
+  const allStories = await prisma.story.findMany();
+  const storySlugToId = new Map();
+  for (const story of allStories) {
+    storySlugToId.set(story.slug, story.id);
+  }
+  
+  // 선택지 추가 - 배치 처리 사용
+  await processBatch(
+    choices as unknown as Choice[],
+    async (choice) => {
+      // 연관된 퀘스트 ID 찾기
+      const questId = questSlugToId.get(choice.questSlug);
+      
+      if (!questId) {
+        console.warn(`⚠️ 경고: 선택지 "${choice.slug}"가 참조하는 퀘스트 "${choice.questSlug}"를 찾을 수 없습니다. 건너뜁니다.`);
+        return;
+      }
+      
+      // 다음 스토리 ID 찾기 (있는 경우)
+      let nextStoryId = null;
+      if (choice.nextStorySlug) {
+        nextStoryId = storySlugToId.get(choice.nextStorySlug);
+        if (!nextStoryId) {
+          console.warn(`⚠️ 경고: 선택지 "${choice.slug}"가 참조하는 다음 스토리 "${choice.nextStorySlug}"를 찾을 수 없습니다.`);
+        }
+      }
+      
+      const id = await customUpsert(
+        prisma.choice,
+        { slug: choice.slug },
+        {
+          slug: choice.slug,
+          text: choice.text,
+          questId: questId,
+          nextStoryId: nextStoryId,
+        },
+        '선택지',
+        choice.slug
+      );
+      choiceSlugToId.set(choice.slug, id);
+    },
+    '선택지'
+  );
+  
+  return choiceSlugToId;
+}
+
+// 스토리 씬(StoryScene) 데이터 시드
+export async function seedStoryScenes() {
+  // 스토리 ID 매핑 구축
+  const allStories = await prisma.story.findMany();
+  const storySlugToId = new Map();
+  for (const story of allStories) {
+    storySlugToId.set(story.slug, story.id);
+  }
+  
+  // 스토리 씬 추가 - 배치 처리 사용
+  await processBatch(
+    storyScenes as unknown as StoryScene[],
+    async (scene) => {
+      // 연관된 스토리 ID 찾기
+      const storyId = storySlugToId.get(scene.storySlug);
+      
+      if (!storyId) {
+        console.warn(`⚠️ 경고: 스토리 씬이 참조하는 스토리 "${scene.storySlug}"를 찾을 수 없습니다. 건너뜁니다.`);
+        return;
+      }
+      
+      // 스토리 씬 생성 또는 업데이트
+      await prisma.storyScene.upsert({
+        where: {
+          id: scene.id || -1,  // ID가 없으면 새로 생성되도록 존재하지 않는 ID 사용
+        },
+        update: {
+          text: scene.text,
+          sequence: scene.sequence,
+        },
+        create: {
+          storyId: storyId,
+          text: scene.text,
+          sequence: scene.sequence,
+        },
+      });
+    },
+    '스토리 씬'
+  );
+}
+
+// 브랜치 포인트(BranchPoint) 데이터 시드
+export async function seedBranchPoints() {
+  const branchPointSlugToId = new Map();
+  
+  // 스토리 ID 매핑 구축
+  const allStories = await prisma.story.findMany();
+  const storySlugToId = new Map();
+  for (const story of allStories) {
+    storySlugToId.set(story.slug, story.id);
+  }
+  
+  // 브랜치 포인트 추가
+  for (const branchPoint of branchPoints as unknown as BranchPoint[]) {
+    // 연관된 스토리 ID 찾기
+    const storyId = branchPoint.storySlug ? storySlugToId.get(branchPoint.storySlug) : 
+                   (typeof branchPoint.storyId === 'string' ? storySlugToId.get(branchPoint.storyId) : branchPoint.storyId);
+    
+    if (!storyId) {
+      console.warn(`⚠️ 경고: 브랜치 포인트 "${branchPoint.slug}"가 참조하는 스토리를 찾을 수 없습니다. 건너뜁니다.`);
+      continue;
+    }
+    
+    const status = branchPoint.status.toUpperCase() as BranchPointStatus;
+    
+    const id = await customUpsert(
+      prisma.branchPoint,
+      { slug: branchPoint.slug },
+      {
+        slug: branchPoint.slug,
+        title: branchPoint.title,
+        description: branchPoint.description,
+        status: status,
+        daoVoteId: branchPoint.daoVoteId,
+        storyId: storyId,
+      },
+      '브랜치 포인트',
+      branchPoint.slug
+    );
+    branchPointSlugToId.set(branchPoint.slug, id);
+  }
+  
+  return branchPointSlugToId;
+}
+
+// 브랜치 포인트 씬(BranchPointScene) 데이터 시드
+export async function seedBranchPointScenes() {
+  // 브랜치 포인트 ID 매핑 구축
+  const allBranchPoints = await prisma.branchPoint.findMany();
+  const branchPointSlugToId = new Map();
+  for (const bp of allBranchPoints) {
+    branchPointSlugToId.set(bp.slug, bp.id);
+  }
+  
+  // 브랜치 포인트 씬 추가 - 배치 처리 사용
+  await processBatch(
+    branchPointScenes as unknown as BranchPointScene[],
+    async (scene) => {
+      // 연관된 브랜치 포인트 ID 찾기
+      const branchPointId = branchPointSlugToId.get(scene.branchPointSlug);
+      
+      if (!branchPointId) {
+        console.warn(`⚠️ 경고: 브랜치 포인트 씬이 참조하는 브랜치 포인트 "${scene.branchPointSlug}"를 찾을 수 없습니다. 건너뜁니다.`);
+        return;
+      }
+      
+      // 브랜치 포인트 씬 생성 또는 업데이트
+      await prisma.branchPointScene.upsert({
+        where: {
+          id: scene.id || -1,  // ID가 없으면 새로 생성되도록 존재하지 않는 ID 사용
+        },
+        update: {
+          text: scene.text,
+          order: scene.order,
+        },
+        create: {
+          branchPointId: branchPointId,
+          text: scene.text,
+          order: scene.order,
+        },
+      });
+    },
+    '브랜치 포인트 씬'
+  );
+}
+
+// DAO 선택지(DAOChoice) 데이터 시드
+export async function seedDAOChoices() {
+  const daoChoiceIdMap = new Map();
+  
+  // 브랜치 포인트 및 스토리 ID 매핑 구축
+  const allBranchPoints = await prisma.branchPoint.findMany();
+  const branchPointSlugToId = new Map();
+  for (const bp of allBranchPoints) {
+    branchPointSlugToId.set(bp.slug, bp.id);
+  }
+  
+  const allStories = await prisma.story.findMany();
+  const storySlugToId = new Map();
+  for (const story of allStories) {
+    storySlugToId.set(story.slug, story.id);
+  }
+  
+  // DAO 선택지 추가
+  for (const choice of daoChoices as unknown as DAOChoice[]) {
+    // 연관된 브랜치 포인트 ID 찾기
+    const branchPointId = choice.branchPointSlug ? branchPointSlugToId.get(choice.branchPointSlug) : choice.branchPointId;
+    
+    if (!branchPointId) {
+      console.warn(`⚠️ 경고: DAO 선택지가 참조하는 브랜치 포인트를 찾을 수 없습니다. 건너뜁니다.`);
+      continue;
+    }
+    
+    // 다음 스토리 ID 찾기
+    const nextStoryId = choice.nextStorySlug ? storySlugToId.get(choice.nextStorySlug) : choice.nextStoryId;
+    
+    if (!nextStoryId) {
+      console.warn(`⚠️ 경고: DAO 선택지가 참조하는 다음 스토리를 찾을 수 없습니다. 건너뜁니다.`);
+      continue;
+    }
+    
+    const result = await prisma.dAOChoice.upsert({
+      where: {
+        id: choice.id || -1,  // ID가 없으면 새로 생성되도록 존재하지 않는 ID 사용
+      },
+      update: {
+        text: choice.text,
+        nextStoryId: nextStoryId,
+        voteCount: choice.voteCount || 0,
+      },
+      create: {
+        branchPointId: branchPointId,
+        text: choice.text,
+        nextStoryId: nextStoryId,
+        voteCount: choice.voteCount || 0,
+      },
+    });
+    
+    if (choice.id) {
+      daoChoiceIdMap.set(choice.id, result.id);
+    }
+  }
+  
+  return daoChoiceIdMap;
+}
+
+// 아이템(Item) 데이터 시드
+export async function seedItems() {
+  const itemCodeToId = new Map();
+  
+  // 아이템 추가 - 배치 처리 사용
+  await processBatch(
+    items as unknown as Item[],
+    async (item) => {
+      // 모든 필수 필드가 있는지 확인
+      if (!item.code || !item.name || !item.description || !item.rarity || !item.itemType) {
+        console.warn(`⚠️ 경고: 아이템에 필수 필드가 누락되었습니다: ${JSON.stringify(item)}`);
+        return;
+      }
+      
+      const itemRarity = item.rarity.toUpperCase() as ItemRarity;
+      const itemType = item.itemType.toUpperCase() as ItemType;
+      
+      const id = await customUpsert(
+        prisma.item,
+        { code: item.code },
+        {
+          code: item.code,
+          name: item.name,
+          description: item.description,
+          imageUrl: item.imageUrl,
+          rarity: itemRarity,
+          itemType: itemType,
+          useEffect: item.useEffect,
+          statBonus: item.statBonus || {},
+          isConsumable: !!item.isConsumable,
+          isNFT: !!item.isNFT,
+        },
+        '아이템',
+        item.code
+      );
+      itemCodeToId.set(item.code, id);
+    },
+    '아이템'
+  );
+  
+  return itemCodeToId;
+}
+
+// 선택지 조건(ChoiceCondition) 데이터 시드
+export async function seedChoiceConditions() {
+  // 선택지 ID 매핑 구축
+  const allChoices = await prisma.choice.findMany();
+  const choiceSlugToId = new Map();
+  for (const choice of allChoices) {
+    choiceSlugToId.set(choice.slug, choice.id);
+  }
+  
+  // 선택지 조건 추가 - 배치 처리 사용
+  await processBatch(
+    choiceConditions as unknown as ChoiceCondition[],
+    async (condition) => {
+      // 연관된 선택지 ID 찾기
+      const choiceId = choiceSlugToId.get(condition.choiceSlug);
+      
+      if (!choiceId) {
+        console.warn(`⚠️ 경고: 선택지 조건이 참조하는 선택지 "${condition.choiceSlug}"를 찾을 수 없습니다. 건너뜁니다.`);
+        return;
+      }
+      
+      // 선택지 조건 생성 또는 업데이트
+      await prisma.choiceCondition.upsert({
+        where: {
+          id: condition.id || -1,  // ID가 없으면 새로 생성되도록 존재하지 않는 ID 사용
+        },
+        update: {
+          classOnly: condition.classOnly,
+          minHealth: condition.minHealth,
+          minStrength: condition.minStrength,
+          minAgility: condition.minAgility,
+          minIntelligence: condition.minIntelligence,
+          minWisdom: condition.minWisdom,
+          minCharisma: condition.minCharisma,
+          minHp: condition.minHp,
+          minMp: condition.minMp,
+        },
+        create: {
+          choiceId: choiceId,
+          classOnly: condition.classOnly,
+          minHealth: condition.minHealth,
+          minStrength: condition.minStrength,
+          minAgility: condition.minAgility,
+          minIntelligence: condition.minIntelligence,
+          minWisdom: condition.minWisdom,
+          minCharisma: condition.minCharisma,
+          minHp: condition.minHp,
+          minMp: condition.minMp,
+        },
+      });
+    },
+    '선택지 조건'
+  );
+}
+
+// 보상(Reward) 데이터 시드
+export async function seedRewards() {
+  // 선택지 및 아이템 ID 매핑 구축
+  const allChoices = await prisma.choice.findMany();
+  const choiceSlugToId = new Map();
+  for (const choice of allChoices) {
+    choiceSlugToId.set(choice.slug, choice.id);
+  }
+  
+  const allItems = await prisma.item.findMany();
+  const itemCodeToId = new Map();
+  for (const item of allItems) {
+    itemCodeToId.set(item.code, item.id);
+  }
+  
+  // 보상 추가
+  for (const reward of rewards as unknown as Reward[]) {
+    // 필수 필드 확인
+    if (!reward.nftTokenId) {
+      console.warn(`⚠️ 경고: 보상에 nftTokenId가 누락되었습니다.`);
+      continue;
+    }
+    
+    // 연관된 선택지 ID 찾기 (있는 경우)
+    let choiceId = null;
+    if (reward.choiceSlug) {
+      choiceId = choiceSlugToId.get(reward.choiceSlug);
+    } else if (reward.choiceId) {
+      choiceId = reward.choiceId;
+    }
+    
+    // 연관된 아이템 ID 찾기 (있는 경우)
+    let itemId = null;
+    if (reward.itemCode) {
+      itemId = itemCodeToId.get(reward.itemCode);
+    } else if (reward.itemId) {
+      itemId = reward.itemId;
+    }
+    
+    // PlayerNFT 생성 또는 업데이트 - 스키마에 없는 필드 제거
+    try {
+      await prisma.playerNFT.upsert({
+        where: {
+          id: reward.id || -1,  // ID가 없으면 새로 생성되도록 존재하지 않는 ID 사용
+        },
+        update: {
+          nftTokenId: reward.nftTokenId,
+          choiceId: choiceId,
+          itemId: itemId,
+          createdAt: reward.createdAt ? new Date(reward.createdAt) : new Date(),
+        },
+        create: {
+          nftTokenId: reward.nftTokenId,
+          userId: reward.userId || 1, // 기본 사용자 ID 설정
+          choiceId: choiceId,
+          itemId: itemId,
+          createdAt: reward.createdAt ? new Date(reward.createdAt) : new Date(),
+        },
+      });
+    } catch (error) {
+      console.error(`보상 추가 중 오류: ${error}`);
+    }
+  }
+}
 
 // 기존 스크립트에서 직접 실행할 경우
 if (require.main === module) {
