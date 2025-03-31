@@ -40,38 +40,50 @@ let isConnected = false;
 let retryCount = 0;
 const MAX_RETRIES = 5;
 
-// 데이터베이스 연결 유지 간격 (20초)
-const DB_KEEPALIVE_INTERVAL = 20000;
+// 데이터베이스 연결 유지 간격 (10초로 단축)
+const DB_KEEPALIVE_INTERVAL = 10000;
+
+// Render 환경 감지 로직 통합
+const isRenderEnv = process.env.IS_RENDER === 'true' || process.env.RENDER === 'true';
+console.log(`Render 환경 감지: ${isRenderEnv}`);
 
 // 데이터베이스 핑 쿼리를 통한 연결 유지 함수
 async function keepDatabaseAlive() {
   try {
-    if (process.env.NODE_ENV === 'production') {
+    // 프로덕션 환경 또는 Render 환경에서 실행
+    if (process.env.NODE_ENV === 'production' || isRenderEnv) {
+      console.log(`[${new Date().toISOString()}] DB 연결 유지 쿼리 시작...`);
       await prisma.$queryRaw`SELECT 1`;
       console.log(`[${new Date().toISOString()}] 데이터베이스 연결 유지 쿼리 성공`);
     }
   } catch (error) {
     console.error(`[${new Date().toISOString()}] 데이터베이스 연결 유지 쿼리 실패:`, error);
+    // 로그 추가 - 연결 상태 변경
+    console.log(`[${new Date().toISOString()}] 연결 상태를 false로 변경`);
     isConnected = false;
     
     // 연결이 끊긴 경우 재연결 시도
     try {
+      console.log(`[${new Date().toISOString()}] DB 재연결 시도 시작...`);
       await connectWithRetry();
+      console.log(`[${new Date().toISOString()}] DB 재연결 성공!`);
     } catch (reconnectError) {
-      console.error('재연결 시도 실패:', reconnectError);
+      console.error(`[${new Date().toISOString()}] 재연결 시도 실패:`, reconnectError);
     }
   }
 }
 
 // 데이터베이스 연결 유지 인터벌 설정
 let keepAliveInterval: NodeJS.Timeout | undefined;
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || isRenderEnv) {
   keepAliveInterval = setInterval(keepDatabaseAlive, DB_KEEPALIVE_INTERVAL);
+  console.log(`[${new Date().toISOString()}] DB 연결 유지 인터벌 설정: ${DB_KEEPALIVE_INTERVAL}ms`);
   
   // Node.js 프로세스가 종료될 때 인터벌 정리
   process.on('beforeExit', () => {
     if (keepAliveInterval) {
       clearInterval(keepAliveInterval);
+      console.log(`[${new Date().toISOString()}] DB 연결 유지 인터벌 정리 완료`);
     }
   });
 }
