@@ -50,7 +50,7 @@ const EquipmentComponent = () => {
     <div>
       <div className='flex flex-col justify-start'>
         {/* 장비중 아이템 */}
-        <p className="">장비중 아이템</p>
+        <p className="m-1">장비중 아이템</p>
         <div className="flex flex-wrap justify-between mb-4">
           <div className="p-1 bg-gray-600 w-[22%] h-auto">
             <img 
@@ -83,42 +83,42 @@ const EquipmentComponent = () => {
           <div className="grid grid-cols-2 gap-4 p-1 rounded shadow-inner w-full">
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/attack.png" alt="공격력" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+100</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.attack}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/magic.png" alt="마법력" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+100</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.magic}</span>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 p-1 rounded shadow-inner w-full">
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/str.png" alt="STR" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+10</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.strength}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/agi.png" alt="AGI" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+30</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.agility}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/int.png" alt="INT" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+20</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.intelligence}</span>
             </div>
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/chr.png" alt="CHR" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+40</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.charisma}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/health.png" alt="HEALTH" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+30</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.health}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/wis.png" alt="WIS" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+10</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.wisdom}</span>
             </div>            
           </div>
         </div>
