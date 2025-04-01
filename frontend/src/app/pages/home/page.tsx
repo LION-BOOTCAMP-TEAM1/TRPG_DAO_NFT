@@ -21,7 +21,7 @@ export default function HomePage() {
   };
 
   return (
-    <ThemeProvider isDarkMode={isDarkMode}>
+    <ThemeProvider>
       <div>
         <Header
           onToggle={toggleTheme}

@@ -10,7 +10,7 @@ interface Props {
 
 const StoryCard = ({ story }: Props) => {
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-center  rounded-lg overflow-hidden ">
+    <div className="flex flex-col sm:flex-row gap-4 items-center  rounded-lg overflow-hidden shadow border  border-[#d2c5ae]">
       <Image
         src={`/story/story${story.id}.png`}
         alt={story.title}

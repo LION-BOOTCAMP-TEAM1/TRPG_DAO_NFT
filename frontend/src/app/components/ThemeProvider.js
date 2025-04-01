@@ -1,11 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const ThemeProvider = ({ children }) => {
-  const isDarkMode = localStorage.getItem('theme') === 'dark';
+  const [isDarkMode, setIsDarkMode] = useState(null);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, [isDarkMode]);
+    const theme = localStorage.getItem('theme') === 'dark';
+    setIsDarkMode(theme);
+
+    document.documentElement.classList.toggle('dark', theme);
+  }, []);
+
+  if (isDarkMode === null) return null;
 
   return <>{children}</>;
 };
