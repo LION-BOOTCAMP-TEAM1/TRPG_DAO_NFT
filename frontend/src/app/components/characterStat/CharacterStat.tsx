@@ -5,20 +5,23 @@ import EquipmentComponent from "./EquipmentComponent";
 import {getNFTList} from "@/utils/web3";
 import { RootState, AppDispatch } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
+import BattleComponent from "../battle/BattleComponent";
+import { useState } from "react";
+
 
 const CharacterStat = () => {
   const myNFTs = useSelector((state: RootState) => state.character);
 
+  // 테스트 코드
+  const [open, setOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const test = () => {
     getNFTList(dispatch);
   }
+  //
 
   return (
     <div className="bg-[#c6beab] p-4 rounded shadow flex flex-col items-center gap-2 text-sm font-medium w-full">
-      <div className="bg-red-500 rounded-2xl p-1">
-        <button className="text-white" onClick={() => test()}>GetNFT Test</button>
-      </div>
       {/* 상단: 캐릭터 정보 */}
       <div className="flex w-full">
         {/* 캐릭터 이미지 */}
@@ -53,6 +56,15 @@ const CharacterStat = () => {
       </div>
 
       <EquipmentComponent />
+
+      <div className="bg-red-500 rounded-2xl p-1">
+        <button className="text-white" onClick={() => test()}>GetNFT Test</button>
+      </div>
+
+      <div className="bg-red-500 rounded-2xl p-1">
+        <button className="text-white" onClick={() => setOpen(true)}>Battle Test</button>
+      </div>
+      {open && <BattleComponent onClose={() => setOpen(false)} />}
     </div>
   );
 };
