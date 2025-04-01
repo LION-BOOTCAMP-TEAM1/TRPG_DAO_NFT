@@ -85,6 +85,7 @@ const getSessions = async (req: Request, res: Response) => {
  */
 const getSession = async (req: Request, res: Response) => {
   const { idOrSlug } = req.params;
+  const { includeCharacters } = req.query; // 클라이언트에서 캐릭터 정보 포함 여부 결정
 
   try {
     const sessionBase = await findSessionByIdOrSlug(idOrSlug);
@@ -93,20 +94,14 @@ const getSession = async (req: Request, res: Response) => {
       return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
     }
     
-    const session = await prisma.session.findUnique({
+    // 기본 쿼리 구성
+    const queryOptions: any = {
       where: { id: sessionBase.id },
       include: {
         users: {
           select: {
             id: true,
             walletAddress: true,
-            Character: {
-              select: {
-                id: true,
-                name: true,
-                class: true
-              }
-            }
           }
         },
         participants: {
@@ -125,7 +120,20 @@ const getSession = async (req: Request, res: Response) => {
           }
         }
       }
-    });
+    };
+    
+    // 캐릭터 정보가 필요한 경우에만 포함
+    if (includeCharacters === 'true') {
+      queryOptions.include.users.select.characters = {
+        select: {
+          id: true,
+          name: true,
+          class: true
+        }
+      };
+    }
+    
+    const session = await prisma.session.findUnique(queryOptions);
 
     res.json(session);
   } catch (error) {

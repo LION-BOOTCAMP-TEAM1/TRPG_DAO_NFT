@@ -22,6 +22,7 @@ import chapters from './chapters.json';
 import items from './items.json';
 import genres from './genres.json';
 import choiceConditions from './choiceCondition.json';
+import characterClasses from './characterClasses.json';
 
 // const prisma = new PrismaClient(); // 제거: 개별 인스턴스 생성
 
@@ -246,6 +247,16 @@ type StoryProgressData = {
   lastUpdated?: string;
 };
 
+// 추가: CharacterClass 타입 정의
+type CharacterClass = {
+  id?: number;
+  code: string;
+  name: string;
+  description: string;
+  recommendedStat1: string;
+  recommendedStat2: string;
+};
+
 // 중복 확인 및 처리를 위한 커스텀 upsert 함수
 async function customUpsert<T extends { id?: number }>(
   model: any,
@@ -302,209 +313,65 @@ async function customUpsert<T extends { id?: number }>(
 
 // 데이터베이스 시드 함수 (기존 코드를 이 함수로 감싸 외부에서 호출 가능하게 함)
 export async function seedDatabase() {
-  console.log('==================================================');
-  console.log('시작: 데이터베이스 시딩...');
-  console.log(`중복 데이터 처리 모드: ${OVERWRITE_DUPLICATES ? '덮어쓰기' : '건너뛰기'}`);
-  console.log(`NODE_ENV: ${process.env.NODE_ENV || '(설정되지 않음)'}`);
-  console.log('==================================================');
-  
-  // 카운터 초기화
-  duplicatesFound = 0;
-  newItemsCreated = 0;
-  updatedItems = 0;
-  skippedItems = 0;
-
   try {
-    // Prisma 클라이언트 타임아웃 설정 (증가)
-    // Node.js에서 기본 HTTP 요청 타임아웃 증가 (5분으로 설정)
-    const http = require('http');
-    const https = require('https');
-    http.globalAgent.keepAlive = true;
-    https.globalAgent.keepAlive = true;
+    console.log('🌱 데이터베이스 시딩 시작...');
     
-    http.globalAgent.options.timeout = 300000; // 5분
-    https.globalAgent.options.timeout = 300000; // 5분
-
-    // 연결 테스트
-    console.log('데이터베이스 연결 테스트 중...');
-    await prisma.$queryRaw`SELECT 1`;
-    console.log('데이터베이스 연결 성공!');
-    
-    // 트랜잭션 옵션 설정: 타임아웃 증가
-    const MAX_TIMEOUT = 300; // 초 단위 (5분)
-    const txOptions = {
-      maxWait: MAX_TIMEOUT * 1000, // 밀리초 단위
-      timeout: MAX_TIMEOUT * 1000   // 밀리초 단위
-    };
-    
-    console.log(`트랜잭션 타임아웃 설정: ${MAX_TIMEOUT}초`);
-    
-    // 각 엔티티를 별도의 트랜잭션에서 처리하므로 개별 실패해도 다른 작업은 진행됨
-    
-    // 1. 장르 데이터 추가
-    console.log('장르 데이터 추가 중...');
+    console.log('----------------');
+    console.log('장르 시딩 중...');
     await seedGenres();
     
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    console.log('----------------');
+    console.log('캐릭터 클래스 시딩 중...');
+    await seedCharacterClasses();
     
-    // 2. 스토리 세계관 데이터 추가
-    console.log('스토리 세계관 데이터 추가 중...');
+    console.log('----------------');
+    console.log('스토리 월드 시딩 중...');
     await seedStoryWorlds();
     
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    console.log('----------------');
+    console.log('챕터 시딩 중...');
+    await seedChapters();
     
-    // 3. 스토리 데이터 추가
-    console.log('스토리 데이터 추가 중...');
-    try {
-      // 스토리 데이터 추가
-      const storySlugToId = new Map();
-      
-      // 스토리 세계관 ID 매핑 구축
-      const allStoryWorlds = await prisma.storyWorld.findMany();
-      const storyWorldSlugToId = new Map();
-      for (const storyWorld of allStoryWorlds) {
-        storyWorldSlugToId.set(storyWorld.slug, storyWorld.id);
-      }
-      
-      // 스토리 추가 - 배치 처리 사용
-      await processBatch(
-        stories as unknown as Story[],
-        async (story) => {
-          const id = await customUpsert(
-            prisma.story,
-            { slug: story.slug },
-            {
-              slug: story.slug,
-              title: story.title,
-              summary: story.summary,
-              imageUrl: story.imageUrl,
-              storyWorldId: storyWorldSlugToId.get(story.slug.split('-')[0]), // 스토리 슬러그의 첫 부분을 세계관 슬러그로 간주
-            },
-            '스토리',
-            story.slug
-          );
-          storySlugToId.set(story.slug, id);
-        },
-        '스토리'
-      );
-    } catch (error) {
-      console.error('스토리 데이터 추가 중 오류:', error);
-      // 오류가 발생해도 계속 진행
-    }
+    console.log('----------------');
+    console.log('퀘스트 시딩 중...');
+    await seedQuests();
     
-    // 4. 챕터 데이터 추가
-    console.log('챕터 데이터 추가 중...');
-    try {
-      await seedChapters();
-    } catch (error) {
-      console.error('챕터 데이터 추가 중 오류:', error);
-    }
+    console.log('----------------');
+    console.log('선택지 시딩 중...');
+    await seedChoices();
     
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    console.log('----------------');
+    console.log('스토리 씬 시딩 중...');
+    await seedStoryScenes();
     
-    // 5. 퀘스트 데이터 추가
-    console.log('퀘스트 데이터 추가 중...');
-    try {
-      await seedQuests();
-    } catch (error) {
-      console.error('퀘스트 데이터 추가 중 오류:', error);
-    }
+    console.log('----------------');
+    console.log('브랜치 포인트 시딩 중...');
+    await seedBranchPoints();
     
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    console.log('----------------');
+    console.log('브랜치 포인트 씬 시딩 중...');
+    await seedBranchPointScenes();
     
-    // 6. 선택지 데이터 추가
-    console.log('선택지 데이터 추가 중...');
-    try {
-      await seedChoices();
-    } catch (error) {
-      console.error('선택지 데이터 추가 중 오류:', error);
-    }
+    console.log('----------------');
+    console.log('DAO 선택지 시딩 중...');
+    await seedDAOChoices();
     
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    console.log('----------------');
+    console.log('아이템 시딩 중...');
+    await seedItems();
     
-    // 7. 스토리 씬 데이터 추가
-    console.log('스토리 씬 데이터 추가 중...');
-    try {
-      await seedStoryScenes();
-    } catch (error) {
-      console.error('스토리 씬 데이터 추가 중 오류:', error);
-    }
+    console.log('----------------');
+    console.log('선택지 조건 시딩 중...');
+    await seedChoiceConditions();
     
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    console.log('----------------');
+    console.log('보상 시딩 중...');
+    await seedRewards();
     
-    // 8. 브랜치 포인트 데이터 추가
-    console.log('브랜치 포인트 데이터 추가 중...');
-    try {
-      await seedBranchPoints();
-    } catch (error) {
-      console.error('브랜치 포인트 데이터 추가 중 오류:', error);
-    }
-    
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
-    
-    // 9. 브랜치 포인트 씬 데이터 추가
-    console.log('브랜치 포인트 씬 데이터 추가 중...');
-    try {
-      await seedBranchPointScenes();
-    } catch (error) {
-      console.error('브랜치 포인트 씬 데이터 추가 중 오류:', error);
-    }
-    
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
-    
-    // 10. DAO 선택지 데이터 추가
-    console.log('DAO 선택지 데이터 추가 중...');
-    try {
-      await seedDAOChoices();
-    } catch (error) {
-      console.error('DAO 선택지 데이터 추가 중 오류:', error);
-    }
-    
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
-    
-    // 11. 아이템 데이터 추가
-    console.log('아이템 데이터 추가 중...');
-    try {
-      await seedItems();
-    } catch (error) {
-      console.error('아이템 데이터 추가 중 오류:', error);
-    }
-    
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
-    
-    // 12. 선택지 조건 데이터 추가
-    console.log('선택지 조건 데이터 추가 중...');
-    try {
-      await seedChoiceConditions();
-    } catch (error) {
-      console.error('선택지 조건 데이터 추가 중 오류:', error);
-    }
-    
-    // 처리 사이에 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
-    
-    // 13. 보상 데이터 추가
-    console.log('보상 데이터 추가 중...');
-    try {
-      await seedRewards();
-    } catch (error) {
-      console.error('보상 데이터 추가 중 오류:', error);
-    }
-
-    console.log('완료: 데이터베이스 시딩 성공!');
-    console.log(`통계: ${newItemsCreated}개 새로 생성, ${updatedItems}개 업데이트, ${skippedItems}개 건너뜀, 총 ${duplicatesFound}개 중복 발견`);
+    console.log('🏁 데이터베이스 시딩 완료!');
+    console.log(`📊 통계: ${newItemsCreated}개 생성, ${updatedItems}개 업데이트, ${skippedItems}개 건너뜀, ${duplicatesFound}개 중복 발견`);
   } catch (error) {
-    console.error('시딩 중 오류 발생:', error);
+    console.error('시딩 과정에서 오류 발생:', error);
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -1085,6 +952,36 @@ export async function seedRewards() {
       console.error(`보상 추가 중 오류: ${error}`);
     }
   }
+}
+
+// 캐릭터 클래스 시딩 함수
+export async function seedCharacterClasses() {
+  const processClass = async (characterClass: CharacterClass) => {
+    try {
+      await customUpsert(
+        prisma.characterClass,
+        { code: characterClass.code },
+        {
+          code: characterClass.code,
+          name: characterClass.name,
+          description: characterClass.description,
+          recommendedStat1: characterClass.recommendedStat1,
+          recommendedStat2: characterClass.recommendedStat2,
+        },
+        'CharacterClass',
+        characterClass.code
+      );
+    } catch (error) {
+      console.error(`캐릭터 클래스 '${characterClass.name}' 생성 중 오류:`, error);
+      throw error;
+    }
+  };
+
+  await processBatch<CharacterClass>(
+    characterClasses as CharacterClass[],
+    processClass,
+    'CharacterClass'
+  );
 }
 
 // 기존 스크립트에서 직접 실행할 경우
