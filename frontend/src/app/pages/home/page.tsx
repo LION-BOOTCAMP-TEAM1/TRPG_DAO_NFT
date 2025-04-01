@@ -4,17 +4,9 @@ import ThemeProvider from '../../components/ThemeProvider';
 import '../../../styles/globals.css';
 import Header from '../../components/Header';
 import Link from 'next/link';
-import useWallet from '../../hook/useWallet';
 
 export default function HomePage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const {
-    connectWallet,
-    registerWalletAddress,
-    disconnect,
-    signer,
-    walletExist,
-  } = useWallet();
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
@@ -26,11 +18,6 @@ export default function HomePage() {
         <Header
           onToggle={toggleTheme}
           isDarkMode={isDarkMode}
-          connectWallet={connectWallet}
-          registerWalletAddress={registerWalletAddress}
-          disconnect={disconnect}
-          walletExist={walletExist}
-          signer={signer}
         />
 
         {/* main */}

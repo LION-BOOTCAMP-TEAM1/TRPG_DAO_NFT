@@ -3,6 +3,8 @@ import prisma from '../prismaClient';
 import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { ethers } from 'ethers';
+import { authenticateUser } from '../middleware/auth';
+
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
@@ -14,7 +16,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
  *     tags:
  *       - Authentication
  *     summary: 지갑 주소에 대한 nonce 발급
- *     description: 사용자의 지갑 주소로 서명 요청에 사용할 nonce를 발급합니다.
+ *     description: 사용자의 지갑 주소로 서명 요청에 사용할 nonce를 발급합니다. 사용자가 DB에 없는 경우 자동으로 생성합니다.
  *     requestBody:
  *       required: true
  *       content:
@@ -57,6 +59,7 @@ router.post('/nonce', async (req, res) => {
   const nonce = `로그인 서명 요청: ${randomBytes(16).toString('hex')}`;
 
   try {
+    // 사용자가 없으면 자동으로 생성하면서 nonce 설정
     await prisma.user.upsert({
       where: { walletAddress: address },
       update: { nonce },
@@ -77,7 +80,7 @@ router.post('/nonce', async (req, res) => {
  *     tags:
  *       - Authentication
  *     summary: 서명 검증 및 JWT 토큰 발급
- *     description: 사용자의 서명을 검증하고 성공 시 JWT 토큰을 발급합니다.
+ *     description: 사용자의 서명을 검증하고 성공 시 JWT 토큰을 발급합니다. 이 과정이 완료되면 사용자는 로그인된 상태가 됩니다.
  *     requestBody:
  *       required: true
  *       content:
@@ -170,6 +173,99 @@ router.post('/verify', async (req, res) => {
     console.error('서명 검증 중 오류 발생:', error);
     return res.status(500).json({ error: '서버 오류가 발생했습니다' });
   }
+});
+
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     tags:
+ *       - Authentication
+ *     summary: 현재 인증된 사용자 정보 조회
+ *     description: JWT 토큰을 통해 현재 로그인된 사용자 정보를 반환합니다.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 사용자 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: 사용자 ID
+ *                     walletAddress:
+ *                       type: string
+ *                       description: 사용자 지갑 주소
+ *       401:
+ *         description: 인증되지 않은 사용자
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+router.get('/me', authenticateUser, async (req, res) => {
+  try {
+    // authenticateUser 미들웨어에서 req.user에 사용자 정보를 이미 추가했습니다
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: '인증되지 않은 사용자입니다' });
+    }
+
+    // 사용자 정보 조회
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        walletAddress: true,
+        createdAt: true,
+        // 필요한 정보만 선택적으로 가져오기
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: '사용자를 찾을 수 없습니다' });
+    }
+
+    return res.json({ user });
+  } catch (error) {
+    console.error('사용자 정보 조회 중 오류 발생:', error);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다' });
+  }
+});
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: 로그아웃
+ *     description: 현재 세션을 종료하고 인증 쿠키를 삭제합니다.
+ *     responses:
+ *       200:
+ *         description: 로그아웃 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ */
+router.post('/logout', (req, res) => {
+  // 쿠키 삭제
+  res.clearCookie('token');
+  return res.json({ success: true });
 });
 
 export default router; 
