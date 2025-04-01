@@ -10,6 +10,7 @@ import sessionRoutes from './sessions';
 import playerNftRoutes from './playernfts';
 import storyWorldRoutes from './storyWorlds';
 import chapterRoutes from './chapters';
+import authRoutes from './auth';
 import { seedDatabase } from '../seed/seed';
 // 개별 시드 함수들 가져오기
 import { 
@@ -139,6 +140,7 @@ router.post('/admin/seed/choiceconditions', validateApiKey, createSeedHandler(se
 router.post('/admin/seed/rewards', validateApiKey, createSeedHandler(seedRewards, '보상'));
 
 // 각 리소스별 라우터 등록
+router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/characters', characterRoutes);
 router.use('/characterclasses', characterClassRoutes);
