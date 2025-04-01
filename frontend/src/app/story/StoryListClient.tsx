@@ -34,7 +34,7 @@ const StoryListPage = () => {
 
   return (
     /*다크 모드 */
-    <ThemeProvider isDarkMode={isDarkMode}>
+    <ThemeProvider>
       <div className="p-6 space-y-12 min-h-screen ">
         {/* 헤더 프롭스 */}
         <Header
