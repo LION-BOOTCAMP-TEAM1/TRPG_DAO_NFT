@@ -2,8 +2,8 @@
 
 import EquipmentComponent from "./EquipmentComponent";
 
-import {getNFTList} from "../../utils/web3";
-import { RootState, AppDispatch } from "../../store";
+import {getNFTList} from "@/utils/web3";
+import { RootState, AppDispatch } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 
 const CharacterStat = () => {
