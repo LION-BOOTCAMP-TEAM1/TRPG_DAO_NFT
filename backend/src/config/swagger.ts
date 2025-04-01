@@ -1,6 +1,35 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import { Express } from 'express';
+import { Express, Request, Response, NextFunction } from 'express';
+
+// 기본 인증 미들웨어 함수
+function basicAuth(req: Request, res: Response, next: NextFunction) {
+  // 인증 헤더가 없으면 인증 요청
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    res.setHeader('WWW-Authenticate', 'Basic');
+    return res.status(401).send('Authentication required');
+  }
+  
+  // Basic Auth 헤더 파싱
+  const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+  const user = auth[0];
+  const pass = auth[1];
+  
+  // 환경 변수에서 사용자 이름과 비밀번호 확인
+  // 기본값 설정으로 환경 변수가 없어도 접근 가능하게 함
+  const username = process.env.DOCS_USERNAME || 'admin';
+  const password = process.env.DOCS_PASSWORD || 'password';
+  
+  if (user === username && pass === password) {
+    return next();
+  }
+  
+  // 인증 실패
+  res.setHeader('WWW-Authenticate', 'Basic');
+  return res.status(401).send('Authentication failed');
+}
 
 const options = {
   definition: {
@@ -40,6 +69,11 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 export function setupSwagger(app: Express) {
+  // 기본적으로 인증 비활성화로 변경하고, 명시적으로 AUTH_ENABLE=true일 때만 인증 활성화
+  if (process.env.NODE_ENV === 'production' && process.env.AUTH_ENABLE === 'true') {
+    app.use('/api-docs', basicAuth);
+  }
+  
   app.use('/api-docs', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
