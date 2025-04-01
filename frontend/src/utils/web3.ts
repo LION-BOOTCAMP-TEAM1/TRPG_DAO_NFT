@@ -50,7 +50,7 @@ async function getNFTList(dispatch) {
         const myNFTamounts = Object.values(myNFTamounts_BI).map(value => Number(value));
 
         // NFT 데이터를 전역에 저장
-        const uris = await Promise.all(
+        await Promise.all(
           Object.values(myNFTids).map(async (id) => {
             const uri = await contract.uri(id);
             const newURI = uri.replace("{id}", String(id));

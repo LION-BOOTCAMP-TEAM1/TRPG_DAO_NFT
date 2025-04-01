@@ -9,7 +9,6 @@ export interface Item {
     stat?: Partial<{
         attack: number | null;
         magic: number | null;
-        defence: number | null;
         strength: number | null;
         agility: number | null;
         intelligence: number | null;
@@ -26,9 +25,9 @@ export interface Character {
     image: string;
     stat?: Partial<{
         HP: number;
+        MT: number;
         attack: number;
         magic: number;
-        defence: number;
         strength: number;
         agility: number;
         intelligence: number;
