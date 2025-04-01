@@ -3,11 +3,11 @@
 import TabComponent from "./TabComponent";
 import ItemComponent from "./ItemComponent";
 import { useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../../store";
-import { Item } from "../../store/types";
+import { RootState, AppDispatch } from "@/store";
+import { Item } from "@/store/types";
 import { useEffect, useState } from "react";
 import ItemModal from "./ItemModal";
-import { equipItem, disarmItem } from "../../store/characterSlice"
+import { equipItem, disarmItem } from "@/store/characterSlice"
 import { useDispatch } from "react-redux";
 import EquipedItem from "./EquipedItem";
 
