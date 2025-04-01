@@ -14,7 +14,6 @@ export default function HomePage() {
     disconnect,
     signer,
     walletExist,
-    loading,
   } = useWallet();
 
   const toggleTheme = () => {
