@@ -10,6 +10,7 @@ datasource db {
 model User {
   id                 Int                  @id @default(autoincrement())
   walletAddress      String               @unique
+  nonce              String?              // 로그인 인증에 사용되는 nonce 값
   createdAt          DateTime             @default(now())
   chapterProgress    ChapterProgress[]
   characters         Character[]
