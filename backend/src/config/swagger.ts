@@ -18,8 +18,11 @@ function basicAuth(req: Request, res: Response, next: NextFunction) {
   const pass = auth[1];
   
   // 환경 변수에서 사용자 이름과 비밀번호 확인
-  // (DOCS_USERNAME과 DOCS_PASSWORD는 Render 환경 변수에 설정 필요)
-  if (user === process.env.DOCS_USERNAME && pass === process.env.DOCS_PASSWORD) {
+  // 기본값 설정으로 환경 변수가 없어도 접근 가능하게 함
+  const username = process.env.DOCS_USERNAME || 'admin';
+  const password = process.env.DOCS_PASSWORD || 'password';
+  
+  if (user === username && pass === password) {
     return next();
   }
   
@@ -66,8 +69,8 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 export function setupSwagger(app: Express) {
-  // 프로덕션 환경에서만 Basic Auth 적용
-  if (process.env.NODE_ENV === 'production' && process.env.DISABLE_DOCS_AUTH !== 'true') {
+  // 기본적으로 인증 비활성화로 변경하고, 명시적으로 AUTH_ENABLE=true일 때만 인증 활성화
+  if (process.env.NODE_ENV === 'production' && process.env.AUTH_ENABLE === 'true') {
     app.use('/api-docs', basicAuth);
   }
   
