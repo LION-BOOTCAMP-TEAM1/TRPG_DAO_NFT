@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc && cp -r prisma dist/ && cp -r static dist/",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "cross-env NODE_OPTIONS=\"--max-old-space-size=1024\" ts-node-dev --respawn src/server.ts",
-    "dev:debug": "cross-env NODE_OPTIONS=\"--max-old-space-size=1024 --inspect\" ts-node-dev --respawn src/server.ts",
+    "dev": "cross-env PORT=5001 NODE_OPTIONS=\"--max-old-space-size=1024\" ts-node-dev --respawn src/server.ts",
+    "dev:debug": "cross-env PORT=5001 NODE_OPTIONS=\"--max-old-space-size=1024 --inspect\" ts-node-dev --respawn src/server.ts",
     "seed": "cross-env ts-node src/seed/seed.ts",
     "db:sync": "npm run db:prisma:generate && ts-node scripts/dbSync.ts --forceMigrate=false --seed=false",
     "db:sync:full": "npm run db:prisma:generate && ts-node scripts/dbSync.ts --forceMigrate=true --seed=true",
