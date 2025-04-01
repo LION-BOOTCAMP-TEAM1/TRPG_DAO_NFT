@@ -17,7 +17,7 @@ const ENV = {
   ...process.env,
   NODE_ENV: 'production',
   SKIP_DB_SYNC: 'true',
-  NODE_OPTIONS: '--max-old-space-size=2048',
+  NODE_OPTIONS: '--max-old-space-size=2048 --optimize-for-size --gc-interval=100',
   // Render 환경 플래그 확실히 설정
   IS_RENDER: 'true',
   RENDER: 'true'
@@ -40,13 +40,22 @@ function startServer() {
   // 최대 재시작 횟수 초과 시 지연 증가
   if (startCount > MAX_RESTARTS) {
     console.log(`[${new Date().toISOString()}] 최대 재시작 횟수 초과. 60초 후 다시 시도합니다.`);
+    
+    // 메모리 정리를 위한 명시적 GC 요청
+    try {
+      global.gc && global.gc();
+      console.log(`[${new Date().toISOString()}] 메모리 정리 시도 완료`);
+    } catch (e) {
+      console.error('GC 실행 오류:', e);
+    }
+    
     startCount = 0; // 카운터 리셋
     setTimeout(startServer, 60000); // 1분 후 재시도
     return;
   }
   
   // 서버 프로세스 시작
-  const serverProcess = spawn(SERVER_COMMAND, SERVER_ARGS, {
+  const serverProcess = spawn(SERVER_COMMAND, ['--expose-gc', ...SERVER_ARGS], {
     env: ENV,
     stdio: 'inherit' // 자식 프로세스의 stdio를 부모와 공유
   });
