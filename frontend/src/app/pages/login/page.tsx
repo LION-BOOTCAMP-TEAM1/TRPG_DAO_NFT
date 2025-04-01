@@ -5,21 +5,37 @@
 
 import Link from 'next/link';
 
-import { useEffect } from 'react';
-import useWallet from '../../hook/useWallet';
+import { useEffect, useState } from 'react';
+import useAuth from '../../hook/useAuth';
 
 export default function LoginClient() {
   const {
     connectWallet,
     registerWalletAddress,
-    disconnect,
+    logout,
     signer,
     walletExist,
-    loading,
-  } = useWallet();
+    isLoading,
+    user,
+    isAuthenticated
+  } = useAuth();
+
+  const [signerAddress, setSignerAddress] = useState('');
 
   useEffect(() => {
     if (!signer) return;
+    
+    // 지갑 주소 가져오기
+    const getAddress = async () => {
+      try {
+        const address = await signer.getAddress();
+        setSignerAddress(address);
+      } catch (error) {
+        console.error('Failed to get signer address:', error);
+      }
+    };
+    
+    getAddress();
   }, [signer]);
 
   return (
@@ -61,7 +77,7 @@ export default function LoginClient() {
           <div className="LoginStyleTeal top-13/15 left-1/2">
             <button
               className="text-2xl cursor-pointer font-bold italic hover:underline"
-              onClick={disconnect}
+              onClick={logout}
             >
               Disconncet Wallet
             </button>
@@ -75,8 +91,12 @@ export default function LoginClient() {
           )}
           <div className="LoginStyleWhite  top-12/17 left-1/2">
             <p className="text-2xl  font-bold italic">
-              {signer.address.substring(0, 7)}...
-              {signer.address.substring(signer.address.length - 5)}
+              {user?.walletAddress ? 
+                `${user.walletAddress.substring(0, 7)}...${user.walletAddress.substring(user.walletAddress.length - 5)}` :
+                signerAddress ? 
+                  `${signerAddress.substring(0, 7)}...${signerAddress.substring(signerAddress.length - 5)}` : 
+                  ''
+              }
             </p>
           </div>
         </div>
@@ -98,10 +118,10 @@ export default function LoginClient() {
         >
           <button
             onClick={registerWalletAddress}
-            disabled={loading}
-            className={`text-6xl font-bold hover:text-teal-600 ${loading ? 'cursor-not-allowed' : 'cursor-pointer'} ${loading ? 'opacity-50' : ''}`}
+            disabled={isLoading}
+            className={`text-6xl font-bold hover:text-teal-600 ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'} ${isLoading ? 'opacity-50' : ''}`}
           >
-            {loading ? 'Registering...' : 'Sign Up'}
+            {isLoading ? 'Registering...' : 'Sign Up'}
           </button>
         </div>
       )}

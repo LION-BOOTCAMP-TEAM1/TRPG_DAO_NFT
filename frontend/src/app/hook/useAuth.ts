@@ -1,32 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { ethers } from 'ethers';
-import api from '../../lib/axios';
+import api, { setAuthToken, removeAuthToken } from '../../lib/axios';
 
-// 인증 상태를 위한 인터페이스
 interface AuthState {
-  isAuthenticated: boolean; // 인증 여부
-  isLoading: boolean; // 로딩 상태
-  error: string | null; // 에러 메시지
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  walletExist: boolean;
   user: {
-    walletAddress: string; // 지갑 주소
-    userId?: string | number; // 사용자 ID (옵션)
+    walletAddress: string;
+    userId?: string | number;
   } | null;
+  signer: ethers.JsonRpcSigner | null;
 }
 
 export default function useAuth() {
-  // 인증 상태 관리
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     isLoading: false,
     error: null,
+    walletExist: false,
     user: null,
+    signer: null,
   });
 
-  /**
-   * 페이지 로드 시 인증 상태 확인
-   */
   useEffect(() => {
-    // 페이지 로드 시 인증 상태 확인 (쿠키에 JWT 토큰이 있는지)
     checkAuthStatus();
   }, []);
 
@@ -54,11 +52,11 @@ export default function useAuth() {
    */
   const verifySignature = async (address: string, signature: string) => {
     try {
-      // withCredentials는 쿠키를 주고받기 위해 필요합니다 (JWT 저장)
-      const response = await api.post('/api/auth/verify', 
-        { address, signature }, 
-        { withCredentials: true }
-      );
+      const response = await api.post('/api/auth/verify', {
+        address,
+        signature,
+      });
+
       return response.data;
     } catch (error) {
       console.error('서명 검증 중 오류:', error);
@@ -66,56 +64,195 @@ export default function useAuth() {
     }
   };
 
-  /**
-   * 로그인 함수 - 메타마스크 지갑으로 서명하여 인증
-   * @param signer ethers.js의 JsonRpcSigner 객체
-   */
-  const login = async (signer: ethers.JsonRpcSigner) => {
-    if (!signer) {
-      setAuthState(prev => ({
-        ...prev,
-        error: '연결된 지갑이 없습니다',
-      }));
-      return;
-    }
+  const connectWallet = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    setAuthState(prev => ({
+    setAuthState((prev) => ({
       ...prev,
       isLoading: true,
       error: null,
     }));
 
     try {
-      // 1. 지갑 주소 가져오기
-      const address = await signer.getAddress();
-      
-      // 2. 서버에서 nonce 가져오기
-      const nonce = await requestNonce(address);
-      
-      // 3. 지갑으로 nonce에 서명하기
-      const signature = await signer.signMessage(nonce);
-      
-      // 4. 서버에서 서명 검증하기
-      const { success } = await verifySignature(address, signature);
-      
-      if (success) {
-        // 로그인 성공
-        setAuthState({
-          isAuthenticated: true,
+      if (!window.ethereum) {
+        setAuthState((prev) => ({
+          ...prev,
           isLoading: false,
-          error: null,
-          user: {
-            walletAddress: address,
-          },
-        });
+          error:
+            '메타마스크가 설치되어 있지 않습니다. 메타마스크를 설치하고 다시 시도해주세요.',
+        }));
+        return;
+      }
+
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const newSigner = await provider.getSigner();
+        const address = await newSigner.getAddress();
+
+        try {
+          const nonce = await requestNonce(address);
+
+          setAuthState((prev) => ({
+            ...prev,
+            isLoading: false,
+            walletExist: true,
+            signer: newSigner,
+            user: {
+              ...prev.user,
+              walletAddress: address,
+            },
+          }));
+
+          return newSigner;
+        } catch (error: any) {
+          if (error?.response?.status === 404) {
+            setAuthState((prev) => ({
+              ...prev,
+              isLoading: false,
+              walletExist: false,
+              signer: newSigner,
+              user: {
+                ...prev.user,
+                walletAddress: address,
+              },
+            }));
+            return newSigner;
+          }
+
+          throw error;
+        }
+      } catch (error: any) {
+        if (error.code === 4001) {
+          setAuthState((prev) => ({
+            ...prev,
+            isLoading: false,
+            error: '메타마스크 연결이 거부되었습니다. 연결을 허용해주세요.',
+          }));
+          return;
+        }
+        throw error;
       }
     } catch (error: any) {
-      console.error('인증 오류:', error);
-      setAuthState(prev => ({
+      console.error('지갑 연결 오류:', error);
+      setAuthState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error?.response?.data?.error || error?.message || '인증에 실패했습니다',
+        error: error?.message || '지갑 연결 중 오류가 발생했습니다',
       }));
+    }
+  };
+
+  const registerWalletAddress = async () => {
+    if (!authState.signer) return false;
+
+    setAuthState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      const address = await authState.signer.getAddress();
+
+      const response = await api.post('/api/users/', { wallet: address });
+
+      if (response.status === 200 || response.status === 201) {
+        setAuthState((prev) => ({
+          ...prev,
+          walletExist: true,
+          isLoading: false,
+        }));
+        return true;
+      } else {
+        setAuthState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: response.data.error || '지갑 주소 등록 중 오류가 발생했습니다',
+        }));
+        return false;
+      }
+    } catch (error: any) {
+      console.error('지갑 등록 오류:', error);
+      setAuthState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: error?.message || '지갑 주소 등록 중 오류가 발생했습니다',
+      }));
+      return false;
+    }
+  };
+
+  /**
+   * 로그인 함수 - 메타마스크 지갑으로 서명하여 인증
+   * @param signer ethers.js의 JsonRpcSigner 객체
+   */
+  const login = async (signer?: ethers.JsonRpcSigner) => {
+    const signerToUse = signer || authState.signer;
+
+    if (!signerToUse) {
+      setAuthState((prev) => ({
+        ...prev,
+        error: '연결된 지갑이 없습니다',
+      }));
+      return false;
+    }
+
+    setAuthState((prev) => ({
+      ...prev,
+      isLoading: true,
+      error: null,
+    }));
+
+    try {
+      const address = await signerToUse.getAddress();
+
+      const nonce = await requestNonce(address);
+
+      const signature = await signerToUse.signMessage(nonce);
+
+      const { success, token } = await verifySignature(address, signature);
+
+      if (token) {
+        setAuthToken(token);
+      }
+
+      if (success) {
+        try {
+          const userResponse = await api.get('/api/auth/me');
+
+          if (userResponse.data && userResponse.data.user) {
+            setAuthState({
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+              walletExist: true,
+              user: userResponse.data.user,
+              signer: signerToUse,
+            });
+            return true;
+          }
+        } catch (error) {
+          console.error('사용자 정보 조회 오류:', error);
+          throw error;
+        }
+      }
+
+      setAuthState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: '인증에 실패했습니다',
+      }));
+      return false;
+    } catch (error: any) {
+      console.error('인증 오류:', error);
+      setAuthState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error:
+          error?.response?.data?.error ||
+          error?.message ||
+          '인증에 실패했습니다',
+      }));
+
+      return false;
     }
   };
 
@@ -124,27 +261,45 @@ export default function useAuth() {
    */
   const checkAuthStatus = async () => {
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
-      
-      // 사용자 정보 엔드포인트가 있다면 사용 (현재 백엔드에 구현 필요)
-      // 이 부분은 백엔드에 /api/auth/me 같은 엔드포인트가 필요합니다
-      const response = await api.get('/api/auth/me', { withCredentials: true });
-      
-      if (response.data && response.data.user) {
+      setAuthState((prev) => ({ ...prev, isLoading: true }));
+
+      try {
+        const response = await api.get('/api/auth/me');
+
+        if (response.data && response.data.user) {
+          setAuthState({
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+            walletExist: true,
+            user: response.data.user,
+            signer: null,
+          });
+        } else {
+          throw new Error('User not found');
+        }
+      } catch (error) {
+        console.error('인증 상태 확인 오류:', error);
+
         setAuthState({
-          isAuthenticated: true,
+          isAuthenticated: false,
           isLoading: false,
           error: null,
-          user: response.data.user,
+          walletExist: false,
+          user: null,
+          signer: null,
         });
       }
     } catch (error) {
-      // 401 에러는 정상적인 로그아웃 상태이므로 에러로 처리하지 않음
+      console.error('인증 상태 확인 오류:', error);
+
       setAuthState({
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        walletExist: false,
         user: null,
+        signer: null,
       });
     }
   };
@@ -154,24 +309,36 @@ export default function useAuth() {
    */
   const logout = async () => {
     try {
-      // 로그아웃 엔드포인트가 있다면 호출 (쿠키 삭제)
-      // 백엔드에 로그아웃 엔드포인트가 아직 없는 경우 직접 추가 필요
-      // await api.post('/api/auth/logout', {}, { withCredentials: true });
-      
-      // 로컬 상태 초기화
+      await api.post('/api/auth/logout');
+
+      if (window.ethereum && window.ethereum.disconnect) {
+        try {
+          await window.ethereum.disconnect();
+        } catch (error) {
+          console.error('메타마스크 연결 해제 오류:', error);
+        }
+      }
+
       setAuthState({
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        walletExist: false,
         user: null,
+        signer: null,
       });
+
+      return true;
     } catch (error) {
       console.error('로그아웃 오류:', error);
+      return false;
     }
   };
 
   return {
     ...authState,
+    connectWallet,
+    registerWalletAddress,
     login,
     logout,
   };

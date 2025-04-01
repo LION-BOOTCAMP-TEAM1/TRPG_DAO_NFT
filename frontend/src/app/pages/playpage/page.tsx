@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Header from '../../components/Header';
 import ThemeProvider from '../../components/ThemeProvider';
-import useWallet from '../../hook/useWallet';
+import useAuth from '../../hook/useAuth';
 import ClassModal from '@/app/components/classficationmodal';
 import CyberPunk from './cyberpunk';
 import MiddleAge from './middleage';
@@ -20,11 +20,11 @@ export default function PlayPage() {
   const {
     connectWallet,
     registerWalletAddress,
-    disconnect,
+    logout,
     signer,
     walletExist,
-    loading,
-  } = useWallet();
+    isLoading,
+  } = useAuth();
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
@@ -42,11 +42,6 @@ export default function PlayPage() {
         <Header
           onToggle={toggleTheme}
           isDarkMode={isDarkMode}
-          connectWallet={connectWallet}
-          registerWalletAddress={registerWalletAddress}
-          disconnect={disconnect}
-          walletExist={walletExist}
-          signer={signer}
         />
       </div>
 
