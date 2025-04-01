@@ -1,7 +1,8 @@
-import { PrismaClient, BranchPointStatus, ItemRarity, ItemType } from '@prisma/client';
+import { BranchPointStatus, ItemRarity, ItemType } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import { prisma } from '../utils/prisma-manager'; // prisma-manager에서 인스턴스 가져오기
 
 // 환경 변수 로드
 dotenv.config();
@@ -22,7 +23,7 @@ import items from './items.json';
 import genres from './genres.json';
 import choiceConditions from './choiceCondition.json';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient(); // 제거: 개별 인스턴스 생성
 
 // 환경 변수로 중복 데이터 처리 방식 제어
 // SEED_OVERWRITE=true: 중복 데이터 덮어쓰기 (기본값)
