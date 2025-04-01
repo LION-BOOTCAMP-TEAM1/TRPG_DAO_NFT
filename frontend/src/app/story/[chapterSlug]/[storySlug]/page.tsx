@@ -18,7 +18,9 @@ export default function StoryDetailPage() {
     <div className="h-auto w-px bg-gray-300" />
 
     <div className='flex-[1] bg-[#f4efe1] p-4'>
-      <CharacterStat />
+      <div className="sticky top-4">
+        <CharacterStat />
+      </div>
     </div>
   </div>;
 }
