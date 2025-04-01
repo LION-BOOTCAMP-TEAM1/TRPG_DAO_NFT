@@ -12,7 +12,7 @@ model User {
   walletAddress      String               @unique
   createdAt          DateTime             @default(now())
   chapterProgress    ChapterProgress[]
-  Character          Character?
+  characters         Character[]
   playerNFTs         PlayerNFT[]
   SessionParticipant SessionParticipant[]
   storyProgress      StoryProgress[]
@@ -32,7 +32,8 @@ model CharacterClass {
 
 model Character {
   id           Int            @id @default(autoincrement())
-  userId       Int            @unique
+  userId       Int
+  sessionId    Int?
   name         String
   gender       String
   age          Int
@@ -43,12 +44,15 @@ model Character {
   intelligence Int            @default(4)
   wisdom       Int            @default(4)
   charisma     Int            @default(4)
+  physicalAttack Int          @default(10)
+  magicAttack  Int            @default(10)
   createdAt    DateTime       @default(now())
   classId      Int
   hp           Int            @default(4)
   mp           Int            @default(4)
   class        CharacterClass @relation(fields: [classId], references: [id])
   user         User           @relation(fields: [userId], references: [id])
+  session      Session?       @relation(fields: [sessionId], references: [id])
   inventory    Inventory?
 }
 
@@ -270,6 +274,7 @@ model Session {
   participants SessionParticipant[]
   progress     SessionProgress?
   users        User[]               @relation("UserSession")
+  characters   Character[]
 }
 
 model SessionParticipant {
