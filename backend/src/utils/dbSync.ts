@@ -1,11 +1,10 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './prisma-manager'; // prisma-manager에서 인스턴스 가져오기
 import * as fs from 'fs';
 import * as path from 'path';
 
 const execPromise = promisify(exec);
-const prisma = new PrismaClient();
 
 // 타임아웃 설정 (60초)
 const COMMAND_TIMEOUT = 60000;
@@ -31,8 +30,8 @@ export async function syncDatabase(options: {
   try {
     console.log('데이터베이스 연결 확인 중...');
     
-    // 데이터베이스 연결 테스트
-    await prisma.$connect();
+    // 데이터베이스 연결 테스트 - 공유 인스턴스 사용
+    await prisma.$queryRaw`SELECT 1`;
     console.log('데이터베이스 연결 성공!');
 
     // 스키마 확인
@@ -68,9 +67,8 @@ export async function syncDatabase(options: {
     } else {
       throw error;
     }
-  } finally {
-    await prisma.$disconnect();
   }
+  // 공유 인스턴스를 사용하므로 $disconnect() 호출을 제거
 }
 
 /**
