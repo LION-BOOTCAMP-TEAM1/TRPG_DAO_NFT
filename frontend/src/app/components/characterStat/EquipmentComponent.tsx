@@ -3,12 +3,13 @@
 import TabComponent from "./TabComponent";
 import ItemComponent from "./ItemComponent";
 import { useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../../store";
-import { Item } from "../../store/types";
+import { RootState, AppDispatch } from "@/store";
+import { Item } from "@/store/types";
 import { useEffect, useState } from "react";
 import ItemModal from "./ItemModal";
-import {equipItem} from "../../store/characterSlice"
+import { equipItem, disarmItem } from "@/store/characterSlice"
 import { useDispatch } from "react-redux";
+import EquipedItem from "./EquipedItem";
 
 const EquipmentComponent = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -50,32 +51,12 @@ const EquipmentComponent = () => {
     <div>
       <div className='flex flex-col justify-start'>
         {/* 장비중 아이템 */}
-        <p className="">장비중 아이템</p>
+        <p className="m-1">장비중 아이템</p>
         <div className="flex flex-wrap justify-between mb-4">
-          <div className="p-1 bg-gray-600 w-[22%] h-auto">
-            <img 
-              src={myNFTs.equipment.weapon ? myNFTs.equipment.weapon.image : "/slot1.png"} 
-              className="rounded"
-            />
-          </div>
-          <div className="p-1 bg-gray-600 w-[22%] h-auto">
-            <img 
-              src={myNFTs.equipment.armor ? myNFTs.equipment.armor.image : "/slot2.png"}
-              className="rounded"
-            />
-          </div>
-          <div className="p-1 bg-gray-600 w-[22%] h-auto">
-            <img 
-              src={myNFTs.equipment.accessory ? myNFTs.equipment.accessory.image : "/slot3.png"}
-              className="rounded"
-            />
-          </div>
-          <div className="p-1 bg-gray-600 w-[22%] h-auto">
-            <img 
-              src={myNFTs.equipment.title ? myNFTs.equipment.title.image : "/slot4.png"}
-              className="rounded"
-            />
-          </div>
+          <EquipedItem image={myNFTs.equipment.weapon?.image} defaultImage="/slot1.png" removeEvent={() => dispatch(disarmItem(1))}/>
+          <EquipedItem image={myNFTs.equipment.armor?.image} defaultImage="/slot2.png" removeEvent={() => dispatch(disarmItem(2))}/>
+          <EquipedItem image={myNFTs.equipment.accessory?.image} defaultImage="/slot3.png" removeEvent={() => dispatch(disarmItem(3))}/>
+          <EquipedItem image={myNFTs.equipment.title?.image} defaultImage="/slot4.png" removeEvent={() => dispatch(disarmItem(4))}/>
         </div>
 
         {/* 능력치 */}
@@ -83,42 +64,42 @@ const EquipmentComponent = () => {
           <div className="grid grid-cols-2 gap-4 p-1 rounded shadow-inner w-full">
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/attack.png" alt="공격력" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+100</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.attack}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/magic.png" alt="마법력" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+100</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.magic}</span>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 p-1 rounded shadow-inner w-full">
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/str.png" alt="STR" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+10</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.strength}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/agi.png" alt="AGI" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+30</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.agility}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/int.png" alt="INT" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+20</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.intelligence}</span>
             </div>
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/chr.png" alt="CHR" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+40</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.charisma}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/health.png" alt="HEALTH" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+30</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.health}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
               <img src="/wis.png" alt="WIS" className="w-5 h-5" />
-              <span className="text-sm text-white font-medium">+10</span>
+              <span className="text-sm text-white font-medium">+{myNFTs.stats.wisdom}</span>
             </div>            
           </div>
         </div>

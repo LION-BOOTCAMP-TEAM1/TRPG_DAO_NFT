@@ -5,14 +5,11 @@ import { Item, Character } from "./types";
 interface CharacterState {
     character: Character | null;
     stats: {
-        maxHP: number;
-        maxMT: number;
         HP: number;
         MT: number;
         attack: number;
         magic: number;
-        defence: number;
-        strenth: number;
+        strength: number;
         agility: number;
         intelligence: number;
         charisma: number;
@@ -29,21 +26,35 @@ interface CharacterState {
 }
 
 const initialState: CharacterState = {
-    character: null,
+    character: {
+        id: 1,
+        class: '매지션',
+        name: '게리메일',
+        image: '/character/magician.png',
+        stat: {
+            HP: 4,
+            MT: 4,
+            attack: 10,
+            magic: 40,
+            strength: 4,
+            agility: 4,
+            intelligence: 10,
+            charisma: 6,
+            health: 4,
+            wisdom: 8,
+        },
+    },
     stats: {
-        maxHP: 0,
-        maxMT: 0,
-        HP: 0,
-        MT: 0,
-        attack: 0,
-        magic: 0,
-        defence: 0,
-        strenth: 0,
-        agility: 0,
-        intelligence: 0,
-        charisma: 0,
-        health: 0,
-        wisdom: 0,
+        HP: 4,
+        MT: 4,
+        attack: 10,
+        magic: 40,
+        strength: 4,
+        agility: 4,
+        intelligence: 10,
+        charisma: 6,
+        health: 4,
+        wisdom: 8,
     },
     equipment: {
         weapon: null,
@@ -58,6 +69,22 @@ const characterSlice = createSlice({
   name: "character",
   initialState,
   reducers: {
+    updateStat(state) {
+        const statKeys = [
+            "attack", "magic", "strength", "agility",
+            "intelligence", "charisma", "health", "wisdom"
+        ] as const;
+         
+
+        statKeys.forEach((key) => {
+            state.stats[key] =
+            (state.character?.stat?.[key] ?? 0) +
+            (state.equipment.weapon?.stat?.[key] ?? 0) +
+            (state.equipment.armor?.stat?.[key] ?? 0) +
+            (state.equipment.accessory?.stat?.[key] ?? 0) +
+            (state.equipment.title?.stat?.[key] ?? 0);
+        });
+    },
     equipItem(state, action: PayloadAction<Item>) {
         const slot = action.payload.type;
         switch(slot) {
@@ -74,6 +101,24 @@ const characterSlice = createSlice({
                 state.equipment.title = action.payload;
                 break;
         }
+        characterSlice.caseReducers.updateStat(state);
+    },
+    disarmItem(state, action: PayloadAction<number>) {
+        switch(action.payload) {
+            case 1:
+                state.equipment.weapon = null;
+                break;
+            case 2:
+                state.equipment.armor = null;
+                break;
+            case 3:
+                state.equipment.accessory = null;
+                break;
+            case 4:
+                state.equipment.title = null;
+                break;
+        }
+        characterSlice.caseReducers.updateStat(state);
     },
     addItemToInventory(state, action: PayloadAction<Item>) {
         state.inventory.push(action.payload);
@@ -95,6 +140,7 @@ const characterSlice = createSlice({
 
 export const {
   equipItem,
+  disarmItem,
   addItemToInventory,
 } = characterSlice.actions;
 
