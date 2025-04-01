@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import Link from 'next/link';
 import ThemeToggleButton from './ThemeToggleButton';
 import Modal from './modal';
@@ -17,13 +17,20 @@ interface HeaderProps {
   signer: JsonRpcSigner | null;
 }
 
-const Header: FC<HeaderProps> = ({
-  onToggle,
-  isDarkMode,
-  connectWallet,
-  signer,
-  disconnect,
-}) => {
+const Header: FC<HeaderProps> = ({ connectWallet, signer, disconnect }) => {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', isDarkMode);
+  }, [isDarkMode]);
+
+  const onToggle = () => {
+    setIsDarkMode((prev) => !prev);
+  };
+
   return (
     <div className="w-400 mx-auto">
       <header className="border-b-2 border-gray-400">

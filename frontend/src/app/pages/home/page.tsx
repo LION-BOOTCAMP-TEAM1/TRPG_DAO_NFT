@@ -14,7 +14,6 @@ export default function HomePage() {
     disconnect,
     signer,
     walletExist,
-    loading,
   } = useWallet();
 
   const toggleTheme = () => {
@@ -22,7 +21,7 @@ export default function HomePage() {
   };
 
   return (
-    <ThemeProvider isDarkMode={isDarkMode}>
+    <ThemeProvider>
       <div>
         <Header
           onToggle={toggleTheme}

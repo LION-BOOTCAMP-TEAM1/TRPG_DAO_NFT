@@ -36,7 +36,7 @@ export default function PlayPage() {
 
   return (
     /*다크모트 */
-    <ThemeProvider isDarkMode={isDarkMode}>
+    <ThemeProvider>
       {/* 헤더 프롭스 */}
       <div>
         <Header
