@@ -2,25 +2,23 @@ import { FC, useEffect, useState } from 'react';
 import Link from 'next/link';
 import ThemeToggleButton from './ThemeToggleButton';
 import Modal from './modal';
-import { JsonRpcSigner } from 'ethers';
 import { FaWallet } from 'react-icons/fa';
 import { FaPerson } from 'react-icons/fa6';
 import { RiProhibited2Line } from 'react-icons/ri';
+import Login from './login/Login';
+import useAuth from '../hook/useAuth';
 
 interface HeaderProps {
   onToggle: () => void;
   isDarkMode: boolean;
-  connectWallet: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
-  registerWalletAddress: () => void;
-  disconnect: () => void;
-  walletExist: boolean;
-  signer: JsonRpcSigner | null;
 }
 
-const Header: FC<HeaderProps> = ({ connectWallet, signer, disconnect }) => {
+const Header: FC<HeaderProps> = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark';
   });
+
+  const { isAuthenticated, user, logout } = useAuth();
 
   useEffect(() => {
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
@@ -32,8 +30,8 @@ const Header: FC<HeaderProps> = ({ connectWallet, signer, disconnect }) => {
   };
 
   return (
-    <div className="w-400 mx-auto">
-      <header className="border-b-2 border-gray-400">
+    <div className="max-w-screen">
+      <header className="border-b-2 border-gray-400 px-12">
         <div className="flex items-center text-2xl font-bold">
           {/* Logo */}
           <Link href={'/'}>
@@ -49,12 +47,8 @@ const Header: FC<HeaderProps> = ({ connectWallet, signer, disconnect }) => {
           </div>
 
           <div className="flex flex-row gap-4">
-            {!signer ? (
-              <form onSubmit={connectWallet}>
-                <button type="submit" className="homemsst">
-                  Login
-                </button>
-              </form>
+            {!isAuthenticated ? (
+              <Login />
             ) : (
               // 모달 프롭스
               <Modal
@@ -70,8 +64,10 @@ const Header: FC<HeaderProps> = ({ connectWallet, signer, disconnect }) => {
                   <div className="modalst">
                     <FaWallet />
                     <span>
-                      {signer?.address?.substring(0, 7)}...
-                      {signer?.address?.substring(signer.address.length - 5)}
+                      {user?.walletAddress?.substring(0, 7)}...
+                      {user?.walletAddress?.substring(
+                        user.walletAddress.length - 5,
+                      )}
                     </span>
                   </div>
 
@@ -82,7 +78,7 @@ const Header: FC<HeaderProps> = ({ connectWallet, signer, disconnect }) => {
 
                   <div className="modalst">
                     <RiProhibited2Line />
-                    <button className="homemsst" onClick={disconnect}>
+                    <button className="homemsst" onClick={() => logout()}>
                       Disconnect
                     </button>
                   </div>

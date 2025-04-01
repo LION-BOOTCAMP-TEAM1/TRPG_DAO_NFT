@@ -97,10 +97,10 @@ app.use(
 );
 
 try {
-  // CORS 설정
+  // CORS 설정 - Vercel과 Render 도메인이 다르기 때문에 origin을 명시해야 함
   app.use(
     cors({
-      origin: '*', // 개발 목적으로 임시로 모든 오리진 허용
+      origin: process.env.FRONTEND_ORIGIN || 'https://your-frontend.vercel.app',
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
       credentials: true,
