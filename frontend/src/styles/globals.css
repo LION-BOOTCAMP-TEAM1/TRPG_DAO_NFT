@@ -74,8 +74,16 @@ html.dark {
   @apply p-10 bg-white rounded-lg shadow text-center;
 }
 
+.story-list-feature-wrapper2 {
+  @apply p-10  rounded-lg shadow text-center shadow border  border-[#d2c5ae];
+}
+
 .story-list-h1 {
   @apply text-2xl font-bold text-[#3e2d1c] drop-shadow-md;
+}
+
+.story-list-h2 {
+  @apply text-2xl font-bold  drop-shadow-md;
 }
 
 .classst {

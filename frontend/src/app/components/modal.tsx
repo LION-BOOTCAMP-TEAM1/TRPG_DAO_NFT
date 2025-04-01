@@ -20,7 +20,7 @@ const Modal: FC<ModalProps> = ({ trigger, children, isDarkMode }) => {
   const handleMouseLeave = () => {
     timeoutRef.current = setTimeout(() => {
       setIsVisible(false);
-    }, 2000);
+    }, 10);
   };
 
   return (
