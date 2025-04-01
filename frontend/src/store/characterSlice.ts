@@ -30,7 +30,7 @@ const initialState: CharacterState = {
         id: 1,
         class: '매지션',
         name: '게리메일',
-        image: '/magician',
+        image: '/character/magician.png',
         stat: {
             HP: 4,
             MT: 4,
@@ -69,6 +69,22 @@ const characterSlice = createSlice({
   name: "character",
   initialState,
   reducers: {
+    updateStat(state) {
+        const statKeys = [
+            "attack", "magic", "strength", "agility",
+            "intelligence", "charisma", "health", "wisdom"
+        ] as const;
+         
+
+        statKeys.forEach((key) => {
+            state.stats[key] =
+            (state.character?.stat?.[key] ?? 0) +
+            (state.equipment.weapon?.stat?.[key] ?? 0) +
+            (state.equipment.armor?.stat?.[key] ?? 0) +
+            (state.equipment.accessory?.stat?.[key] ?? 0) +
+            (state.equipment.title?.stat?.[key] ?? 0);
+        });
+    },
     equipItem(state, action: PayloadAction<Item>) {
         const slot = action.payload.type;
         switch(slot) {
@@ -85,57 +101,24 @@ const characterSlice = createSlice({
                 state.equipment.title = action.payload;
                 break;
         }
-
-        // 능력치 적용
-        state.stats.attack =
-            (state.character?.stat?.attack ?? 0) +
-            (state.equipment.weapon?.stat?.attack ?? 0) +
-            (state.equipment.armor?.stat?.attack ?? 0) +
-            (state.equipment.accessory?.stat?.attack ?? 0) +
-            (state.equipment.title?.stat?.attack ?? 0);
-        state.stats.magic =
-            (state.character?.stat?.magic ?? 0) +
-            (state.equipment.weapon?.stat?.magic ?? 0) +
-            (state.equipment.armor?.stat?.magic ?? 0) +
-            (state.equipment.accessory?.stat?.magic ?? 0) +
-            (state.equipment.title?.stat?.magic ?? 0);
-        state.stats.strength =
-            (state.character?.stat?.strength ?? 0) +
-            (state.equipment.weapon?.stat?.strength ?? 0) +
-            (state.equipment.armor?.stat?.strength ?? 0) +
-            (state.equipment.accessory?.stat?.strength ?? 0) +
-            (state.equipment.title?.stat?.strength ?? 0);
-        state.stats.agility =
-            (state.character?.stat?.agility ?? 0) +
-            (state.equipment.weapon?.stat?.agility ?? 0) +
-            (state.equipment.armor?.stat?.agility ?? 0) +
-            (state.equipment.accessory?.stat?.agility ?? 0) +
-            (state.equipment.title?.stat?.agility ?? 0);
-        state.stats.intelligence =
-            (state.character?.stat?.intelligence ?? 0) +
-            (state.equipment.weapon?.stat?.intelligence ?? 0) +
-            (state.equipment.armor?.stat?.intelligence ?? 0) +
-            (state.equipment.accessory?.stat?.intelligence ?? 0) +
-            (state.equipment.title?.stat?.intelligence ?? 0);
-        state.stats.charisma =
-            (state.character?.stat?.charisma ?? 0) +
-            (state.equipment.weapon?.stat?.charisma ?? 0) +
-            (state.equipment.armor?.stat?.charisma ?? 0) +
-            (state.equipment.accessory?.stat?.charisma ?? 0) +
-            (state.equipment.title?.stat?.charisma ?? 0);
-        state.stats.health =
-            (state.character?.stat?.health ?? 0) +
-            (state.equipment.weapon?.stat?.health ?? 0) +
-            (state.equipment.armor?.stat?.health ?? 0) +
-            (state.equipment.accessory?.stat?.health ?? 0) +
-            (state.equipment.title?.stat?.health ?? 0);
-        state.stats.wisdom =
-            (state.character?.stat?.wisdom ?? 0) +
-            (state.equipment.weapon?.stat?.wisdom ?? 0) +
-            (state.equipment.armor?.stat?.wisdom ?? 0) +
-            (state.equipment.accessory?.stat?.wisdom ?? 0) +
-            (state.equipment.title?.stat?.wisdom ?? 0);
-
+        characterSlice.caseReducers.updateStat(state);
+    },
+    disarmItem(state, action: PayloadAction<number>) {
+        switch(action.payload) {
+            case 1:
+                state.equipment.weapon = null;
+                break;
+            case 2:
+                state.equipment.armor = null;
+                break;
+            case 3:
+                state.equipment.accessory = null;
+                break;
+            case 4:
+                state.equipment.title = null;
+                break;
+        }
+        characterSlice.caseReducers.updateStat(state);
     },
     addItemToInventory(state, action: PayloadAction<Item>) {
         state.inventory.push(action.payload);
@@ -157,6 +140,7 @@ const characterSlice = createSlice({
 
 export const {
   equipItem,
+  disarmItem,
   addItemToInventory,
 } = characterSlice.actions;
 

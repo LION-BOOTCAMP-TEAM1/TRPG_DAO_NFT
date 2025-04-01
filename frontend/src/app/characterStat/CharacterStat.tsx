@@ -3,10 +3,12 @@
 import EquipmentComponent from "./EquipmentComponent";
 
 import {getNFTList} from "../../utils/web3";
-import { AppDispatch } from "../../store";
-import { useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../../store";
+import { useDispatch, useSelector } from "react-redux";
 
 const CharacterStat = () => {
+  const myNFTs = useSelector((state: RootState) => state.character);
+
   const dispatch = useDispatch<AppDispatch>();
   const test = () => {
     getNFTList(dispatch);
@@ -20,26 +22,32 @@ const CharacterStat = () => {
       {/* 상단: 캐릭터 정보 */}
       <div className="flex w-full">
         {/* 캐릭터 이미지 */}
-        <img src="/character/bard.png" alt="캐릭터" className="w-24 h-24 rounded" />
+        <img src={myNFTs.character?.image} alt="캐릭터" className="w-24 h-24 rounded" />
 
         {/* 오른쪽 정보 */}
         <div className="ml-2 flex flex-col justify-between">
           {/* 클래스 */}
-          <div className="bg-white px-2 py-1 rounded text-xs w-fit">음유시인</div>
+          <div className="bg-white px-2 py-1 rounded text-xs w-fit">{myNFTs.character?.class}</div>
 
           {/* 이름 */}
-          <div className="bg-white px-2 py-1 rounded text-xs w-fit">게리매일</div>
+          <div className="bg-white px-2 py-1 rounded text-xs w-fit">{myNFTs.character?.name}</div>
 
-          {/* 체력 */}
           <div className="grid grid-cols-4 gap-1 mt-2">
-            <div className="w-3 h-3 rounded-full bg-red-600" />
-            <div className="w-3 h-3 rounded-full bg-red-600" />
-            <div className="w-3 h-3 border border-gray-400 rounded-full" />
-            <div className="w-3 h-3 border border-gray-400 rounded-full" />
-            <div className="w-3 h-3 rounded-full bg-teal-400" />
-            <div className="w-3 h-3 rounded-full bg-teal-400" />
-            <div className="w-3 h-3 border border-gray-400 rounded-full" />
-            <div className="w-3 h-3 border border-gray-400 rounded-full" />
+            {/* 체력 */}
+            {Array.from({ length: myNFTs.stats.HP }).map((_, idx) => (
+              <div key={`base-${idx}`} className="w-3 h-3 rounded-full bg-red-600" />
+            ))}
+            {Array.from({ length: (myNFTs.character?.stat?.HP ?? 0) - myNFTs.stats.HP > 0 ? (myNFTs.character?.stat?.HP ?? 0) - myNFTs.stats.HP : 0 }).map((_, idx) => (
+              <div key={`extra-${idx}`} className="w-3 h-3 rounded-full border border-gray-400" />
+            ))}
+
+            {/* 정신력 */}
+            {Array.from({ length: myNFTs.stats.MT }).map((_, idx) => (
+              <div key={`extra-${idx}`} className="w-3 h-3 rounded-full bg-teal-400" />
+            ))}
+            {Array.from({ length: (myNFTs.character?.stat?.MT ?? 0) - myNFTs.stats.MT > 0 ? (myNFTs.character?.stat?.MT ?? 0) - myNFTs.stats.MT : 0 }).map((_, idx) => (
+              <div key={`extra-${idx}`} className="w-3 h-3 rounded-full border border-gray-400" />
+            ))}
           </div>
         </div>
       </div>

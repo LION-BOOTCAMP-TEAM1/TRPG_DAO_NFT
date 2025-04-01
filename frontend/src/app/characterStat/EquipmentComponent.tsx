@@ -7,8 +7,9 @@ import { RootState, AppDispatch } from "../../store";
 import { Item } from "../../store/types";
 import { useEffect, useState } from "react";
 import ItemModal from "./ItemModal";
-import {equipItem} from "../../store/characterSlice"
+import { equipItem, disarmItem } from "../../store/characterSlice"
 import { useDispatch } from "react-redux";
+import EquipedItem from "./EquipedItem";
 
 const EquipmentComponent = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -52,30 +53,10 @@ const EquipmentComponent = () => {
         {/* 장비중 아이템 */}
         <p className="m-1">장비중 아이템</p>
         <div className="flex flex-wrap justify-between mb-4">
-          <div className="p-1 bg-gray-600 w-[22%] h-auto">
-            <img 
-              src={myNFTs.equipment.weapon ? myNFTs.equipment.weapon.image : "/slot1.png"} 
-              className="rounded"
-            />
-          </div>
-          <div className="p-1 bg-gray-600 w-[22%] h-auto">
-            <img 
-              src={myNFTs.equipment.armor ? myNFTs.equipment.armor.image : "/slot2.png"}
-              className="rounded"
-            />
-          </div>
-          <div className="p-1 bg-gray-600 w-[22%] h-auto">
-            <img 
-              src={myNFTs.equipment.accessory ? myNFTs.equipment.accessory.image : "/slot3.png"}
-              className="rounded"
-            />
-          </div>
-          <div className="p-1 bg-gray-600 w-[22%] h-auto">
-            <img 
-              src={myNFTs.equipment.title ? myNFTs.equipment.title.image : "/slot4.png"}
-              className="rounded"
-            />
-          </div>
+          <EquipedItem image={myNFTs.equipment.weapon?.image} defaultImage="/slot1.png" removeEvent={() => dispatch(disarmItem(1))}/>
+          <EquipedItem image={myNFTs.equipment.armor?.image} defaultImage="/slot2.png" removeEvent={() => dispatch(disarmItem(2))}/>
+          <EquipedItem image={myNFTs.equipment.accessory?.image} defaultImage="/slot3.png" removeEvent={() => dispatch(disarmItem(3))}/>
+          <EquipedItem image={myNFTs.equipment.title?.image} defaultImage="/slot4.png" removeEvent={() => dispatch(disarmItem(4))}/>
         </div>
 
         {/* 능력치 */}
