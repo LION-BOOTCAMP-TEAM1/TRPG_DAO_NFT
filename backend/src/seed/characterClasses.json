@@ -1,0 +1,37 @@
+[
+  {
+    "code": "fighter",
+    "name": "Fighter",
+    "description": "근접 전투와 생존력에 특화된 용병. 장검과 방패를 주 무기로 사용한다.",
+    "recommendedStat1": "strength",
+    "recommendedStat2": "health"
+  },
+  {
+    "code": "wizard",
+    "name": "Wizard",
+    "description": "고대의 마법을 연구하며 지식으로 전투를 지배하는 지성형 캐릭터.",
+    "recommendedStat1": "intelligence",
+    "recommendedStat2": "wisdom"
+  },
+  {
+    "code": "rogue",
+    "name": "Rogue",
+    "description": "어둠 속에서 움직이며 기습과 도주, 교란에 능한 민첩한 행동가.",
+    "recommendedStat1": "agility",
+    "recommendedStat2": "charisma"
+  },
+  {
+    "code": "bard",
+    "name": "Bard",
+    "description": "음악과 말의 힘으로 사람들을 설득하고 전장을 조율하는 사교적 캐릭터.",
+    "recommendedStat1": "charisma",
+    "recommendedStat2": "wisdom"
+  },
+  {
+    "code": "ranger",
+    "name": "Ranger",
+    "description": "자연에 익숙하고, 야생에서 생존과 추적에 능한 원거리 전투 전문가.",
+    "recommendedStat1": "agility",
+    "recommendedStat2": "intelligence"
+  }
+] 

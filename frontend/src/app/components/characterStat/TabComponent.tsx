@@ -21,7 +21,7 @@ const TabComponent = ({ tabs, contents, defaultIndex = 0 }: TabComponentProps) =
             onClick={() => setActiveIndex(index)}
             className={`px-4 py-2 rounded-t-md border-b-2 transition-all
               ${activeIndex === index
-                ? 'border-gray-500 text-gray-300 font-semibold bg-yellow-950'
+                ? 'border-gray-500 text-gray-300 font-semibold bg-[#413029]'
                 : 'border-transparent text-gray-500 hover:text-gray-200'}
             `}
           >
@@ -31,7 +31,7 @@ const TabComponent = ({ tabs, contents, defaultIndex = 0 }: TabComponentProps) =
       </div>
 
       {/* 콘텐츠 영역 */}
-      <div className="bg-yellow-950 rounded-b-md p-4 shadow-inner">
+      <div className="bg-[#413029] rounded-b-md shadow-inner">
         {contents[activeIndex]}
       </div>
     </div>
