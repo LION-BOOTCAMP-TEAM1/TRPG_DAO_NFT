@@ -13,4 +13,12 @@ export interface Chapter {
   };
 }
 
+export interface dummyChapter {
+  id: number;
+  worldId: number;
+  genreId: number;
+  slug: string;
+  storySlug: string;
+}
+
 export type ChapterListResponse = Chapter[];

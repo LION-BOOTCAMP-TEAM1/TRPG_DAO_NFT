@@ -103,7 +103,7 @@ contract TRPG_DAO {
     }
 
     // Check if a session exists
-    function sessionExists(uint256 sessionId) internal view returns(bool) {
+    function sessionExists(uint256 sessionId) public view returns(bool) {
         uint256 length = sessionIds.length;
         for (uint256 i=0;i<length;i++) {
             if (sessionIds[i] == sessionId) return true;
@@ -236,7 +236,21 @@ contract TRPG_DAO {
     function isAllVotesCast(uint256 _proposalId) public view returns (bool) {
         Proposal storage proposal = proposals[_proposalId];
         if (proposal.proposalScope != 1) return false;
-        return proposal.totalVotes == sessions[proposal.scopeId].users.length;
+        return proposal.totalVotes == getTotalEligibleVoters(proposal.scopeId);
+    }
+    
+    // Calculate total number of users eligible to vote based on scope 1
+    function getTotalEligibleVoters(uint256 scopeId) public view returns (uint256) {
+        return sessions[scopeId].users.length;
+    }
+
+    function isUserInSession(uint256 sessionId, address user) public view returns (bool) {
+        Session storage session = sessions[sessionId];
+        uint256 length = session.users.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (session.users[i] == user) return true;
+        }
+        return false;
     }
 
     // Get proposal details
