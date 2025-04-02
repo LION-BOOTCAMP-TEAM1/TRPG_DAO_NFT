@@ -64,7 +64,11 @@ const CharacterStat = () => {
       <div className="bg-red-500 rounded-2xl p-1">
         <button className="text-white" onClick={() => setOpen(true)}>Battle Test</button>
       </div>
-      {open && <BattleComponent speed={500} onClose={() => setOpen(false)} />}
+      {open && <BattleComponent speed={500} onClose={(v) => {
+        setOpen(false);
+        if(v) console.log('이김');
+        else console.log('짐');
+      }} />}
     </div>
   );
 };
