@@ -5,7 +5,7 @@ import FeatureSection from './components/FeatureSection';
 import StoryCard from './components/StoryCard';
 import { StorySummary } from './types/story';
 import Header from '../components/Header';
-import useWallet from '../hook/useWallet';
+import useAuth from '../hook/useAuth';
 import ThemeProvider from '../components/ThemeProvider';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -16,10 +16,11 @@ const StoryListPage = () => {
   const {
     connectWallet,
     registerWalletAddress,
-    disconnect,
+    logout,
     signer,
     walletExist,
-  } = useWallet();
+    isAuthenticated
+  } = useAuth();
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
@@ -40,11 +41,6 @@ const StoryListPage = () => {
         <Header
           onToggle={toggleTheme}
           isDarkMode={isDarkMode}
-          connectWallet={connectWallet}
-          registerWalletAddress={registerWalletAddress}
-          disconnect={disconnect}
-          walletExist={walletExist}
-          signer={signer}
         />
 
         {/* 표지 */}

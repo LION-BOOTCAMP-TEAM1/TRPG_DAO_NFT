@@ -1,15 +1,40 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { useDaoContract } from './hooks/useDaoContract';
 import { useChapterDetail } from './hooks/useChapterDetail';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useImageLoader } from './hooks/useImageLoader';
+import { useEffect } from 'react';
+import { useCreateSession } from './hooks/useCreateSession';
+import { useJoinSession } from './hooks/useJoinSession';
 
 const ChapterClient = () => {
   const { chapterSlug } = useParams();
   const { chapter } = useChapterDetail(chapterSlug as string);
+  const dao = useDaoContract();
   const imageSrc = useImageLoader(chapter?.imageUrl);
+
+  // 세션 생성 및 참가 훅
+  const { createSession, txHash, error } = useCreateSession();
+  const { joinSession, joinTx, joinError } = useJoinSession();
+
+  const dummyChapter = {
+    id: 1,
+    worldId: 1,
+    genreId: 1,
+    slug: chapter?.slug || 'chapter-1-awakening',
+    storySlug: chapter?.story?.slug || 'isekai-summoning',
+  };
+  useEffect(() => {
+    if (chapter && dao) {
+      createSession(dummyChapter, dao);
+    }
+  }, [chapter, dao]);
+
+  const handleStartStory = () => {
+    if (dao) joinSession(dummyChapter, dao);
+  };
 
   if (!chapter) {
     return (
@@ -38,13 +63,24 @@ const ChapterClient = () => {
         )}
       </div>
 
-      <div>
-        <Link
-          href={`/story/${chapter.slug}/${chapter.story.slug}`}
+      <div className="space-y-2">
+        <button
+          onClick={handleStartStory}
           className="inline-block px-4 py-2 mt-4 bg-[#1e40af] text-white rounded hover:bg-[#374fc9] transition-colors"
         >
           👉 스토리 시작하기
-        </Link>
+        </button>
+
+        {txHash && (
+          <p className="mt-2 text-green-600">세션 생성 완료! Tx: {txHash}</p>
+        )}
+        {joinTx && (
+          <p className="mt-2 text-green-600">세션 참가 완료! Tx: {joinTx}</p>
+        )}
+        {error && <p className="mt-2 text-red-600">세션 생성 오류: {error}</p>}
+        {joinError && (
+          <p className="mt-2 text-red-600">세션 참가 오류: {joinError}</p>
+        )}
       </div>
     </div>
   );
