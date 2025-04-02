@@ -17,11 +17,7 @@
   },
   {
     "slug": "chapter-3-paths-diverge",
-    "storySlugs": [
-      "merchant-quest-intro",
-      "black-market-lead",
-      "bard-performance"
-    ],
+    "storySlugs": ["merchant-quest-intro", "black-market-lead", "bard-performance"],
     "title": "분기된 길",
     "description": "시장에서의 선택이 당신을 새로운 운명으로 이끈다. 각자의 클래스와 선택에 따라 이야기가 갈라진다.",
     "sequence": 3,

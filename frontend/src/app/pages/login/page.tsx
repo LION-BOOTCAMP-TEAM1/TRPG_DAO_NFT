@@ -44,7 +44,7 @@ export default function LoginClient() {
         <h1 className="text-6xl font-bold italic ">
           {signer ? (
             <Link
-              href="/start"
+              href="/pages/start"
               className="cursor-pointer hover:text-yellow-500"
             >
               {walletExist && signer && <p>Start</p>}
