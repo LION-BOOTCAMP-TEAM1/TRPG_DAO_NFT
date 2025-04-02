@@ -34,11 +34,12 @@ const TabComponent = ({ tabs, contents, defaultIndex = 0 }: TabComponentProps) =
       <div className="bg-[#413029] rounded-b-md shadow-inner">
         {contents[activeIndex]}
         <div className='w-full flex justify-center items-center'>
-          <button
-            className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-red-500 text-white font-bold text-lg rounded-xl shadow-lg hover:scale-105 hover:brightness-110 active:scale-95 transition-all duration-300 mb-4"
+          <div
+            className="flex flex-col justify-center items-center px-4 py-2 bg-gradient-to-r from-yellow-400 to-red-500 text-white rounded-xl shadow-lg hover:scale-105 hover:brightness-110 active:scale-95 transition-all duration-300 mb-4"
           >
-            🎁 아이템 뽑기!
-          </button>
+            <p className='font-bold text-lg'>🎁 아이템 뽑기!</p>
+            <div className='font-light text-sm blinking-box'>단돈 0.01 🇪🇹🇭</div>
+          </div>
         </div>
       </div>
     </div>

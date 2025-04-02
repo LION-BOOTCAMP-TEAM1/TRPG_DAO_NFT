@@ -93,3 +93,21 @@ html.dark {
 .MST {
   @apply border px-2 py-1 rounded-2xl cursor-pointer hover:bg-sky-100 transition text-xl;
 }
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.blinking-box {
+  animation: blink 0.1s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
