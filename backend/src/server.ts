@@ -5,6 +5,7 @@ import prisma from './prismaClient';
 import { setupSwagger } from './config/swagger';
 import apiRoutes from './routes';
 import path from 'path';
+import cookieParser from 'cookie-parser';
 
 // 환경 변수 로드 - 최우선 실행
 try {
@@ -96,16 +97,18 @@ app.use(
 );
 
 try {
-  // CORS 설정
+  // CORS 설정 - Vercel과 Render 도메인이 다르기 때문에 origin을 명시해야 함
   app.use(
     cors({
-      origin: '*', // 개발 목적으로 임시로 모든 오리진 허용
+      origin: process.env.FRONTEND_ORIGIN || 'https://your-frontend.vercel.app',
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+      credentials: true,
     })
   );
 
   app.use(express.json());
+  app.use(cookieParser() as any);
 
   // 정적 파일 제공 설정
   app.use('/static', express.static(path.join(__dirname, '../static')));
