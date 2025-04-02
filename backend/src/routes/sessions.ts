@@ -5,7 +5,6 @@ const router = express.Router();
 
 // ID 또는 슬러그로 세션을 찾는 유틸리티 함수
 async function findSessionByIdOrSlug(idOrSlug: string) {
-  // 숫자인지 확인
   const isNumber = /^\d+$/.test(idOrSlug);
   
   if (isNumber) {
@@ -13,13 +12,6 @@ async function findSessionByIdOrSlug(idOrSlug: string) {
       where: { id: Number(idOrSlug) }
     });
   }
-  // 세션에는 현재 슬러그 필드가 없으므로, ID만 지원합니다.
-  // 향후 슬러그 필드가 추가되면 아래와 같이 수정 가능합니다:
-  // else {
-  //   return await prisma.session.findUnique({
-  //     where: { slug: idOrSlug }
-  //   });
-  // }
   return null;
 }
 
@@ -93,28 +85,31 @@ const getSessions = async (req: Request, res: Response) => {
  */
 const getSession = async (req: Request, res: Response) => {
   const { idOrSlug } = req.params;
+  const { includeCharacters } = req.query; // 클라이언트에서 캐릭터 정보 포함 여부 결정
 
   try {
-    // ID 또는 슬러그로 세션 기본 정보 찾기
     const sessionBase = await findSessionByIdOrSlug(idOrSlug);
     
     if (!sessionBase) {
       return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
     }
     
-    // 찾은 세션의 ID로 상세 정보 조회
-    const session = await prisma.session.findUnique({
+    // 기본 쿼리 구성
+    const queryOptions: any = {
       where: { id: sessionBase.id },
       include: {
         users: {
           select: {
             id: true,
             walletAddress: true,
-            Character: {
+          }
+        },
+        participants: {
+          include: {
+            user: {
               select: {
                 id: true,
-                name: true,
-                class: true
+                walletAddress: true
               }
             }
           }
@@ -125,7 +120,20 @@ const getSession = async (req: Request, res: Response) => {
           }
         }
       }
-    });
+    };
+    
+    // 캐릭터 정보가 필요한 경우에만 포함
+    if (includeCharacters === 'true') {
+      queryOptions.include.users.select.characters = {
+        select: {
+          id: true,
+          name: true,
+          class: true
+        }
+      };
+    }
+    
+    const session = await prisma.session.findUnique(queryOptions);
 
     res.json(session);
   } catch (error) {
@@ -150,6 +158,7 @@ const getSession = async (req: Request, res: Response) => {
  *               - name
  *               - userIds
  *               - storyId
+ *               - storyWorldId
  *             properties:
  *               name:
  *                 type: string
@@ -162,6 +171,9 @@ const getSession = async (req: Request, res: Response) => {
  *               storyId:
  *                 type: integer
  *                 description: 진행할 스토리 ID
+ *               storyWorldId:
+ *                 type: integer
+ *                 description: 스토리 월드 ID
  *     responses:
  *       201:
  *         description: 생성된 세션 정보를 반환합니다
@@ -173,14 +185,13 @@ const getSession = async (req: Request, res: Response) => {
  *         description: 서버 오류
  */
 const createSession = async (req: Request, res: Response) => {
-  const { name, userIds, storyId } = req.body;
+  const { name, userIds, storyId, storyWorldId } = req.body;
 
-  if (!name || !userIds || userIds.length === 0 || !storyId) {
-    return res.status(400).json({ error: '세션 이름, 참여 사용자, 스토리 정보가 필요합니다' });
+  if (!name || !userIds || userIds.length === 0 || !storyId || !storyWorldId) {
+    return res.status(400).json({ error: '세션 이름, 참여 사용자, 스토리 및 스토리 월드 정보가 필요합니다' });
   }
 
   try {
-    // 유효한 사용자인지 확인
     const users = await prisma.user.findMany({
       where: {
         id: { in: userIds }
@@ -191,7 +202,6 @@ const createSession = async (req: Request, res: Response) => {
       return res.status(404).json({ error: '일부 사용자를 찾을 수 없습니다' });
     }
 
-    // 유효한 스토리인지 확인
     const story = await prisma.story.findUnique({
       where: { id: Number(storyId) },
       include: { quests: { take: 1 } }
@@ -205,13 +215,10 @@ const createSession = async (req: Request, res: Response) => {
       return res.status(400).json({ error: '스토리에 퀘스트가 없습니다' });
     }
 
-    // 세션 생성
     const newSession = await prisma.session.create({
       data: {
         name,
-        users: {
-          connect: userIds.map((id: number | string) => ({ id: Number(id) }))
-        },
+        storyWorldId: Number(storyWorldId),
         progress: {
           create: {
             storyId: Number(storyId),
@@ -221,12 +228,30 @@ const createSession = async (req: Request, res: Response) => {
         }
       },
       include: {
-        users: true,
         progress: true
       }
     });
 
-    res.status(201).json(newSession);
+    await prisma.sessionParticipant.createMany({
+      data: userIds.map((userId: number | string) => ({
+        sessionId: newSession.id,
+        userId: Number(userId)
+      }))
+    });
+
+    const sessionWithParticipants = await prisma.session.findUnique({
+      where: { id: newSession.id },
+      include: {
+        participants: {
+          include: {
+            user: true
+          }
+        },
+        progress: true
+      }
+    });
+
+    res.status(201).json(sessionWithParticipants);
   } catch (error) {
     console.error('세션 생성 오류:', error);
     res.status(500).json({ error: '세션 생성 중 오류가 발생했습니다' });
@@ -279,7 +304,6 @@ const updateSessionStatus = async (req: Request, res: Response) => {
   }
 
   try {
-    // ID 또는 슬러그로 세션 기본 정보 찾기
     const sessionBase = await findSessionByIdOrSlug(idOrSlug);
     
     if (!sessionBase) {
@@ -331,6 +355,12 @@ const updateSessionStatus = async (req: Request, res: Response) => {
  *               questId:
  *                 type: integer
  *                 description: 현재 진행 중인 퀘스트 ID
+ *               currentChapterId:
+ *                 type: integer
+ *                 description: 현재 진행 중인 챕터 ID
+ *               currentSceneId:
+ *                 type: integer
+ *                 description: 현재 진행 중인 씬 ID
  *     responses:
  *       200:
  *         description: 업데이트된 세션 진행 상태를 반환합니다
@@ -341,14 +371,13 @@ const updateSessionStatus = async (req: Request, res: Response) => {
  */
 const updateSessionProgress = async (req: Request, res: Response) => {
   const { idOrSlug } = req.params;
-  const { questId } = req.body;
+  const { questId, currentChapterId, currentSceneId } = req.body;
 
   if (!questId) {
     return res.status(400).json({ error: '현재 퀘스트 ID가 필요합니다' });
   }
 
   try {
-    // ID 또는 슬러그로 세션 기본 정보 찾기
     const sessionBase = await findSessionByIdOrSlug(idOrSlug);
     
     if (!sessionBase) {
@@ -363,7 +392,6 @@ const updateSessionProgress = async (req: Request, res: Response) => {
       return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
     }
 
-    // 유효한 퀘스트인지 확인
     const quest = await prisma.quest.findUnique({
       where: { id: Number(questId) }
     });
@@ -374,7 +402,11 @@ const updateSessionProgress = async (req: Request, res: Response) => {
 
     const updatedProgress = await prisma.sessionProgress.update({
       where: { sessionId: sessionBase.id },
-      data: { currentQuestId: Number(questId) }
+      data: { 
+        currentQuestId: Number(questId), 
+        currentChapterId: currentChapterId ? Number(currentChapterId) : undefined,
+        currentSceneId: currentSceneId ? Number(currentSceneId) : undefined
+      }
     });
 
     res.json(updatedProgress);
@@ -384,11 +416,141 @@ const updateSessionProgress = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/sessions/{idOrSlug}/participants:
+ *   get:
+ *     summary: 세션에 참여한 유저 목록을 조회합니다
+ *     tags: [Sessions]
+ *     parameters:
+ *       - in: path
+ *         name: idOrSlug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 세션 ID 또는 슬러그
+ *     responses:
+ *       200:
+ *         description: 세션 참여자 목록 반환
+ *       404:
+ *         description: 세션을 찾을 수 없습니다
+ *       500:
+ *         description: 서버 오류
+ */
+
+/**
+ * @swagger
+ * /api/sessions/{idOrSlug}/participants:
+ *   post:
+ *     summary: 특정 세션에 유저를 참여자로 추가합니다
+ *     tags: [Sessions]
+ *     parameters:
+ *       - in: path
+ *         name: idOrSlug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 세션 ID 또는 슬러그
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *                 description: 참여할 유저의 ID
+ *     responses:
+ *       201:
+ *         description: 유저가 세션에 성공적으로 참여함
+ *       400:
+ *         description: 이미 참여 중이거나 유효하지 않은 요청
+ *       404:
+ *         description: 세션을 찾을 수 없습니다
+ *       500:
+ *         description: 서버 오류
+ */
+const getSessionParticipants = async (req: Request, res: Response) => {
+  const { idOrSlug } = req.params;
+
+  try {
+    const sessionBase = await findSessionByIdOrSlug(idOrSlug);
+
+    if (!sessionBase) {
+      return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
+    }
+
+    const participants = await prisma.sessionParticipant.findMany({
+      where: { sessionId: sessionBase.id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            walletAddress: true
+          }
+        }
+      }
+    });
+
+    res.json(participants);
+  } catch (error) {
+    console.error('세션 참여자 조회 오류:', error);
+    res.status(500).json({ error: '세션 참여자 조회 중 오류가 발생했습니다' });
+  }
+};
+
+// 특정 세션에 유저 1명을 참여자로 등록하는 핸들러
+const joinSession = async (req: Request, res: Response) => {
+  const { idOrSlug } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'userId가 필요합니다' });
+  }
+
+  try {
+    const sessionBase = await findSessionByIdOrSlug(idOrSlug);
+    if (!sessionBase) {
+      return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
+    }
+
+    const existing = await prisma.sessionParticipant.findUnique({
+      where: {
+        sessionId_userId: {
+          sessionId: sessionBase.id,
+          userId: Number(userId)
+        }
+      }
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: '이미 세션에 참여 중입니다' });
+    }
+
+    const participant = await prisma.sessionParticipant.create({
+      data: {
+        sessionId: sessionBase.id,
+        userId: Number(userId)
+      }
+    });
+
+    res.status(201).json(participant);
+  } catch (error) {
+    console.error('세션 참여 오류:', error);
+    res.status(500).json({ error: '세션 참여 중 오류가 발생했습니다' });
+  }
+};
+
 // 라우터에 핸들러 연결
 router.get('/', getSessions as RequestHandler);
 router.get('/:idOrSlug', getSession as RequestHandler);
+router.get('/:idOrSlug/participants', getSessionParticipants as RequestHandler);
 router.post('/', createSession as RequestHandler);
+router.post('/:idOrSlug/participants', joinSession as RequestHandler);
 router.put('/:idOrSlug/status', updateSessionStatus as RequestHandler);
 router.put('/:idOrSlug/progress', updateSessionProgress as RequestHandler);
 
-export default router; 
+export default router;

@@ -7,349 +7,343 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 사용자 관련 모델
 model User {
-  id            Int      @id @default(autoincrement())
-  walletAddress String   @unique
-  createdAt     DateTime @default(now())
-
-  storyProgress   StoryProgress[]
-  chapterProgress ChapterProgress[]
-  playerNFTs      PlayerNFT[]
-  Character       Character?
-  Session         Session[]         @relation("UserSession")
-  UserAction      UserAction[]
+  id                 Int                  @id @default(autoincrement())
+  walletAddress      String               @unique
+  nonce              String?              // 로그인 인증에 사용되는 nonce 값
+  createdAt          DateTime             @default(now())
+  chapterProgress    ChapterProgress[]
+  characters         Character[]
+  playerNFTs         PlayerNFT[]
+  SessionParticipant SessionParticipant[]
+  storyProgress      StoryProgress[]
+  UserAction         UserAction[]
+  Session            Session[]            @relation("UserSession")
 }
 
-// 캐릭터 클래스 관련 모델
 model CharacterClass {
-  id               Int    @id @default(autoincrement())
-  code             String @unique // 예: "bard", "wizard"
-  name             String // 표시명 (예: 음유시인)
+  id               Int         @id @default(autoincrement())
+  code             String      @unique
+  name             String
   description      String
-  recommendedStat1 String // 예: "charisma"
-  recommendedStat2 String // 예: "wisdom"
-
-  characters Character[]
+  recommendedStat1 String
+  recommendedStat2 String
+  characters       Character[]
 }
 
-// 캐릭터 관련 모델
 model Character {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
-
-  name      String
-  gender    String
-  age       Int
-  classId   Int
-  class     CharacterClass @relation(fields: [classId], references: [id])
-  attribute String // 캐릭터의 직업 또는 특성
-
-  hp Int @default(4)
-  mp Int @default(4)
-
-  // ✅ 6개의 필수 스탯
-  health       Int @default(4) // 건강
-  strength     Int @default(4) // 힘
-  agility      Int @default(4) // 민첩
-  intelligence Int @default(4) // 지능
-  wisdom       Int @default(4) // 지혜
-  charisma     Int @default(4) // 매력
-
-  createdAt DateTime   @default(now())
-  inventory Inventory? // 캐릭터의 인벤토리
+  id           Int            @id @default(autoincrement())
+  userId       Int
+  sessionId    Int?
+  name         String
+  gender       String
+  age          Int
+  attribute    String
+  health       Int            @default(4)
+  strength     Int            @default(4)
+  agility      Int            @default(4)
+  intelligence Int            @default(4)
+  wisdom       Int            @default(4)
+  charisma     Int            @default(4)
+  physicalAttack Int          @default(10)
+  magicAttack  Int            @default(10)
+  createdAt    DateTime       @default(now())
+  classId      Int
+  hp           Int            @default(4)
+  mp           Int            @default(4)
+  class        CharacterClass @relation(fields: [classId], references: [id])
+  user         User           @relation(fields: [userId], references: [id])
+  session      Session?       @relation(fields: [sessionId], references: [id])
+  inventory    Inventory?
 }
 
-// 사용자 행동 관련 모델
 model UserAction {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
-
-  questId Int
-  quest   Quest @relation(fields: [questId], references: [id])
-
-  choiceId Int?
-  choice   Choice? @relation(fields: [choiceId], references: [id])
-
-  result    String // 예: "success", "fail", "critical", etc
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  questId   Int
+  choiceId  Int?
+  result    String
   createdAt DateTime @default(now())
+  choice    Choice?  @relation(fields: [choiceId], references: [id])
+  quest     Quest    @relation(fields: [questId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-// 스토리 세계관/테마 관련 모델
+model Genre {
+  id          Int          @id @default(autoincrement())
+  code        String       @unique
+  name        String
+  description String?
+  storyWorlds StoryWorld[]
+}
+
 model StoryWorld {
-  id          Int      @id @default(autoincrement())
-  slug        String   @unique // 예: "fantasy-isekai", "sci-fi-future"
-  title       String // 예: "판타지 이세계", "미래 SF"
-  description String // 세계관 설명
-  coverImage  String? // 표지 이미지 URL
-  createdAt   DateTime @default(now())
-
-  stories Story[] // 이 세계관에 속하는 스토리들
+  id          Int       @id @default(autoincrement())
+  slug        String    @unique
+  title       String
+  description String
+  coverImage  String?
+  createdAt   DateTime  @default(now())
+  genreId     Int?
+  Session     Session[]
+  stories     Story[]
+  genre       Genre?    @relation(fields: [genreId], references: [id])
 }
 
-// 스토리 관련 모델
 model Story {
   id              Int               @id @default(autoincrement())
-  slug            String            @unique // URL 친화적인 고유 식별자 (예: "isekai-summoning")
-  title           String // 스토리 제목
-  summary         String // 전체적인 이야기 개요
-  imageUrl        String? // 스토리를 설명하는 이미지 URL
-  quests          Quest[] // 퀘스트 목록
+  slug            String            @unique
+  title           String
+  summary         String
   createdAt       DateTime          @default(now())
+  storyWorldId    Int?
+  imageUrl        String?
   BranchPoint     BranchPoint[]
-  StoryProgress   StoryProgress[]
-  StoryScene      StoryScene[]
+  chapters        Chapter[]
+  quests          Quest[]
   SessionProgress SessionProgress[]
   StoryWorld      StoryWorld?       @relation(fields: [storyWorldId], references: [id])
-  storyWorldId    Int?
-  chapters        Chapter[] // 스토리에 속한 챕터들
+  StoryProgress   StoryProgress[]
+  StoryScene      StoryScene[]
 }
 
-// 스토리 장면 관련 모델
 model StoryScene {
   id        Int      @id @default(autoincrement())
   storyId   Int
-  story     Story    @relation(fields: [storyId], references: [id])
-  sequence  Int      @default(0) // 스토리 장면 순서
-  text      String // 장면 설명 텍스트
+  text      String
   createdAt DateTime @default(now())
+  sequence  Int      @default(0)
+  story     Story    @relation(fields: [storyId], references: [id])
 }
 
-// 스토리 진행 관련 모델
 model StoryProgress {
   id               Int      @id @default(autoincrement())
   userId           Int
-  user             User     @relation(fields: [userId], references: [id])
   storyId          Int
-  story            Story    @relation(fields: [storyId], references: [id])
-  currentQuestId   Int? // 현재 진행 중인 퀘스트
-  currentChapterId Int? // 현재 진행 중인 챕터
+  currentQuestId   Int?
   completed        Boolean  @default(false)
   lastUpdated      DateTime @updatedAt
+  currentChapterId Int?
+  story            Story    @relation(fields: [storyId], references: [id])
+  user             User     @relation(fields: [userId], references: [id])
 }
 
-// 챕터 관련 모델
 model Chapter {
-  id          Int      @id @default(autoincrement())
-  slug        String   @unique // URL 친화적인 고유 식별자
-  storyId     Int
-  story       Story    @relation(fields: [storyId], references: [id])
-  title       String
-  description String
-  sequence    Int      @default(0) // 챕터 순서
-  imageUrl    String // 챕터 대표 이미지 URL
-  quests      Quest[] // 챕터에 속한 퀘스트들
-  createdAt   DateTime @default(now())
-
+  id              Int               @id @default(autoincrement())
+  storyId         Int
+  title           String
+  description     String
+  sequence        Int               @default(0)
+  imageUrl        String
+  createdAt       DateTime          @default(now())
+  slug            String            @unique
+  story           Story             @relation(fields: [storyId], references: [id])
   ChapterProgress ChapterProgress[]
+  quests          Quest[]
 }
 
-// 챕터 진행 관련 모델
 model ChapterProgress {
   id             Int      @id @default(autoincrement())
   userId         Int
-  user           User     @relation(fields: [userId], references: [id])
   chapterId      Int
-  chapter        Chapter  @relation(fields: [chapterId], references: [id])
   currentQuestId Int?
   completed      Boolean  @default(false)
   lastUpdated    DateTime @updatedAt
+  chapter        Chapter  @relation(fields: [chapterId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, chapterId])
 }
 
 model Quest {
   id          Int          @id @default(autoincrement())
-  slug        String       @unique // URL 친화적인 고유 식별자 (예: "first-mission")
+  slug        String       @unique
   storyId     Int
-  story       Story        @relation(fields: [storyId], references: [id])
+  title       String
+  description String
   chapterId   Int?
+  choices     Choice[]
   chapter     Chapter?     @relation(fields: [chapterId], references: [id])
-  title       String // 퀘스트 제목
-  description String // 퀘스트 설명
-  choices     Choice[] // 선택지 목록
+  story       Story        @relation(fields: [storyId], references: [id])
   UserAction  UserAction[]
 }
 
-// 선택지 관련 모델
 model Choice {
   id              Int               @id @default(autoincrement())
-  slug            String            @unique // URL 친화적인 고유 식별자 (예: "join-knights")
+  slug            String            @unique
   questId         Int
+  text            String
+  nextStoryId     Int?
   quest           Quest             @relation(fields: [questId], references: [id])
-  text            String // 선택 내용
-  nextStoryId     Int? // 선택 결과에 따른 다음 스토리
+  ChoiceCondition ChoiceCondition[]
   PlayerNFT       PlayerNFT[]
   UserAction      UserAction[]
-  ChoiceCondition ChoiceCondition[]
 }
 
-// 분기점 상태 열거형
+model BranchPoint {
+  id               Int                @id @default(autoincrement())
+  slug             String             @unique
+  storyId          Int
+  title            String
+  description      String
+  daoVoteId        String?
+  status           BranchPointStatus  @default(OPEN)
+  resultChoiceId   Int?               @unique
+  resultChoice     DAOChoice?         @relation("BranchPointResultChoice", fields: [resultChoiceId], references: [id])
+  story            Story              @relation(fields: [storyId], references: [id])
+  BranchPointScene BranchPointScene[]
+  DAOChoice        DAOChoice[]        @relation("BranchPointDAOChoices")
+}
+
+model BranchPointScene {
+  id            Int         @id @default(autoincrement())
+  branchPointId Int
+  order         Int
+  text          String
+  branchPoint   BranchPoint @relation(fields: [branchPointId], references: [id])
+}
+
+model DAOChoice {
+  id                Int          @id @default(autoincrement())
+  branchPointId     Int
+  text              String
+  nextStoryId       Int
+  voteCount         Int          @default(0)
+  createdAt         DateTime     @default(now())
+  resultBranchPoint BranchPoint? @relation("BranchPointResultChoice")
+  branchPoint       BranchPoint  @relation("BranchPointDAOChoices", fields: [branchPointId], references: [id])
+}
+
+model Inventory {
+  id          Int             @id @default(autoincrement())
+  characterId Int             @unique
+  maxSlots    Int             @default(20)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  character   Character       @relation(fields: [characterId], references: [id])
+  items       InventoryItem[]
+}
+
+model Item {
+  id             Int             @id @default(autoincrement())
+  code           String          @unique
+  name           String
+  description    String
+  imageUrl       String?
+  rarity         ItemRarity      @default(COMMON)
+  itemType       ItemType
+  useEffect      String?
+  statBonus      Json?
+  isConsumable   Boolean         @default(false)
+  isNFT          Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  inventoryItems InventoryItem[]
+}
+
+model InventoryItem {
+  id          Int       @id @default(autoincrement())
+  inventoryId Int
+  itemId      Int
+  quantity    Int       @default(1)
+  equipped    Boolean   @default(false)
+  nftTokenId  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+  item        Item      @relation(fields: [itemId], references: [id])
+
+  @@unique([inventoryId, itemId, nftTokenId])
+}
+
+model PlayerNFT {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  nftTokenId String   @unique
+  choiceId   Int?
+  createdAt  DateTime @default(now())
+  itemId     Int?
+  choice     Choice?  @relation(fields: [choiceId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  id           Int                  @id @default(autoincrement())
+  name         String
+  createdAt    DateTime             @default(now())
+  storyWorldId Int
+  storyWorld   StoryWorld           @relation(fields: [storyWorldId], references: [id])
+  participants SessionParticipant[]
+  progress     SessionProgress?
+  users        User[]               @relation("UserSession")
+  characters   Character[]
+}
+
+model SessionParticipant {
+  id        Int      @id @default(autoincrement())
+  sessionId Int
+  userId    Int
+  isReady   Boolean  @default(false)
+  hasVoted  Boolean  @default(false)
+  role      String?
+  joinedAt  DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+}
+
+model SessionProgress {
+  id               Int           @id @default(autoincrement())
+  sessionId        Int           @unique
+  storyId          Int
+  currentQuestId   Int?
+  daoStatus        SessionStatus @default(IDLE)
+  lastUpdated      DateTime      @updatedAt
+  currentChapterId Int?
+  currentSceneId   Int?
+  session          Session       @relation(fields: [sessionId], references: [id])
+  story            Story         @relation(fields: [storyId], references: [id])
+}
+
+model ChoiceCondition {
+  id              Int     @id @default(autoincrement())
+  choiceId        Int
+  classOnly       String?
+  minStrength     Int?
+  minWisdom       Int?
+  minCharisma     Int?
+  minAgility      Int?
+  minHealth       Int?
+  minHp           Int?
+  minIntelligence Int?
+  minMp           Int?
+  choice          Choice  @relation(fields: [choiceId], references: [id])
+}
+
 enum BranchPointStatus {
   OPEN
   CLOSED
 }
 
-// 분기점 관련 모델
-model BranchPoint {
-  id               Int                @id @default(autoincrement())
-  slug             String             @unique
-  storyId          Int
-  story            Story              @relation(fields: [storyId], references: [id])
-  title            String
-  description      String
-  status           BranchPointStatus  @default(OPEN)
-  daoVoteId        String?
-  BranchPointScene BranchPointScene[]
-  DAOChoice        DAOChoice[]        @relation("BranchPointDAOChoices")
-  resultChoiceId   Int?               @unique
-  resultChoice     DAOChoice?         @relation("BranchPointResultChoice", fields: [resultChoiceId], references: [id])
-}
-
-// 분기점 장면 관련 모델
-model BranchPointScene {
-  id            Int         @id @default(autoincrement())
-  branchPointId Int
-  branchPoint   BranchPoint @relation(fields: [branchPointId], references: [id])
-  order         Int // DAO 스토리 설명 순서
-  text          String // DAO 투표 전 필요한 서술
-}
-
-// DAO 선택지 관련 모델
-model DAOChoice {
-  id            Int         @id @default(autoincrement())
-  branchPointId Int
-  branchPoint   BranchPoint @relation("BranchPointDAOChoices", fields: [branchPointId], references: [id])
-
-  text        String // 선택 내용
-  nextStoryId Int // 선택 결과에 따른 다음 스토리
-  voteCount   Int      @default(0) // (옵션) 집계된 투표 수
-  createdAt   DateTime @default(now())
-
-  resultBranchPoint BranchPoint? @relation("BranchPointResultChoice")
-}
-
-// 인벤토리 관련 모델
-model Inventory {
-  id          Int             @id @default(autoincrement())
-  characterId Int             @unique
-  character   Character       @relation(fields: [characterId], references: [id])
-  items       InventoryItem[] // 인벤토리에 있는 아이템들
-  maxSlots    Int             @default(20) // 최대 슬롯 수
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-}
-
-// 아이템 관련 모델
-model Item {
-  id             Int             @id @default(autoincrement())
-  code           String          @unique // 아이템 코드 (예: "healing-potion")
-  name           String // 아이템 이름
-  description    String // 아이템 설명
-  imageUrl       String? // 아이템 이미지 URL
-  rarity         ItemRarity      @default(COMMON) // 아이템 희귀도
-  itemType       ItemType // 아이템 유형
-  useEffect      String? // 사용 효과 설명
-  statBonus      Json? // 스탯 보너스 (예: {"strength": 2, "agility": 1})
-  isConsumable   Boolean         @default(false) // 소모품 여부
-  inventoryItems InventoryItem[] // 인벤토리에 있는 아이템 인스턴스
-  isNFT          Boolean         @default(false) // NFT 아이템 여부
-  createdAt      DateTime        @default(now())
-}
-
-// 인벤토리 아이템 관련 모델 (다대다 관계)
-model InventoryItem {
-  id          Int       @id @default(autoincrement())
-  inventoryId Int
-  inventory   Inventory @relation(fields: [inventoryId], references: [id])
-  itemId      Int
-  item        Item      @relation(fields: [itemId], references: [id])
-  quantity    Int       @default(1) // 아이템 수량
-  equipped    Boolean   @default(false) // 장착 여부
-  nftTokenId  String? // NFT 토큰 ID (NFT 아이템인 경우)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@unique([inventoryId, itemId, nftTokenId])
-}
-
-// 아이템 희귀도 열거형
 enum ItemRarity {
-  COMMON // 일반
-  UNCOMMON // 고급
-  RARE // 희귀
-  EPIC // 영웅
-  LEGENDARY // 전설
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
 }
 
-// 아이템 유형 열거형
 enum ItemType {
-  WEAPON // 무기
-  ARMOR // 방어구
-  ACCESSORY // 장신구
-  CONSUMABLE // 소모품
-  QUEST_ITEM // 퀘스트 아이템
-  MISCELLANEOUS // 기타
+  WEAPON
+  ARMOR
+  ACCESSORY
+  CONSUMABLE
+  QUEST_ITEM
+  MISCELLANEOUS
 }
 
-// 기타 모델
-model PlayerNFT {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
-  nftTokenId String   @unique // NFT 온체인 토큰 ID
-  choiceId   Int?
-  choice     Choice?  @relation(fields: [choiceId], references: [id]) // 어떤 선택을 NFT로 발급했는지
-  itemId     Int? // 연결된 아이템 ID (게임 내 아이템으로 사용할 경우)
-  createdAt  DateTime @default(now())
-}
-
-// 세션 관련 모델
-model Session {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-
-  users    User[]           @relation("UserSession")
-  progress SessionProgress?
-}
-
-// 세션 상태 열거형
 enum SessionStatus {
   IDLE
   VOTING
   RESOLVED
-}
-
-// 세션 진행 관련 모델
-model SessionProgress {
-  id        Int     @id @default(autoincrement())
-  sessionId Int     @unique
-  session   Session @relation(fields: [sessionId], references: [id])
-
-  storyId Int
-  story   Story @relation(fields: [storyId], references: [id])
-
-  currentQuestId Int
-  daoStatus      SessionStatus @default(IDLE)
-  lastUpdated    DateTime      @updatedAt
-}
-
-// 선택지 조건 관련 모델
-model ChoiceCondition {
-  id       Int    @id @default(autoincrement())
-  choiceId Int
-  choice   Choice @relation(fields: [choiceId], references: [id])
-
-  classOnly       String? // 예: "wizard", "rogue"
-  minHealth       Int?
-  minStrength     Int?
-  minAgility      Int?
-  minIntelligence Int?
-  minWisdom       Int?
-  minCharisma     Int?
-  minHp           Int?
-  minMp           Int?
 }

@@ -1,11 +1,13 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './prisma-manager'; // prisma-manager에서 인스턴스 가져오기
 import * as fs from 'fs';
 import * as path from 'path';
 
 const execPromise = promisify(exec);
-const prisma = new PrismaClient();
+
+// 타임아웃 설정 (60초)
+const COMMAND_TIMEOUT = 60000;
 
 /**
  * 데이터베이스 동기화 유틸리티 
@@ -19,11 +21,17 @@ export async function syncDatabase(options: {
 } = {}) {
   const { forceMigrate = false, seed = false, autoApprove = false } = options;
 
+  // SKIP_DB_SYNC 환경 변수가 true면 모든 DB 작업 건너뛰기
+  if (process.env.SKIP_DB_SYNC === 'true') {
+    console.log('SKIP_DB_SYNC=true 설정으로 인해 데이터베이스 동기화를 건너뜁니다.');
+    return;
+  }
+
   try {
     console.log('데이터베이스 연결 확인 중...');
     
-    // 데이터베이스 연결 테스트
-    await prisma.$connect();
+    // 데이터베이스 연결 테스트 - 공유 인스턴스 사용
+    await prisma.$queryRaw`SELECT 1`;
     console.log('데이터베이스 연결 성공!');
 
     // 스키마 확인
@@ -53,10 +61,14 @@ export async function syncDatabase(options: {
     console.log('데이터베이스 동기화가 완료되었습니다!');
   } catch (error) {
     console.error('데이터베이스 동기화 중 오류가 발생했습니다:', error);
-    throw error;
-  } finally {
-    await prisma.$disconnect();
+    // 프로덕션 환경에서는 오류가 발생해도 계속 진행
+    if (process.env.NODE_ENV === 'production') {
+      console.log('프로덕션 환경에서는 데이터베이스 동기화 오류가 발생해도 서버를 계속 실행합니다.');
+    } else {
+      throw error;
+    }
   }
+  // 공유 인스턴스를 사용하므로 $disconnect() 호출을 제거
 }
 
 /**
@@ -64,14 +76,34 @@ export async function syncDatabase(options: {
  */
 async function checkSchemaChanges(): Promise<boolean> {
   try {
-    const { stdout } = await execPromise('npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma --exit-code');
+    // Render 환경에서는 스키마 변경 확인을 건너뛰고 항상 마이그레이션 실행
+    if (process.env.IS_RENDER === 'true') {
+      console.log('Render 환경에서는 스키마 변경 확인을 건너뜁니다');
+      return true;
+    }
+    
+    const { stdout } = await execWithTimeout(
+      'npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma --exit-code',
+      COMMAND_TIMEOUT
+    );
     return false; // 변경 없음
   } catch (error: any) {
+    if (error.code === 'TIMEOUT') {
+      console.warn('스키마 변경 확인 타임아웃. 프로덕션 환경에서는 마이그레이션을 진행합니다.');
+      return process.env.NODE_ENV === 'production';
+    }
+    
     if (error.code === 1 || error.code === 2) {
       // 코드 1은 경미한 변경, 코드 2는 테이블 삭제 등 주요 변경 감지됨
       console.log('스키마 변경 감지됨:', error.stdout);
       return true; // 변경 감지됨
     }
+    
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('스키마 확인 중 오류가 발생했지만 프로덕션 환경에서는 계속 진행합니다:', error);
+      return false;
+    }
+    
     throw error; // 다른 오류
   }
 }
@@ -85,25 +117,84 @@ async function runMigration() {
   // 환경에 따라 다른 마이그레이션 명령어 실행
   const isProduction = process.env.NODE_ENV === 'production';
   
-  if (isProduction) {
-    // 프로덕션 환경에서는 deploy만 실행
-    await execPromise('npx prisma migrate deploy');
-    console.log('프로덕션 마이그레이션이 성공적으로 적용되었습니다.');
-  } else {
-    // 개발 환경에서는 스키마 변경사항을 반영하는 마이그레이션 생성
-    const migrationName = `schema_update_${new Date().toISOString().replace(/[:.]/g, '_')}`;
-    await execPromise(`npx prisma migrate dev --name ${migrationName}`);
-    console.log('개발 마이그레이션이 성공적으로 생성 및 적용되었습니다.');
+  try {
+    if (isProduction) {
+      // 프로덕션 환경에서는 deploy만 실행
+      await execWithTimeout('npx prisma migrate deploy', COMMAND_TIMEOUT);
+      console.log('프로덕션 마이그레이션이 성공적으로 적용되었습니다.');
+    } else {
+      // 개발 환경에서는 스키마 변경사항을 반영하는 마이그레이션 생성
+      const migrationName = `schema_update_${new Date().toISOString().replace(/[:.]/g, '_')}`;
+      await execWithTimeout(`npx prisma migrate dev --name ${migrationName}`, COMMAND_TIMEOUT);
+      console.log('개발 마이그레이션이 성공적으로 생성 및 적용되었습니다.');
+    }
+  } catch (error: any) {
+    if (error.code === 'TIMEOUT') {
+      console.error('마이그레이션 명령이 타임아웃됐습니다.');
+      if (isProduction) {
+        console.log('프로덕션 환경에서는 마이그레이션 실패 후에도 계속 진행합니다.');
+        return;
+      }
+    }
+    throw error;
   }
 }
 
 /**
  * 시드 데이터 적용
  */
-async function runSeed() {
+export async function runSeed() {
   console.log('시드 데이터 적용 중...');
-  await execPromise('npm run seed');
-  console.log('시드 데이터가 성공적으로 적용되었습니다.');
+  try {
+    await execWithTimeout('npm run seed', COMMAND_TIMEOUT);
+    console.log('시드 데이터가 성공적으로 적용되었습니다.');
+  } catch (error: any) {
+    if (error.code === 'TIMEOUT') {
+      console.error('시드 명령이 타임아웃됐습니다.');
+      if (process.env.NODE_ENV === 'production') {
+        console.log('프로덕션 환경에서는 시드 실패 후에도 계속 진행합니다.');
+        return;
+      }
+    }
+    throw error;
+  }
+}
+
+/**
+ * 타임아웃 처리가 포함된 exec 함수
+ */
+async function execWithTimeout(command: string, timeout: number): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const childProcess = exec(command, (error, stdout, stderr) => {
+      if (error) {
+        error.stdout = stdout;
+        error.stderr = stderr;
+        reject(error);
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+
+    // 타임아웃 설정
+    const timer = setTimeout(() => {
+      if (childProcess.pid) {
+        try {
+          // Unix 기반 시스템에서 프로세스 종료
+          process.kill(childProcess.pid);
+        } catch (e) {
+          console.log('프로세스 종료 실패:', e);
+        }
+      }
+      
+      const timeoutError = new Error(`Command timed out after ${timeout}ms: ${command}`);
+      // @ts-ignore
+      timeoutError.code = 'TIMEOUT';
+      reject(timeoutError);
+    }, timeout);
+
+    // 프로세스가 종료되면 타이머 제거
+    childProcess.on('close', () => clearTimeout(timer));
+  });
 }
 
 /**
