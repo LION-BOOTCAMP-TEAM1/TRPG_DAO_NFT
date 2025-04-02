@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28; 
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract GameItems is ERC1155, Ownable {
     address public admin;
+
     mapping(address => uint256[]) private _ownedTokens; // 소유자가 가진 모든 토큰 ID
     mapping(address => mapping(uint256 => uint256)) private _ownedTokenIndex; // 토큰 ID의 인덱스 저장 (중복 방지)
+    uint256[] public existingTokenIds;
+
+    uint256 public mintPrice = 0.01 ether;
 
     constructor() ERC1155("https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeicr6hlq6sommzbslgk3o6hhg4ljd4aegu3g6cd747qtqwe4nwjice/{id}.json") Ownable(msg.sender) {
         admin = msg.sender;
@@ -22,10 +26,38 @@ contract GameItems is ERC1155, Ownable {
         admin = _addr;
     }
 
+    /// @notice 수익 인출
+    function withdraw() external onlyAdmin {
+        payable(owner()).transfer(address(this).balance);
+    }
+
     // 새로운 아이템 민팅
     function mint(address to, uint256 id, uint256 amount) public onlyAdmin {
         _mint(to, id, amount, "");
         _addTokenToOwnerEnumeration(to, id);
+        existingTokenIds.push(id);
+    }
+
+    event MintedRandom(address indexed user, uint256 tokenId);
+
+    /// @notice payable 랜덤 민팅 (기존 토큰 중 하나)
+    function mintRandom() external payable {
+        require(msg.value >= mintPrice, "Not enough ETH");
+        require(existingTokenIds.length > 0, "No tokens available");
+
+        // 랜덤 인덱스 뽑기
+        uint256 randIndex = uint256(
+            keccak256(abi.encodePacked(block.timestamp, msg.sender))
+        ) % existingTokenIds.length;
+
+        uint256 tokenId = existingTokenIds[randIndex];
+
+        // 유저에게 해당 ID 민팅
+        _mint(msg.sender, tokenId, 1, "");
+        _addTokenToOwnerEnumeration(msg.sender, tokenId);
+
+        // ✅ 이벤트 발생
+        emit MintedRandom(msg.sender, tokenId);
     }
 
     // 관리자만 여러 개 한 번에 발행
