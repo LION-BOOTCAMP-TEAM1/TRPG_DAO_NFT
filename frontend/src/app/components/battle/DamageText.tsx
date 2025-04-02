@@ -12,7 +12,6 @@ interface DamageTextProps {
 }
 
 const DamageText = ({ damage, x = 0, y = 0 }: DamageTextProps) => {
-  const digits = damage.toString().split("").map(Number);
 
   return (
     <motion.div

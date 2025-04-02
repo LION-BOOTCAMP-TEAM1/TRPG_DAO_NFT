@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import DamageText from "./DamageText";
 import DiceRoller from "./DiceRoller";
-
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
+  
 const frameImages = [
   "/battle/dragon1.png",
   "/battle/dragon2.png",
@@ -26,6 +28,9 @@ interface BattleComponentProps {
 }
 
 const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => { 
+  // Redux에서 캐릭터 가져오기
+  const myCharacter = useSelector((state: RootState) => state.character);
+
   const [frameIndex, setFrameIndex] = useState(0);
   const [isAttacking, setIsAttacking] = useState(false);
   const [isMonsterAttacking, setIsMonsterAttacking] = useState(false);
@@ -59,6 +64,21 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
   const [showResultModal, setShowResultModal] = useState(false);
   const [resultMessage, setResultMessage] = useState("");
   const [isGameOver, setIsGameOver] = useState(false); // 중복 방지용
+
+  useEffect(() => {
+    if (!myCharacter) return;
+
+    setCharacter({
+      maxHP: myCharacter.stats.health * 50 + myCharacter.stats.strength * 20,
+      HP: myCharacter.stats.health * 50 + myCharacter.stats.strength * 20,
+      damage: Math.floor((myCharacter.stats.attack * myCharacter.stats.strength + myCharacter.stats.magic * myCharacter.stats.intelligence) / 10),
+      speed: myCharacter.stats.agility * 50 + myCharacter.stats.wisdom * 10 + myCharacter.stats.charisma * 10,
+      HP_buf: 0,
+      damage_buf: 0,
+      speed_buf: 0,
+    });
+
+  }, [myCharacter]);
 
   useEffect(() => {
     if(!diceNumber) return;
