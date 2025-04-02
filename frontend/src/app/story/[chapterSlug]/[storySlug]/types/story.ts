@@ -70,7 +70,15 @@ export interface DAOChoice {
   branchPointId: number;
   text: string;
   nextStoryId: number;
-  nextStorySlug?: string;
+  nextStorySlug: string;
   voteCount: number;
   createdAt: string;
+}
+
+export interface dummyBranch {
+  description: string;
+  sessionId: number;
+  scope: number;
+  duration: number;
+  numOptions: number;
 }
