@@ -20,13 +20,6 @@ function gaussianRandom(mean: number, stdDev: number = 10): number {
   return Math.floor(z * stdDev + mean);
 }
 
-const dragon = {
-  maxHP: 999,
-  HP: 999,
-  damage: 120,
-  speed: 200,
-}
-
 interface BattleComponentProps {
   speed: number;
   onClose: (result: boolean) => void;
@@ -38,6 +31,7 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
   const [isMonsterAttacking, setIsMonsterAttacking] = useState(false);
   const [diceNumber, setDiceNumber] = useState<number | null>(null);
   
+  const [battleSpeed, setBattleSpeed] = useState(1);
   const [isFighting, setIsFighting] = useState<boolean>(false);
   const myInterval = useRef<NodeJS.Timeout | null>(null);
   const monsterInterval = useRef<NodeJS.Timeout | null>(null);
@@ -45,23 +39,88 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
   const [myDamage, setMyDamage] = useState<number>(0);
   const [monsterDamage, setMonsterDamage] = useState<number>(0);
 
+  const [dragon, setDragon] = useState({
+    maxHP: 999,
+    HP: 999,
+    damage: 150,
+    speed: 213,
+  });
+
+  const [character, setCharacter] = useState({
+    maxHP: 300,
+    HP: 300,
+    damage: 77,
+    speed: 442,
+    HP_buf: 0,
+    damage_buf: 0,
+    speed_buf: 0,
+  });
+
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultMessage, setResultMessage] = useState("");
+  const [isGameOver, setIsGameOver] = useState(false); // 중복 방지용
+
+  useEffect(() => {
+    if(!diceNumber) return;
+
+    setCharacter(prev => {
+      const HP_buf = Math.floor(prev.maxHP * diceNumber / 10);
+      const damage_buf = Math.floor(prev.damage * diceNumber / 10);
+      const speed_buf = Math.floor(prev.speed * diceNumber / 100);
+      return { ...prev, HP: prev.maxHP + HP_buf, HP_buf: HP_buf, damage_buf: damage_buf, speed_buf: speed_buf};
+    });
+  }, [diceNumber])
+
   useEffect(() => {
     if (isMonsterAttacking) return; // 공격 중에는 애니메이션 정지
     const interval = setInterval(() => {
       setFrameIndex((prev) => (prev + 1) % frameImages.length);
-    }, speed);
+    }, speed / battleSpeed);
     return () => clearInterval(interval);
   }, [speed, isMonsterAttacking]);
 
+  const changeSpeed = () => {
+    if(battleSpeed === 3) setBattleSpeed(1);
+    else setBattleSpeed(battleSpeed + 1);
+  }
+
+  useEffect(() => {
+    if (isGameOver) return;
+
+    if(character.HP === 0 || dragon.HP === 0) {
+      setIsGameOver(true);
+      stopBattle();
+
+      if (dragon.HP === 0) {
+        setResultMessage("🎉 You Win!!");
+      } else {
+        setResultMessage("💀 Game Over!!");
+      }
+
+      setShowResultModal(true); // 모달 띄우기
+    }
+  }, [character.HP, dragon.HP])
+  
   const myAttack = () => {
     setIsAttacking(true);
-    setTimeout(() => setIsAttacking(false), 1000);
+    setTimeout(() => setIsAttacking(false), 1000 / battleSpeed);
+    const damage = gaussianRandom(character.damage + character.damage_buf);
+    setMyDamage(damage);
+    setDragon(prev => {
+      const newHP = Math.max(prev.HP - damage, 0);
+      return { ...prev, HP: newHP };
+    });
   }
 
   const monsterAttack = () => {
     setIsMonsterAttacking(true);
-    setTimeout(() => setIsMonsterAttacking(false), 1000);
-    setMonsterDamage(gaussianRandom(dragon.damage));
+    setTimeout(() => setIsMonsterAttacking(false), 1000 / battleSpeed);
+    const damage = gaussianRandom(dragon.damage);
+    setMonsterDamage(damage);
+    setCharacter(prev => {
+      const newHP = Math.max(prev.HP - damage, 0);
+      return { ...prev, HP: newHP };
+    });
   }
 
   const startBattle = () => {
@@ -70,13 +129,28 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
 
     myInterval.current = setInterval(() => {
       myAttack();
-    }, 2300);
+    }, 1000000 / (character.speed + character.speed_buf) / battleSpeed);
 
     monsterInterval.current = setInterval(() => {
       monsterAttack();
-    }, 5100);
+    }, 1000000 / dragon.speed / battleSpeed);
   };
 
+  const stopBattle = () => {
+    setIsFighting(false);
+  
+    if (myInterval.current) {
+      clearInterval(myInterval.current);
+      myInterval.current = null;
+    }
+  
+    if (monsterInterval.current) {
+      clearInterval(monsterInterval.current);
+      monsterInterval.current = null;
+    }
+  };
+
+  
   return (
     <AnimatePresence>
       <motion.div
@@ -99,20 +173,56 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
             <div className="flex justify-between items-center p-2 font-bold text-sm text-gray-800">
               <div>
                 <div className="text-lg">게리메일</div>
-                <div>🗡 27</div>
-                <div className="bg-green-600 w-[120px] h-4 mt-1 relative">
-                  <div className="absolute left-0 text-white text-xs pl-1">240/240</div>
+                <p>
+                  🗡️ {character.damage + character.damage_buf}
+                  <span className="text-red-600"> (+{character.damage_buf})</span>
+                </p>
+                <p>
+                  ⏳ {character.speed + character.speed_buf}
+                  <span className="text-blue-600"> (+{character.speed_buf})</span>
+                </p>
+                <div className="w-[180px] mt-1 relative">
+                  {/* 배경 바 */}
+                  <div className="bg-gray-700 w-full h-4 rounded overflow-hidden">
+                    {/* 체력 바 */}
+                    <div
+                      className="bg-green-500 h-full transition-all duration-300"
+                      style={{
+                        width: `${(character.HP / (character.maxHP + character.HP_buf)) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
+
+                  {/* 숫자 표시 */}
+                  <p className="absolute top-0 left-1 text-white text-xs">
+                    {character.HP}/{character.maxHP + character.HP_buf}
+                    <span className="text-gray-400"> (+{character.HP_buf})</span>
+                  </p>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-lg">드래곤</div>
-                <div>🗡 {dragon.damage}</div>
-                <div className="bg-red-600 w-[120px] h-4 mt-1 relative">
-                  <div className="absolute right-0 text-white text-xs pr-1">{dragon.HP}/{dragon.maxHP}</div>
+                <div>🗡️ {dragon.damage}</div>
+                <div>⏳ {dragon.speed}</div>
+                <div className="w-[180px] mt-1 relative">
+                  {/* 배경 바 */}
+                  <div className="bg-gray-700 w-full h-4 rounded overflow-hidden">
+                    {/* 체력 바 */}
+                    <div
+                      className="bg-red-600 h-full transition-all duration-300 absolute top-0 right-0"
+                      style={{
+                        width: `${Math.max((dragon.HP / dragon.maxHP) * 100, 0)}%`,
+                      }}
+                    ></div>
+                  </div>
+
+                  {/* 숫자 표시 (오른쪽 정렬) */}
+                  <div className="absolute top-0 right-1 text-white text-xs">
+                    {dragon.HP}/{dragon.maxHP}
+                  </div>
                 </div>
               </div>
             </div>
-
             {/* 전투 배경 및 캐릭터 영역 */}
             <div className="relative w-[400px] h-[400px] bg-[url('/battle/map.png')] bg-cover bg-center border my-2">
               {/* 공격 이펙트 */}
@@ -122,7 +232,7 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
                   alt="attack_effect"
                   className="absolute top-30 left-30 w-[120px] h-[120px]"
                 />
-                <DamageText damage={77} x={150} y={100} />
+                <DamageText damage={myDamage} x={150} y={100} />
               </div>}
               {/* 도라곤 */}
               <img
@@ -138,13 +248,23 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
             {!diceNumber && <DiceRoller diceResult={(v) => setDiceNumber(v)}/>}
             {/* 하단 UI - 스킬 및 전투 시작 버튼 등 */}
             <div className="flex justify-between mt-4 ">
-              {diceNumber 
-              ? <button
-                className="bg-[#4e4e4e] hover:bg-[#333333] px-4 py-2 rounded border border-gray-700 text-white font-bold"
-                onClick={() => startBattle()}
-              >
-                ⚔️ 전투하기
-              </button>
+              {diceNumber && !isFighting
+              ? <div className="flex flex-row">
+                <button
+                  className="bg-[#4e4e4e] hover:bg-[#333333] px-4 py-2 rounded border border-gray-700 text-white font-bold"
+                  onClick={() => startBattle()}
+                >
+                  ⚔️ 전투하기
+                </button>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={changeSpeed}
+                    className={`px-3 py-1 rounded font-bold bg-gray-200 text-gray-800`}
+                  >
+                    x{battleSpeed}
+                  </button>
+                </div>
+              </div>
               : <div />
               }
               <button
@@ -154,6 +274,21 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
                 포기하기
               </button>
             </div>
+
+            {showResultModal && (
+              <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 shadow-lg text-center w-64">
+                  <h2 className="text-lg font-bold mb-4">{resultMessage}</h2>
+                  <button
+                    className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                    onClick={() => onClose(dragon.HP === 0)}
+                  >
+                    확인
+                  </button>
+                </div>
+              </div>
+            )}
+
           </div>
         </motion.div>
       </motion.div>
