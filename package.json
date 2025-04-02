@@ -11,7 +11,8 @@
   "scripts": {
     "frontend": "cd frontend && npm run dev",
     "backend": "cd backend && npm run dev",
-    "dev": "concurrently \"npm run frontend\"",
+    "blockchain": "cd blockchain && npx hardhat node",
+    "dev": "concurrently \"npm run frontend\" \"npm run blockchain\"",
     "build": "cd frontend && npm run build && cd ../backend && npm run build",
     "start": "cd frontend && npm run start",
     "lint:frontend": "cd frontend && npm run lint",

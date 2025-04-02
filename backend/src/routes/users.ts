@@ -22,15 +22,22 @@ const router = express.Router();
  *                   id:
  *                     type: string
  *                     description: 사용자 ID
- *                   name:
+ *                   walletAddress:
  *                     type: string
- *                     description: 사용자 이름
- *                   email:
+ *                     description: 사용자 지갑 주소
+ *                   createdAt:
  *                     type: string
- *                     description: 사용자 이메일
+ *                     format: date-time
+ *                     description: 사용자 생성일
  */
 const getUsers = async (req: express.Request, res: express.Response) => {
-  const users = await prisma.user.findMany();
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      walletAddress: true,
+      createdAt: true
+    }
+  });
   res.json(users);
 };
 
@@ -53,8 +60,22 @@ const getUsers = async (req: express.Request, res: express.Response) => {
  *       404:
  *         description: 사용자를 찾을 수 없습니다
  */
-router.get("/:id", (req, res) => {
-  // 실제 구현 코드
+router.get("/:id", async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const user = await prisma.user.findUnique({ 
+    where: { id: userId },
+    select: {
+      id: true,
+      walletAddress: true,
+      createdAt: true
+    }
+  });
+  
+  if (!user) {
+    return res.status(404).json({ error: "사용자를 찾을 수 없습니다" });
+  }
+  
+  res.json(user);
 });
 
 // 새 사용자 생성
@@ -63,6 +84,7 @@ router.get("/:id", (req, res) => {
  * /api/users:
  *   post:
  *     summary: 새로운 사용자를 생성합니다
+ *     description: 지갑 주소로 사용자를 생성합니다. 주로 관리자나 서비스에서 명시적으로 사용자를 등록할 때 사용합니다. 일반적인 Web3 로그인 과정에서는 auth/nonce 엔드포인트에서 자동으로 사용자가 생성됩니다.
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -97,7 +119,7 @@ const createUser = async (req: express.Request, res: express.Response) => {
   const { wallet } = req.body;
 
   if (!wallet) {
-    res.status(400).json({ error: "Wallet address is required" });
+    res.status(400).json({ error: "지갑 주소가 필요합니다" });
     return;
   }
 
