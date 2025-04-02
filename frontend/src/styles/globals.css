@@ -96,10 +96,10 @@ html.dark {
 
 @keyframes blink {
   0%, 100% {
-    opacity: 1;
+    color: black;
   }
   50% {
-    opacity: 0;
+    color: white;
   }
 }
 
