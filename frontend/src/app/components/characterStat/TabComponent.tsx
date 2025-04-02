@@ -33,6 +33,13 @@ const TabComponent = ({ tabs, contents, defaultIndex = 0 }: TabComponentProps) =
       {/* 콘텐츠 영역 */}
       <div className="bg-[#413029] rounded-b-md shadow-inner">
         {contents[activeIndex]}
+        <div className='w-full flex justify-center items-center'>
+          <button
+            className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-red-500 text-white font-bold text-lg rounded-xl shadow-lg hover:scale-105 hover:brightness-110 active:scale-95 transition-all duration-300 mb-4"
+          >
+            🎁 아이템 뽑기!
+          </button>
+        </div>
       </div>
     </div>
   );
