@@ -1,18 +1,44 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useStoryDetail } from '../[storySlug]/hooks/useStoryDetail';
 import { useScenePlayback } from '../[storySlug]/hooks/useScenePlayback';
-import StoryRenderer from '../[storySlug]/components/StoryRenderer';
 import { useImageLoader } from '../hooks/useImageLoader';
+import { useDaoContract } from '../../[chapterSlug]/hooks/useDaoContract';
+import { useStoryDetail } from '../[storySlug]/hooks/useStoryDetail';
+import { useProposalHandler } from './hooks/useProposalHandler';
+
+import { StoryHeader } from './components/StoryHeader';
+import { SceneDisplay } from './components/SceneDisplay';
+import { QuestSelector } from './components/QuestSelector';
+import { BranchVoting } from './components/BranchVoting';
+import { VotingResult } from './components/VotingResult';
 
 const DetailClient = () => {
-  const { storySlug } = useParams(); // story/[chapterSlug]/[storySlug]
-
+  const { storySlug, chapterSlug } = useParams();
   const { story } = useStoryDetail(storySlug as string);
   const { displayedScenes, currentText, setIsSkipping, isSceneComplete } =
     useScenePlayback(story?.StoryScene ?? []);
   const storyImageSrc = useImageLoader(story?.imageUrl);
+  const dao = useDaoContract();
+
+  const {
+    proposalId,
+    proposalError,
+    voteResults,
+    totalVoters,
+    totalVotes,
+    voteEnded,
+    winningChoice,
+    isVoting,
+    voteStatus,
+    voteError,
+    handleVote,
+  } = useProposalHandler({
+    dao,
+    branchPoint: story?.BranchPoint?.[0],
+    sessionId: 1,
+    onVoteEnd: () => setIsSkipping(true),
+  });
 
   if (!story) {
     return (
@@ -27,33 +53,50 @@ const DetailClient = () => {
       className="p-6 space-y-6 min-h-screen bg-cover bg-no-repeat bg-center bg-[#f4efe1]"
       onClick={() => setIsSkipping(true)}
     >
-      {/* 스토리 메타 정보 */}
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-[#3e2d1c]">{story.title}</h2>
-        <p className="text-[#5e4b3c]">{story.summary}</p>
-        {storyImageSrc && (
-          <img
-            src={storyImageSrc}
-            alt={story.title}
-            className="w-full max-w-3xl rounded-lg border border-[#d2c5ae]"
+      <StoryHeader story={story} imageSrc={storyImageSrc} />
+
+      <SceneDisplay
+        displayedScenes={displayedScenes}
+        currentText={currentText}
+      />
+
+      {isSceneComplete && story?.quests?.length > 0 && (
+        <QuestSelector story={story} chapterSlug={chapterSlug as string} />
+      )}
+
+      {story?.BranchPoint?.[0] &&
+        proposalId !== null &&
+        isSceneComplete &&
+        !voteEnded && (
+          <BranchVoting
+            branchPoint={story.BranchPoint[0]}
+            voteResults={voteResults}
+            totalVotes={totalVotes}
+            totalVoters={totalVoters}
+            isVoting={isVoting}
+            voteStatus={voteStatus}
+            voteError={voteError}
+            handleVote={handleVote}
           />
         )}
-      </div>
 
-      {/* 씬 출력 */}
-      <div className="text-[#3e2d1c] whitespace-pre-line space-y-4">
-        {displayedScenes.map((text, i) => (
-          <p key={i}>{text}</p>
-        ))}
-        {currentText && <p>{currentText}</p>}
-      </div>
+      {voteEnded &&
+        winningChoice &&
+        isSceneComplete &&
+        story?.BranchPoint?.[0] && (
+          <VotingResult
+            branchPoint={story.BranchPoint[0]}
+            voteResults={voteResults}
+            totalVotes={totalVotes}
+            totalVoters={totalVoters}
+            winningChoice={winningChoice}
+            chapterSlug={chapterSlug as string}
+          />
+        )}
 
-      {/* 분기점 및 퀘스트 */}
-      <StoryRenderer
-        isSceneComplete={isSceneComplete ?? false}
-        quests={story.quests}
-        branchPoints={story.BranchPoint}
-      />
+      {proposalError && (
+        <p className="text-red-600 mt-4">❌ 오류: {proposalError}</p>
+      )}
     </div>
   );
 };
