@@ -26,7 +26,7 @@ const StoryListPage = () => {
   };
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/branchpoints')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/branchpoints`)
       .then((res) => res.json())
       .then((data) => setBranchpoints(data))
       .catch((error) => console.error('Error fetching data:', error));

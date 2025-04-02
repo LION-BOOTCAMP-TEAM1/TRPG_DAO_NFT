@@ -23,7 +23,7 @@ export default function useWallet() {
       const address = await newSigner.getAddress();
       console.log('wallet address', address);
 
-      const response = await fetch('http://localhost:5001/api/users', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -53,7 +53,7 @@ export default function useWallet() {
     const address = await signer.getAddress();
 
     try {
-      const response = await fetch('http://localhost:5001/api/users/', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wallet: address }),
