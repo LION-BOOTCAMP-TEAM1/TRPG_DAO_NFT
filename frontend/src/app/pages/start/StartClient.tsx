@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 export default function StartClient() {
@@ -36,7 +37,7 @@ export default function StartClient() {
         className="text-6xl py-10 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)]"
         style={{ fontFamily: 'continuous' }}
       >
-        <h1 className="">Ongoing Adventureasd</h1>
+        <h1>Ongoing Adventureasd</h1>
       </div>
 
       {/* 진행중인 챕터 리스트 */}
@@ -55,6 +56,22 @@ export default function StartClient() {
         ) : (
           <p>Loading chapters...</p>
         )}
+      </div>
+
+      {/* 캐릭터 생성 페이지 */}
+      <div
+        className="text-2xl py-2 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)]"
+        style={{ fontFamily: 'continuous' }}
+      >
+        <h1>New Adventureasd</h1>
+      </div>
+      <div>
+        <Link
+          href={'/pages/create'}
+          className="inline-block bg-[#1e40af] text-white text-sm px-4 py-1 rounded hover:bg-[#374fc9] transition-colors"
+        >
+          생성하기
+        </Link>
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ const ClassModal: FC<ModalProps> = ({
   const handleMouseLeave = () => {
     timeoutRef.current = setTimeout(() => {
       setIsVisible(false);
-    }, 10);
+    }, 50);
   };
 
   return (
