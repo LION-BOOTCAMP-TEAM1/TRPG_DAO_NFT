@@ -4,7 +4,7 @@ import CONTRACT_ABI from "./abis/GameItem.json";
 import {Item} from "../store/types";
 import {addItemToInventory} from "../store/characterSlice"
 
-const CONTRACT_ADDRESS = "0xb6421262CA413510B84f2c728eB775d6acBa5b75"; 
+const CONTRACT_ADDRESS = "0x5db67a1bd6106ccfb5edf6f0760a4535f77c2321";
 
 export function getProvider() {
   if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -92,54 +92,52 @@ async function randomMint(dispatch: any) {
     const userAddress = await signer.getAddress();
 
     // 0.01 ETH 보내면서 민트 요청
-    const tx = await contract.mintRandom({
-      value: ethers.parseEther("0.01"), // 가격에 맞게 조정
-    });
-
-    console.log("⏳ 트랜잭션 전송됨:", tx.hash);
-
-    // 이벤트 수신 대기 (한 번만)
-    const receipt = await tx.wait();
-
-    const log = receipt.logs.find((log) => {
-      try {
-        return contract.interface.parseLog(log)?.name === "MintedRandom";
-      } catch {
-        return false;
+    const tx = await contract.mintRandom(
+      userAddress,
+      {
+        value: ethers.parseEther("0.01"), // 가격에 맞게 조정
       }
-    });
+    );
 
-    if (!log) {
-      console.error("❌ 이벤트 수신 실패");
-      return;
+    // 영수증 기다리기..
+    const receipt = await tx.wait();
+    
+    // 영수증 내역에서 내꺼 찾기
+    for (const log of receipt.logs) {
+      const parsed = contract.interface.parseLog(log);
+      if (parsed?.name === "minted") {
+        const tokenId = Number(parsed.args.tokenId);
+
+        const uri = await contract.uri(tokenId);
+        const newURI = uri.replace("{id}", String(tokenId));
+        const item = await getIPFSFile(newURI);
+
+        const newItem:Item = {
+          id: tokenId,
+          name: item.name,
+          description: item.description,
+          image: item.image,
+          type: item.type, // 무기 방어구 악세
+          rarity: item.rarity,
+          isNFT: true,
+          amount: 1,
+          stat:{
+              attack: item.attack,
+              magic: item.magic,
+              strength: item.strength,
+              agility: item.agility,
+              intelligence: item.intelligence,
+              charisma: item.charisma,
+              health: item.health,
+              wisdom: item.wisdom,
+          }
+        }
+        dispatch(addItemToInventory(newItem));
+
+        return newItem;
+      }
     }
 
-    const parsed = contract.interface.parseLog(log);
-    const tokenId = parsed?.args?.tokenId?.toString();
-    console.log("✅ 랜덤 민팅된 tokenId:", tokenId);
-
-    // 메타데이터 URI
-    const uriRaw = await contract.uri(tokenId);
-    const uri = uriRaw.replace("{id}", tokenId.padStart(64, "0")); // IPFS CID 형식 맞추기
-
-    // 메타데이터 가져오기
-    const metadata = await getIPFSFile(uri);
-    if (!metadata) return;
-
-    const newItem: Item = {
-      id: parseInt(tokenId),
-      name: metadata.name,
-      description: metadata.description,
-      image: metadata.image,
-      type: metadata.type,
-      rarity: metadata.rarity,
-      isNFT: true,
-      stat: metadata.stat,
-    };
-
-    // Redux 저장
-    dispatch(addItemToInventory(newItem));
-    console.log("✅ 인벤토리에 추가됨:", newItem.name);
   } catch (err) {
     console.error("❌ 랜덤 민팅 실패:", err);
   }
