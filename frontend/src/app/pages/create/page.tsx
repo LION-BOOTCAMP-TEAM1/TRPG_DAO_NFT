@@ -5,27 +5,50 @@ import api from '@/lib/axios';
 import { GrRadialSelected } from 'react-icons/gr';
 import { FaRegCircle } from 'react-icons/fa';
 import Image from 'next/image';
+import useAuth from '@/app/hook/useAuth';
+import Link from 'next/link';
 
 export default function CreatePage() {
-  const [characterClasses, setCharacterClasses] = useState([]);
-  const [selectedClass, setSelectedClass] = useState<any | null>(null);
-  const [characterName, setCharacterName] = useState('');
+  const { user, createCharacter } = useAuth(); //유저 정보
+
+  const [characterClasses, setCharacterClasses] = useState([]); //클래스 정보
+  const [selectedClass, setSelectedClass] = useState<any | null>(null); //클래스 선택
+  const [characterName, setCharacterName] = useState(''); //캐릭터 이름 입력
+  const [characters, setCharacters] = useState([]); // 기존 캐릭터 목록
   const [gender, setGender] = useState('');
   const [age, setAge] = useState<number | ''>('');
   const [attribute, setAttribute] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
 
-  // 현재 로그인한 사용자의 ID (예제 - 실제 로그인 로직 필요)
-  const userId = 5; // 예제 데이터
+  const [message, setMessage] = useState<string | null>(null); // 오류
+
+  const [isCreated, setIsCreated] = useState(false); //캐릭터 생성 여부
 
   // 클랙스 목록
   useEffect(() => {
-    api
-      .get('/api/characterclasses')
-      .then((response) => setCharacterClasses(response.data))
-      .catch((error) => console.error('Error fetching data:', error));
+    const fetchData = async () => {
+      try {
+        //promise.all 모든 api 동시처리
+        const [classesResponse, charactersResponse] = await Promise.all([
+          api.get('/api/characterclasses'),
+          api.get('/api/characters'),
+        ]);
+
+        setCharacterClasses(classesResponse.data);
+        setCharacters(charactersResponse.data);
+      } catch (error) {
+        console.error('데이터 가져오기 실패:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
+  //중복 체크
+  const checkCharacterNameDuplicate = (name: string) => {
+    return characters.some((char: any) => char.name === name);
+  };
+
+  //레벨1 클래스 스탯 고정
   const classStats = {
     1: {
       hp: 100,
@@ -82,7 +105,7 @@ export default function CreatePage() {
   const stats = classStats[selectedClass?.id as keyof typeof classStats] || {};
 
   // 캐릭터 생성 요청
-  const createCharacter = async () => {
+  const handleCreateCharacter = async () => {
     if (!selectedClass || !characterName) {
       setMessage('닉네임을 입력하세요.');
       return;
@@ -93,9 +116,18 @@ export default function CreatePage() {
       return;
     }
 
+    if (!user) {
+      setMessage('로그인 해주세요.');
+      return;
+    }
+
+    if (checkCharacterNameDuplicate(characterName)) {
+      setMessage('닉네임 중복.');
+      return;
+    }
+
     try {
-      const response = await api.post('/api/characters', {
-        userId,
+      const response = await createCharacter({
         name: characterName,
         classId: selectedClass.id,
         gender,
@@ -111,8 +143,9 @@ export default function CreatePage() {
         charisma: stats.charisma ?? 10,
       });
 
-      if (response.status === 200 || response.status === 201) {
+      if (response) {
         setMessage('생성 완료.');
+        setIsCreated(true);
       } else {
         setMessage('생성 실패');
       }
@@ -122,14 +155,16 @@ export default function CreatePage() {
     }
   };
 
+  //유저가 설정 안해도 되는거 그냥 고정
   useEffect(() => {
     setGender(
       selectedClass?.id === 1 || selectedClass?.id === 3 ? 'Female' : 'Male',
     );
-    setAttribute('Undefined');
+    setAttribute('All');
     setAge(10);
   }, [selectedClass]);
 
+  //프론트 뿌리기
   return (
     <div className="flex flex-col items-center min-h-screen bg-[#f4efe1]">
       <div
@@ -154,6 +189,7 @@ export default function CreatePage() {
                     selectedClass?.id === charClass.id
                   }  rounded-3xl hover:bg-green-300 `}
                   onClick={() => setSelectedClass(charClass)}
+                  disabled={isCreated}
                 >
                   {selectedClass?.id === charClass.id ? (
                     <div>
@@ -189,16 +225,16 @@ export default function CreatePage() {
               alt="magician"
               width={200}
               height={200}
-              className="absolute z-10 -mt-32"
+              className="absolute z-10 -mt-22"
             />
           )}
-          {selectedClass.id == 2 && (
+          {selectedClass.id == 5 && (
             <Image
               src={'/character/warrior.png'}
               alt="warrior"
               width={200}
               height={200}
-              className="absolute z-10 -mt-32"
+              className="absolute z-10 -mt-22"
             />
           )}
           {selectedClass.id == 3 && (
@@ -207,7 +243,7 @@ export default function CreatePage() {
               alt="bard"
               width={200}
               height={200}
-              className="absolute z-10 -mt-32"
+              className="absolute z-10 -mt-22"
             />
           )}
           {selectedClass.id == 4 && (
@@ -216,56 +252,73 @@ export default function CreatePage() {
               alt="ranger"
               width={200}
               height={200}
-              className="absolute z-10 -mt-32"
+              className="absolute z-10 -mt-22"
             />
           )}
-          {selectedClass.id == 5 && (
+          {selectedClass.id == 2 && (
             <Image
               src={'/character/assassin.png'}
               alt="rogue"
               width={200}
               height={200}
-              className="absolute z-10 -mt-32"
+              className="absolute z-10 -mt-22"
             />
           )}
+
           {/* 캐릭터 정보 입력 */}
           <div>
             <p className="text-xl font-bold text-[#3e2d1c]">닉네임</p>
           </div>
           <div className="flex flex-row">
             <div className="mt-1 space-y-2 w-40 ">
-              <input
-                type="text"
-                placeholder="캐릭터 이름"
-                value={characterName}
-                onChange={(e) => {
-                  const inputValue = e.target.value.replace(/\s/g, ''); // 공백 제거
-                  setCharacterName(inputValue); // 입력값 반영
-                }}
-                onBlur={() => {
-                  if (!/[a-zA-Z]/.test(characterName)) {
-                  }
-                }}
-                className="border p-2 w-full rounded bg-[#f5f1ec]"
-              />
-              {message && (
-                <p className="mt-2  text-red-500 text-sm flex justify-center">
-                  {message}
-                </p>
+              {isCreated ? (
+                <p className="p-2 w-full  text-center">{characterName}</p>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="캐릭터 이름"
+                  value={characterName}
+                  onChange={(e) => {
+                    const inputValue = e.target.value.replace(/\s/g, '');
+                    setCharacterName(inputValue);
+                  }}
+                  onBlur={() => {
+                    if (!/[a-zA-Z]/.test(characterName)) {
+                    }
+                  }}
+                  className="border p-2 w-full rounded bg-[#f5f1ec]"
+                />
               )}
             </div>
-            <button className="">asd</button>
           </div>
 
           {/* 캐릭터 생성 버튼 */}
-          <button
-            className="mt-3 px-4 py-2 inline-block bg-[#1e40af] text-white text-sm rounded hover:bg-[#374fc9] transition-colors "
-            onClick={createCharacter}
-          >
-            캐릭터 생성
-          </button>
+          {!isCreated ? (
+            <button
+              className="mt-3 px-4 py-2 inline-block bg-[#1e40af] text-white text-sm rounded hover:bg-[#374fc9] transition-colors "
+              onClick={handleCreateCharacter}
+            >
+              캐릭터 생성
+            </button>
+          ) : (
+            <Link
+              href={'/story/1'}
+              className="mt-3 px-4 py-2 inline-block bg-[#1e40af] text-white text-sm rounded hover:bg-[#374fc9] transition-colors "
+            >
+              시작하기
+            </Link>
+          )}
         </div>
       )}
+
+      {/* 생성 완료 메세지 */}
+      <div>
+        {!isCreated && message && (
+          <p className="mt-2  text-red-500 text-sm flex justify-center">
+            {message}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
