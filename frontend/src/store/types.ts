@@ -6,6 +6,7 @@ export interface Item {
     type: number; // 무기 방어구 악세
     rarity: number;
     isNFT: boolean; // front
+    amount: number;
     stat?: Partial<{
         attack: number | null;
         magic: number | null;
