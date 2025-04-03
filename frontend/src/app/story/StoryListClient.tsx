@@ -27,7 +27,7 @@ const StoryListPage = () => {
   };
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/branchpoints')
+    fetch('https://trpg-dao-nft.onrender.com/api/branchpoints')
       .then((res) => res.json())
       .then((data) => setBranchpoints(data))
       .catch((error) => console.error('Error fetching data:', error));

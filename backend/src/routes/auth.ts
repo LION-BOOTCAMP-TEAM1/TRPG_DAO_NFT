@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { ethers } from 'ethers';
 import { authenticateUser } from '../middleware/auth';
-
+import { createFriendlyUserId } from '../utils/userUtils';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
@@ -56,16 +56,21 @@ router.post('/nonce', async (req, res) => {
     return res.status(400).json({ error: '지갑 주소가 필요합니다' });
   }
 
-  const nonce = `로그인 서명 요청: ${randomBytes(16).toString('hex')}`;
+  const nonce = `${randomBytes(16).toString('hex')}`;
+  console.log(`생성된 nonce: ${nonce} for 주소: ${address}`);
+  
+  // friendlyId 생성
+  const friendlyId = createFriendlyUserId(address);
 
   try {
-    // 사용자가 없으면 자동으로 생성하면서 nonce 설정
-    await prisma.user.upsert({
+    // 사용자가 없으면 자동으로 생성하면서 nonce와 friendlyId 설정
+    const result = await prisma.user.upsert({
       where: { walletAddress: address },
-      update: { nonce },
-      create: { walletAddress: address, nonce },
+      update: { nonce, friendlyId },
+      create: { walletAddress: address, nonce, friendlyId },
     });
-
+    
+    console.log(`사용자 upsert 후 결과:`, result);
     return res.json({ nonce });
   } catch (error) {
     console.error('Nonce 발급 중 오류 발생:', error);
@@ -134,23 +139,33 @@ router.post('/verify', async (req, res) => {
   }
 
   try {
+    console.log(`서명 검증 시작 - 주소: ${address}, 서명 길이: ${signature.length}`);
+    
     const user = await prisma.user.findUnique({ where: { walletAddress: address } });
+    console.log(`검색된 사용자:`, user);
 
     if (!user || !user.nonce) {
+      console.log('사용자 또는 nonce를 찾을 수 없음:', { user, nonce: user?.nonce });
       return res.status(400).json({ error: '사용자 또는 nonce를 찾을 수 없습니다' });
     }
 
+    console.log(`사용할 nonce: ${user.nonce}`);
+
     // 서명 검증
     const recovered = ethers.verifyMessage(user.nonce, signature);
+    console.log(`복구된 주소: ${recovered}, 원래 주소: ${address}`);
     
     if (recovered.toLowerCase() !== address.toLowerCase()) {
+      console.log('주소 불일치:', { recovered: recovered.toLowerCase(), address: address.toLowerCase() });
       return res.status(401).json({ error: '유효하지 않은 서명입니다' });
     }
 
+    console.log('서명 검증 성공');
+    
     // 서명 OK → 토큰 발급
     const token = jwt.sign(
-      { userId: user.id, walletAddress: address }, 
-      JWT_SECRET, 
+      { userId: user.id, walletAddress: address },
+      JWT_SECRET,
       { expiresIn: '1d' }
     );
 
@@ -167,6 +182,7 @@ router.post('/verify', async (req, res) => {
       where: { walletAddress: address },
       data: { nonce: null },
     });
+    console.log('nonce 초기화 완료');
 
     return res.json({ success: true });
   } catch (error) {
@@ -202,6 +218,9 @@ router.post('/verify', async (req, res) => {
  *                     walletAddress:
  *                       type: string
  *                       description: 사용자 지갑 주소
+ *                     friendlyId:
+ *                       type: string
+ *                       description: 친숙한 형태의 사용자 ID
  *       401:
  *         description: 인증되지 않은 사용자
  *         content:
@@ -228,15 +247,22 @@ router.get('/me', authenticateUser, async (req, res) => {
         id: true,
         walletAddress: true,
         createdAt: true,
+        friendlyId: true,
         // 필요한 정보만 선택적으로 가져오기
-      }
+      },
     });
 
     if (!user) {
       return res.status(404).json({ error: '사용자를 찾을 수 없습니다' });
     }
 
-    return res.json({ user });
+    // DB에 friendlyId가 없는 경우에만 생성
+    const userResponse = {
+      ...user,
+      friendlyId: user.friendlyId || createFriendlyUserId(user.walletAddress),
+    };
+
+    return res.json({ user: userResponse });
   } catch (error) {
     console.error('사용자 정보 조회 중 오류 발생:', error);
     return res.status(500).json({ error: '서버 오류가 발생했습니다' });
@@ -268,4 +294,4 @@ router.post('/logout', (req, res) => {
   return res.json({ success: true });
 });
 
-export default router; 
+export default router;

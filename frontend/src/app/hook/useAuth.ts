@@ -10,6 +10,7 @@ interface AuthState {
   user: {
     walletAddress: string;
     userId?: string | number;
+    friendlyId?: string;
   } | null;
   signer: ethers.JsonRpcSigner | null;
 }

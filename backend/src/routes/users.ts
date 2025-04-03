@@ -1,5 +1,6 @@
 import express from "express";
 import prisma from "../prismaClient";
+import { createFriendlyUserId } from "../utils/userUtils";
 
 const router = express.Router();
 
@@ -25,6 +26,9 @@ const router = express.Router();
  *                   walletAddress:
  *                     type: string
  *                     description: 사용자 지갑 주소
+ *                   friendlyId:
+ *                     type: string
+ *                     description: 친숙한 형태의 사용자 ID
  *                   createdAt:
  *                     type: string
  *                     format: date-time
@@ -38,7 +42,14 @@ const getUsers = async (req: express.Request, res: express.Response) => {
       createdAt: true
     }
   });
-  res.json(users);
+  
+  // 각 사용자에 대해 친숙한 ID 생성
+  const usersWithFriendlyId = users.map(user => ({
+    ...user,
+    friendlyId: createFriendlyUserId(user.walletAddress)
+  }));
+  
+  res.json(usersWithFriendlyId);
 };
 
 /**
@@ -75,10 +86,15 @@ router.get("/:id", async (req, res) => {
     return res.status(404).json({ error: "사용자를 찾을 수 없습니다" });
   }
   
-  res.json(user);
+  // 친숙한 ID 추가
+  const userWithFriendlyId = {
+    ...user,
+    friendlyId: createFriendlyUserId(user.walletAddress)
+  };
+  
+  res.json(userWithFriendlyId);
 });
 
-// 새 사용자 생성
 /**
  * @swagger
  * /api/users:
@@ -112,6 +128,9 @@ router.get("/:id", async (req, res) => {
  *                 walletAddress:
  *                   type: string
  *                   description: 사용자 지갑 주소
+ *                 friendlyId:
+ *                   type: string
+ *                   description: 친숙한 형태의 사용자 ID
  *       400:
  *         description: 잘못된 요청 (지갑 주소 누락)
  */
@@ -129,7 +148,13 @@ const createUser = async (req: express.Request, res: express.Response) => {
     create: { walletAddress: wallet },
   });
 
-  res.status(201).json(user);
+  // 친숙한 ID 추가 (응답에만 포함)
+  const userWithFriendlyId = {
+    ...user,
+    friendlyId: createFriendlyUserId(user.walletAddress)
+  };
+
+  res.status(201).json(userWithFriendlyId);
 };
 
 // 라우터에 핸들러 연결
