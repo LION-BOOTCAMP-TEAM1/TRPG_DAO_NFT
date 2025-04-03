@@ -33,7 +33,8 @@ contract GameItems is ERC1155, Ownable {
     }
 
     // 랜덤 민팅 (기존 토큰 중 하나)
-    function mintRandom(address addr) external payable returns (uint) {
+    event  minted(address indexed user, uint256 tokenId);
+    function mintRandom(address addr) external payable {
         require(msg.value >= mintPrice, "Not enough ETH");
         require(existingTokenIds.length > 0, "No tokens available");
 
@@ -52,7 +53,7 @@ contract GameItems is ERC1155, Ownable {
             require(success, "Refund failed");
         }
 
-        return tokenId;
+        emit minted(addr, tokenId); // 반환값 이벤트로 emit
     }
 
     // 수익 인출

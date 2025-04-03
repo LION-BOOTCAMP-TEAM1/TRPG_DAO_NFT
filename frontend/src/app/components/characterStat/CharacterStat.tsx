@@ -7,7 +7,7 @@ import { RootState, AppDispatch } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import BattleComponent from "../battle/BattleComponent";
 import { useState } from "react";
-
+import { toast } from 'sonner';
 
 const CharacterStat = () => {
   const myNFTs = useSelector((state: RootState) => state.character);
@@ -20,6 +20,16 @@ const CharacterStat = () => {
     getNFTList(dispatch);
   }
   //
+
+  const mintNFT = async () => {
+    const item = await randomMint(dispatch);
+    const typeString = item?.type === 1 ? '무기' : item?.type === 2 ? '방어구' : item?.type === 3 ? '악세사리' : '칭호';
+    
+    toast(`[${typeString}] ${item?.name}`, {
+      description: item?.description,
+      icon: <img src={item?.image} alt="item" width={64} height={64} />,
+    });
+  }
 
   return (
     <div className="bg-[#c6beab] p-4 rounded shadow flex flex-col items-center gap-2 text-sm font-medium w-full">
@@ -74,7 +84,7 @@ const CharacterStat = () => {
       <div className='w-full flex justify-center items-center'>
         <div
           className="flex flex-col justify-center items-center px-4 py-2 bg-gradient-to-r from-yellow-400 to-red-500 text-white rounded-xl shadow-lg hover:scale-105 hover:brightness-110 active:scale-95 transition-all duration-300 mb-4"
-          onClick={() => randomMint(dispatch)}
+          onClick={mintNFT}
         >
           <p className='font-bold text-lg'>🎁 아이템 뽑기!</p>
           <div className='font-light text-sm blinking-box'>단돈 0.01 🇪🇹🇭</div>
