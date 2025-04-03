@@ -13,12 +13,28 @@ export interface Chapter {
   };
 }
 
-export interface dummyChapter {
+export interface Session {
   id: number;
-  worldId: number;
-  genreId: number;
-  slug: string;
-  storySlug: string;
+  name: string;
+  createdAt: string;
+  storyWorldId: number;
+  users: User[];
+  participants: Participant[];
 }
 
-export type ChapterListResponse = Chapter[];
+export interface Participant {
+  id: number;
+  sessionId: number;
+  userId: number;
+  isReady: boolean;
+  hasVoted: boolean;
+  role: string | null;
+  joinedAt: string;
+  users: User;
+}
+
+export interface User {
+  id: number;
+  walletAddress: string;
+  createdAt: string;
+}
