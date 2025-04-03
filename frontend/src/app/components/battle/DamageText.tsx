@@ -12,7 +12,6 @@ interface DamageTextProps {
 }
 
 const DamageText = ({ damage, x = 0, y = 0 }: DamageTextProps) => {
-  const digits = damage.toString().split("").map(Number);
 
   return (
     <motion.div
@@ -22,7 +21,7 @@ const DamageText = ({ damage, x = 0, y = 0 }: DamageTextProps) => {
       animate={{ y: -30, opacity: 0, scale: 1.3 }}
       transition={{ duration: 1.5, ease: "easeOut" }}
     >
-      <p className="text-4xl font-bold text-[#f00]">{damage}</p>
+      <p className="text-4xl font-bold text-[#0400ff]" style={{ textShadow: '2px 2px 0 #fff' }}>{damage}</p>
     </motion.div>
   );
 };
