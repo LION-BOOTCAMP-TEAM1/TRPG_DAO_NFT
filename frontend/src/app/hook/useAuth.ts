@@ -59,8 +59,17 @@ export default function useAuth() {
       });
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('서명 검증 중 오류:', error);
+      
+      // nonce 갱신이 필요한 경우 처리
+      if (error.response?.data?.renewNonce) {
+        console.log('nonce 갱신 필요, 다시 nonce 요청');
+        // nonce를 다시 요청하고 새 값 반환
+        const newNonce = await requestNonce(address);
+        throw new Error('nonce가 갱신되었습니다. 다시 로그인해주세요.');
+      }
+      
       throw error;
     }
   };
@@ -205,7 +214,27 @@ export default function useAuth() {
     try {
       const address = await signerToUse.getAddress();
 
-      const nonce = await requestNonce(address);
+      // nonce 요청 시도 (최대 3회)
+      let nonce;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          nonce = await requestNonce(address);
+          if (nonce) break;
+        } catch (nonceError) {
+          console.error(`nonce 요청 실패 (시도 ${retryCount + 1}/${maxRetries})`, nonceError);
+          retryCount++;
+          if (retryCount >= maxRetries) throw nonceError;
+          // 잠시 대기 후 재시도
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
+      if (!nonce) {
+        throw new Error('nonce를 가져오지 못했습니다');
+      }
 
       const signature = await signerToUse.signMessage(nonce);
 
@@ -220,6 +249,11 @@ export default function useAuth() {
           const userResponse = await api.get('/api/auth/me');
 
           if (userResponse.data && userResponse.data.user) {
+            // If the user has a friendlyId, store it in localStorage
+            if (userResponse.data.user.friendlyId) {
+              localStorage.setItem('friendlyId', userResponse.data.user.friendlyId);
+            }
+            
             setAuthState({
               isAuthenticated: true,
               isLoading: false,
@@ -268,6 +302,11 @@ export default function useAuth() {
         const response = await api.get('/api/auth/me');
 
         if (response.data && response.data.user) {
+          // Store or update friendlyId in localStorage
+          if (response.data.user.friendlyId) {
+            localStorage.setItem('friendlyId', response.data.user.friendlyId);
+          }
+          
           setAuthState({
             isAuthenticated: true,
             isLoading: false,
@@ -311,6 +350,12 @@ export default function useAuth() {
   const logout = async () => {
     try {
       await api.post('/api/auth/logout');
+
+      // Remove friendlyId from localStorage
+      localStorage.removeItem('friendlyId');
+      
+      // Remove auth token
+      removeAuthToken();
 
       if (window.ethereum && window.ethereum.disconnect) {
         try {

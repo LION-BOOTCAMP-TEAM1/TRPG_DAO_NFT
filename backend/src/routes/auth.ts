@@ -66,9 +66,25 @@ router.post('/nonce', async (req, res) => {
     // 사용자가 없으면 자동으로 생성하면서 nonce와 friendlyId 설정
     const result = await prisma.user.upsert({
       where: { walletAddress: address },
-      update: { nonce, friendlyId },
-      create: { walletAddress: address, nonce, friendlyId },
+      update: { 
+        nonce  // update에도 nonce 명시적 설정
+      },
+      create: { 
+        walletAddress: address, 
+        nonce, 
+        friendlyId 
+      },
     });
+    
+    if (!result || !result.nonce) {
+      console.error('사용자 생성/업데이트 후 nonce가 없음:', result);
+      // 강제로 nonce 업데이트 시도
+      await prisma.user.update({
+        where: { id: result.id },
+        data: { nonce }
+      });
+      console.log('nonce 강제 업데이트 시도 완료');
+    }
     
     console.log(`사용자 upsert 후 결과:`, result);
     return res.json({ nonce });
@@ -144,9 +160,24 @@ router.post('/verify', async (req, res) => {
     const user = await prisma.user.findUnique({ where: { walletAddress: address } });
     console.log(`검색된 사용자:`, user);
 
-    if (!user || !user.nonce) {
-      console.log('사용자 또는 nonce를 찾을 수 없음:', { user, nonce: user?.nonce });
-      return res.status(400).json({ error: '사용자 또는 nonce를 찾을 수 없습니다' });
+    if (!user) {
+      console.log('사용자를 찾을 수 없음:', { address });
+      return res.status(400).json({ error: '사용자를 찾을 수 없습니다' });
+    }
+    
+    if (!user.nonce) {
+      console.log('nonce 값이 없음, 새 nonce 생성');
+      // nonce가 없는 경우 새로 생성하고 인증 재시도 요청
+      const newNonce = `${randomBytes(16).toString('hex')}`;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { nonce: newNonce }
+      });
+      
+      return res.status(400).json({ 
+        error: '유효한 nonce가 없습니다. 다시 로그인해주세요.',
+        renewNonce: true 
+      });
     }
 
     console.log(`사용할 nonce: ${user.nonce}`);
