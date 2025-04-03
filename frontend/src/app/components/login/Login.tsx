@@ -84,7 +84,7 @@ const Login: FC<LoginProps> = ({
       ) : (
         <div className="flex items-center">
           <span className="text-xs mr-2 text-gray-500">
-            {user?.walletAddress && shortAddress(user.walletAddress)}
+            {user?.friendlyId ? user.friendlyId : (user?.walletAddress && shortAddress(user.walletAddress))}
           </span>
           <button
             onClick={handleLogout}
