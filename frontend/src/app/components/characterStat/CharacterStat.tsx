@@ -14,6 +14,7 @@ const CharacterStat = () => {
 
   // 테스트 코드
   const [open, setOpen] = useState(false);
+  const [result, setResult] = useState("");
   const dispatch = useDispatch<AppDispatch>();
   const test = () => {
     getNFTList(dispatch);
@@ -64,7 +65,12 @@ const CharacterStat = () => {
       <div className="bg-red-500 rounded-2xl p-1">
         <button className="text-white" onClick={() => setOpen(true)}>Battle Test</button>
       </div>
-      {open && <BattleComponent speed={500} onClose={() => setOpen(false)} />}
+      {result}
+      {open && <BattleComponent speed={500} onClose={(v) => {
+        setOpen(false);
+        if(v) setResult("이김");
+        else setResult("짐");
+      }} />}
     </div>
   );
 };
