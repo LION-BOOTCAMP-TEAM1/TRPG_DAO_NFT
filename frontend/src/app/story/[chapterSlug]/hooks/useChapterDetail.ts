@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { Chapter } from '../types/chapter';
@@ -10,7 +8,16 @@ export function useChapterDetail(slug: string) {
   useEffect(() => {
     if (!slug) return;
 
-    api.get(`api/chapters/${slug}`).then((res) => setChapter(res.data));
+    console.log('[useChapterDetail] fetching chapter for slug:', slug);
+    api
+      .get(`/api/chapters/${slug}`)
+      .then((res) => {
+        console.log('[useChapterDetail] chapter response:', res.data);
+        setChapter(res.data);
+      })
+      .catch((err) => {
+        console.error('[useChapterDetail] fetch failed:', err);
+      });
   }, [slug]);
 
   return { chapter };

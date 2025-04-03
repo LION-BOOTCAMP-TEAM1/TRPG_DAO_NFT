@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import DaoArtifact from '@/contracts/TRPG_DAO.json';
-import daoAddress from '@/deployments/localDao.json';
+import DaoABI from '@/utils/abis/DAO.json';
 
 export const useDaoContract = () => {
   const [dao, setDao] = useState<ethers.Contract | null>(null);
@@ -12,8 +11,8 @@ export const useDaoContract = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const instance = new ethers.Contract(
-        daoAddress.address,
-        DaoArtifact.abi,
+        '0x339B6a8D4D6CedB026088489eC10C919E1Cb4aB6',
+        DaoABI,
         signer,
       );
       setDao(instance);

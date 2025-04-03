@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useScenePlayback } from '../[storySlug]/hooks/useScenePlayback';
 import { useImageLoader } from '../hooks/useImageLoader';
-import { useDaoContract } from '../../[chapterSlug]/hooks/useDaoContract';
+import { useDaoContract } from './hooks/useDaoContract';
 import { useStoryDetail } from '../[storySlug]/hooks/useStoryDetail';
 import { useProposalHandler } from './hooks/useProposalHandler';
 
