@@ -51,6 +51,7 @@
   "license": "ISC",
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.1",
+    "@tailwindcss/postcss": "^4.1.1",
     "pg": "^8.14.1",
     "react-icons": "^5.5.0",
     "react-redux": "^9.2.0"
