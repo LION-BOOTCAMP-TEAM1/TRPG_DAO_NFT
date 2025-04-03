@@ -249,6 +249,11 @@ export default function useAuth() {
           const userResponse = await api.get('/api/auth/me');
 
           if (userResponse.data && userResponse.data.user) {
+            // If the user has a friendlyId, store it in localStorage
+            if (userResponse.data.user.friendlyId) {
+              localStorage.setItem('friendlyId', userResponse.data.user.friendlyId);
+            }
+            
             setAuthState({
               isAuthenticated: true,
               isLoading: false,
@@ -297,6 +302,11 @@ export default function useAuth() {
         const response = await api.get('/api/auth/me');
 
         if (response.data && response.data.user) {
+          // Store or update friendlyId in localStorage
+          if (response.data.user.friendlyId) {
+            localStorage.setItem('friendlyId', response.data.user.friendlyId);
+          }
+          
           setAuthState({
             isAuthenticated: true,
             isLoading: false,
@@ -340,6 +350,12 @@ export default function useAuth() {
   const logout = async () => {
     try {
       await api.post('/api/auth/logout');
+
+      // Remove friendlyId from localStorage
+      localStorage.removeItem('friendlyId');
+      
+      // Remove auth token
+      removeAuthToken();
 
       if (window.ethereum && window.ethereum.disconnect) {
         try {

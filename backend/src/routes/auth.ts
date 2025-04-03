@@ -67,8 +67,7 @@ router.post('/nonce', async (req, res) => {
     const result = await prisma.user.upsert({
       where: { walletAddress: address },
       update: { 
-        nonce,  // update에도 nonce 명시적 설정
-        friendlyId: friendlyId  // update에도 friendlyId 명시적 설정
+        nonce  // update에도 nonce 명시적 설정
       },
       create: { 
         walletAddress: address, 
