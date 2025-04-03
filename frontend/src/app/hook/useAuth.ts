@@ -8,6 +8,7 @@ interface AuthState {
   error: string | null;
   walletExist: boolean;
   user: {
+    id: number | null;
     walletAddress: string;
     userId?: string | number;
     friendlyId?: string;
@@ -28,6 +29,29 @@ export default function useAuth() {
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  /**
+   * 캐릭터 생성 함수
+   * @param characterData 캐릭터 정보
+   */
+  const createCharacter = async (characterData: any) => {
+    if (!authState.user) {
+      console.error('로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      const response = await api.post('/api/characters', {
+        ...characterData,
+        userId: authState.user.id, // 유저 ID 포함
+      });
+
+      console.log('캐릭터 생성 성공:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('캐릭터 생성 오류:', error);
+    }
+  };
 
   /**
    * 서버에 nonce 요청
@@ -61,7 +85,7 @@ export default function useAuth() {
       return response.data;
     } catch (error: any) {
       console.error('서명 검증 중 오류:', error);
-      
+
       // nonce 갱신이 필요한 경우 처리
       if (error.response?.data?.renewNonce) {
         console.log('nonce 갱신 필요, 다시 nonce 요청');
@@ -69,7 +93,7 @@ export default function useAuth() {
         const newNonce = await requestNonce(address);
         throw new Error('nonce가 갱신되었습니다. 다시 로그인해주세요.');
       }
-      
+
       throw error;
     }
   };
@@ -109,10 +133,14 @@ export default function useAuth() {
             isLoading: false,
             walletExist: true,
             signer: newSigner,
-            user: {
-              ...prev.user,
-              walletAddress: address,
-            },
+            user: prev.user
+              ? { ...prev.user, walletAddress: address }
+              : {
+                  id: null,
+                  walletAddress: address,
+                  userId: undefined,
+                  friendlyId: undefined,
+                },
           }));
 
           return newSigner;
@@ -123,11 +151,16 @@ export default function useAuth() {
               isLoading: false,
               walletExist: false,
               signer: newSigner,
-              user: {
-                ...prev.user,
-                walletAddress: address,
-              },
+              user: prev.user
+                ? { ...prev.user, walletAddress: address }
+                : {
+                    id: null,
+                    walletAddress: address,
+                    userId: undefined,
+                    friendlyId: undefined,
+                  },
             }));
+
             return newSigner;
           }
 
@@ -218,17 +251,20 @@ export default function useAuth() {
       let nonce;
       let retryCount = 0;
       const maxRetries = 3;
-      
+
       while (retryCount < maxRetries) {
         try {
           nonce = await requestNonce(address);
           if (nonce) break;
         } catch (nonceError) {
-          console.error(`nonce 요청 실패 (시도 ${retryCount + 1}/${maxRetries})`, nonceError);
+          console.error(
+            `nonce 요청 실패 (시도 ${retryCount + 1}/${maxRetries})`,
+            nonceError,
+          );
           retryCount++;
           if (retryCount >= maxRetries) throw nonceError;
           // 잠시 대기 후 재시도
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
 
@@ -251,9 +287,12 @@ export default function useAuth() {
           if (userResponse.data && userResponse.data.user) {
             // If the user has a friendlyId, store it in localStorage
             if (userResponse.data.user.friendlyId) {
-              localStorage.setItem('friendlyId', userResponse.data.user.friendlyId);
+              localStorage.setItem(
+                'friendlyId',
+                userResponse.data.user.friendlyId,
+              );
             }
-            
+
             setAuthState({
               isAuthenticated: true,
               isLoading: false,
@@ -300,13 +339,13 @@ export default function useAuth() {
 
       try {
         const response = await api.get('/api/auth/me');
-
+        console.log('📌 /api/auth/me 응답:', response.data);
         if (response.data && response.data.user) {
           // Store or update friendlyId in localStorage
           if (response.data.user.friendlyId) {
             localStorage.setItem('friendlyId', response.data.user.friendlyId);
           }
-          
+
           setAuthState({
             isAuthenticated: true,
             isLoading: false,
@@ -320,6 +359,7 @@ export default function useAuth() {
         }
       } catch (error) {
         console.error('인증 상태 확인 오류:', error);
+        console.error('❌ 인증 상태 확인 오류:', error);
 
         setAuthState({
           isAuthenticated: false,
@@ -353,7 +393,7 @@ export default function useAuth() {
 
       // Remove friendlyId from localStorage
       localStorage.removeItem('friendlyId');
-      
+
       // Remove auth token
       removeAuthToken();
 
@@ -387,5 +427,6 @@ export default function useAuth() {
     registerWalletAddress,
     login,
     logout,
+    createCharacter,
   };
 }
