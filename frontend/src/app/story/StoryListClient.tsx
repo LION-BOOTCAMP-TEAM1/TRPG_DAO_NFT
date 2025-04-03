@@ -1,5 +1,5 @@
 'use client';
-
+import api from '@/lib/axios';
 import { useEffect, useState } from 'react';
 import FeatureSection from './components/FeatureSection';
 import StoryCard from './components/StoryCard';
@@ -19,7 +19,7 @@ const StoryListPage = () => {
     logout,
     signer,
     walletExist,
-    isAuthenticated
+    isAuthenticated,
   } = useAuth();
 
   const toggleTheme = () => {
@@ -27,9 +27,9 @@ const StoryListPage = () => {
   };
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/branchpoints`)
-      .then((res) => res.json())
-      .then((data) => setBranchpoints(data))
+    api
+      .get('/api/branchpoints')
+      .then((response) => setBranchpoints(response.data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
 
@@ -38,10 +38,7 @@ const StoryListPage = () => {
     <ThemeProvider>
       <div className="p-6 space-y-12 min-h-screen ">
         {/* 헤더 프롭스 */}
-        <Header
-          onToggle={toggleTheme}
-          isDarkMode={isDarkMode}
-        />
+        <Header onToggle={toggleTheme} isDarkMode={isDarkMode} />
 
         {/* 표지 */}
         <div className="z-0 flex flex-col justify-center items-center">
@@ -50,7 +47,7 @@ const StoryListPage = () => {
             alt={'cover'}
             width={1600}
             height={600}
-            className="object-cover w-full sm:w-[1100px] h-[700px] shadow border  border-[#d2c5ae] rounded-2xl"
+            className="object-cover w-full sm:w-[1100px] h-[700px] shadow border  border-[#d2c5ae] rounded-2xl  "
           />
           <div
             className="flex flex-col absolute z-10 font-bold text-5xl text-white  border:text-black drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)]
