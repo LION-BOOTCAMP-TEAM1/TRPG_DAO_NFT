@@ -3,41 +3,29 @@
 pragma solidity ^0.8.28;
 
 contract TRPG_DAO {
+    // === Roles ===
     address public owner;
     mapping(address => bool) public ruleMasters;
 
-    struct Session {
-        address[] users; // List of users participating in the session
-        uint256 worldId; // Associated world ID
-        uint256 genreId; // Associated genre ID
-    }
-
-    mapping(uint256 => Session) public sessions; // sessionId => Session data
-    uint256[] public sessionIds; // List of all session IDs
-
+    // === Proposal Structure ===
     struct Proposal {
-        string description; // Description of the proposal
+        string description; // Text description of the proposal
         uint256 voteEndTime; // Voting deadline (Unix timestamp)
-        uint256[] votes; // Number of votes per option
-        uint256 totalVotes; // Total number of voters
-        uint256 proposalScope; // 0: global, 1: session, 2: world, 3: genre
-        uint256 scopeId; // ID corresponding to the scope type
-        bool active; // Whether voting is still open
+        uint256[] votes; // Array storing vote counts per option
+        uint256 totalVotes; // Number of users who have voted
+        bool active; // Voting status
+        address[] users; // Whitelisted voters for this proposal
     }
 
     Proposal[] public proposals;
     mapping(uint256 => mapping(address => uint8)) public userVotes; // proposalId => user => selected option
 
+    // === Events ===
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event RuleMasterAdded(address indexed newRuleMaster);
     event RuleMasterRemoved(address indexed removedRuleMaster);
 
-    event SessionCreated(uint256 sessionId, uint256 worldId, uint256 genreId);
-    event SessionDeleted(uint256 sessionId);
-    event UserAddedToSession(uint256 sessionId, address user);
-    event UserRemovedFromSession(uint256 sessionId, address user);
-
-    event ProposalCreated(uint256 proposalId, string description, uint256 voteEndTime, uint256 proposalScope, uint256 scopeId);
+    event ProposalCreated(uint256 proposalId, string description, uint256 voteEndTime);
     event ProposalClosed(uint256 proposalId);
     event Voted(uint256 proposalId, address voter, uint8 option);
 
@@ -46,6 +34,7 @@ contract TRPG_DAO {
         ruleMasters[msg.sender] = true;
     }
 
+    // === Modifiers ===
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can execute this");
         _;
@@ -67,6 +56,7 @@ contract TRPG_DAO {
         _;
     }
 
+    // === Owner Functions ===
     // Transfer ownership to a new address (EOA or another contract)
     function transferOwnership(address newOwner) public onlyOwner {
         require(newOwner != address(0), "New owner should not be the zero address");
@@ -92,92 +82,32 @@ contract TRPG_DAO {
         emit RuleMasterRemoved(_ruleMaster);
     }
 
-    // Create a new session with world and genre association
-    function createSession(uint256 sessionId, uint256 worldId, uint256 genreId) public onlyRuleMaster {
-        require(!sessionExists(sessionId), "Session already exists");
-
-        sessions[sessionId].worldId = worldId;
-        sessions[sessionId].genreId = genreId;
-        sessionIds.push(sessionId);
-        emit SessionCreated(sessionId, worldId, genreId);
-    }
-
-    // Check if a session exists
-    function sessionExists(uint256 sessionId) public view returns(bool) {
-        uint256 length = sessionIds.length;
-        for (uint256 i=0;i<length;i++) {
-            if (sessionIds[i] == sessionId) return true;
-        }
-        return false;
-    }
-
-    // Delete a session and remove its ID
-    function deleteSession(uint256 sessionId) public onlyRuleMaster {
-        require(sessionExists(sessionId), "Session does not exist");
-        delete sessions[sessionId];
-
-        uint256 length = sessionIds.length;
-        for (uint256 i = 0; i < length; i++) {
-            if (sessionIds[i] == sessionId) {
-                sessionIds[i] = sessionIds[length - 1];
-                sessionIds.pop();
-                break;
-            }
-        }
-        emit SessionDeleted(sessionId);
-    }
-
-    // Add a user to a session
-    function addUserToSession(uint256 sessionId, address user) public onlyRuleMaster {
-        Session storage session = sessions[sessionId];
-        uint256 length = session.users.length;
-        for (uint256 i=0; i < length; i++) {
-            if (session.users[i] == user) revert("User already in session");
-        }
-
-        session.users.push(user);
-        emit UserAddedToSession(sessionId, user);
-    }
-
-    // Remove a user from a session
-    function removeUserFromSession(uint256 sessionId, address user) public onlyRuleMaster {
-        Session storage session = sessions[sessionId];
-        uint256 length = session.users.length;
-        for (uint256 i = 0; i < length; i++) {
-            if (session.users[i] == user) {
-                session.users[i] = session.users[length -1];
-                session.users.pop();
-                emit UserRemovedFromSession(sessionId, user);
-                return;
-            }
-        }
-        revert("User not found in session");
-    }
-
+    // === Proposal Creation ===
     // Create a new proposal with given scope and duration
-    function createProposal(string memory _description, uint256 _duration, uint256 _scope, uint256 _scopeId, uint256 _numOptions) public onlyRuleMaster {
-        require(_scope <= 3, "Invalid proposal scope");
+    function createProposal(string memory _description, uint256 _duration, uint256 _numOptions, address[] memory _users) public onlyRuleMaster {
         require(_numOptions > 1, "Must have at least 2 voting Options");
+        require(_users.length > 0, "must have at least 1 voter");
 
         uint256 voteEndTime = block.timestamp + _duration; // Current time + duration (second)
+
         proposals.push(Proposal({
             description: _description,
             voteEndTime: voteEndTime,
             votes : new uint256[](_numOptions),
             totalVotes: 0,
-            proposalScope: _scope,
-            scopeId: _scopeId, 
-            active: true
+            active: true,
+            users: _users
         }));
 
-        emit ProposalCreated(proposals.length - 1, _description, voteEndTime, _scope, _scopeId);
+        emit ProposalCreated(proposals.length - 1, _description, voteEndTime);
     }
 
+    // === Voting ===
     // Vote or update vote on a proposal
     function vote(uint256 _proposalId, uint8 _option) public onlyActiveProposal(_proposalId) {
         Proposal storage proposal = proposals[_proposalId];
 
-        require(isEligibleToVote(proposal.proposalScope, proposal.scopeId, msg.sender), "You are not eligible to vote in this proposal");
+        require(isEligibleToVote(_proposalId, msg.sender), "You are not eligible to vote in this proposal");
         require(_option > 0 && _option <= proposal.votes.length, "Invalid option");
 
         if (userVotes[_proposalId][msg.sender] != 0) {
@@ -197,6 +127,7 @@ contract TRPG_DAO {
         }
     }
 
+    // === Proposal Closure ===
     // Manually close a proposal
     function closeProposal(uint256 _proposalId) public onlyRuleMaster onlyActiveProposal(_proposalId) {
         _closeProposal(_proposalId);
@@ -211,46 +142,27 @@ contract TRPG_DAO {
         emit ProposalClosed(_proposalId);
     }
 
-    // Check if a user is eligible to vote for a given scope and ID
-    function isEligibleToVote(uint256 scope, uint256 scopeId, address user) public view returns (bool) {
-        if (scope == 0) return true;
-        uint256 length = sessionIds.length;
-        for (uint256 i=0;i<length;i++) {
-            uint256 sessionId = sessionIds[i];
-            Session storage s = sessions[sessionId];
-            if (
-                (scope == 1 && sessionId == scopeId) ||
-                (scope == 2 && s.worldId == scopeId) ||
-                (scope == 3 && s.genreId == scopeId)
-            ) {
-                uint256 uLength = s.users.length;
-                for (uint256 j=0;j<uLength;j++) {
-                    if (s.users[j] == user) return true;
-                }
-            }
+    // === Vote Eligibility ===
+    // Check if a user is eligible to vote
+    function isEligibleToVote(uint256 _proposalId, address user) public view returns (bool) {
+        Proposal storage proposal = proposals[_proposalId];
+        uint256 length = proposal.users.length;
+        for (uint256 i=0; i <length; i++) {
+            if (proposal.users[i] == user) return true;
         }
         return false;
     }
 
-    // Check if all eligible users have voted (only for session proposals)
+     // === Utility Views ===
     function isAllVotesCast(uint256 _proposalId) public view returns (bool) {
         Proposal storage proposal = proposals[_proposalId];
-        if (proposal.proposalScope != 1) return false;
-        return proposal.totalVotes == getTotalEligibleVoters(proposal.scopeId);
+        return proposal.totalVotes == getTotalEligibleVoters(_proposalId);
     }
     
-    // Calculate total number of users eligible to vote based on scope 1
-    function getTotalEligibleVoters(uint256 scopeId) public view returns (uint256) {
-        return sessions[scopeId].users.length;
-    }
-
-    function isUserInSession(uint256 sessionId, address user) public view returns (bool) {
-        Session storage session = sessions[sessionId];
-        uint256 length = session.users.length;
-        for (uint256 i = 0; i < length; i++) {
-            if (session.users[i] == user) return true;
-        }
-        return false;
+    // Calculate total number of users eligible to vote
+    function getTotalEligibleVoters(uint256 _proposalId) public view returns (uint256) {
+        Proposal storage proposal = proposals[_proposalId];
+        return proposal.users.length;
     }
 
     // Get proposal details

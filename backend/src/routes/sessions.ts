@@ -3,6 +3,15 @@ import prisma from '../prismaClient';
 
 const router = express.Router();
 
+// slug 생성 함수
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w ]+/g, '')  // 특수문자 제거
+    .replace(/ +/g, '-')      // 공백을 하이픈으로 변환
+    .substring(0, 50);         // 50자로 제한
+}
+
 // ID 또는 슬러그로 세션을 찾는 유틸리티 함수
 async function findSessionByIdOrSlug(idOrSlug: string) {
   const isNumber = /^\d+$/.test(idOrSlug);
@@ -11,8 +20,12 @@ async function findSessionByIdOrSlug(idOrSlug: string) {
     return await prisma.session.findUnique({
       where: { id: Number(idOrSlug) }
     });
+  } else {
+    // 슬러그로 검색
+    return await prisma.session.findUnique({
+      where: { slug: idOrSlug }
+    });
   }
-  return null;
 }
 
 /**
@@ -51,7 +64,14 @@ const getSessions = async (req: Request, res: Response) => {
             walletAddress: true
           }
         },
-        progress: true
+        progress: true,
+        storyWorld: true,
+        gameMaster: {
+          select: {
+            id: true,
+            walletAddress: true
+          }
+        }
       }
     });
     
@@ -118,6 +138,13 @@ const getSession = async (req: Request, res: Response) => {
           include: {
             story: true
           }
+        },
+        storyWorld: true,
+        gameMaster: {
+          select: {
+            id: true,
+            walletAddress: true
+          }
         }
       }
     };
@@ -159,10 +186,14 @@ const getSession = async (req: Request, res: Response) => {
  *               - userIds
  *               - storyId
  *               - storyWorldId
+ *               - gameMasterId
  *             properties:
  *               name:
  *                 type: string
  *                 description: 세션 이름
+ *               description:
+ *                 type: string
+ *                 description: 세션 설명 (선택)
  *               userIds:
  *                 type: array
  *                 items:
@@ -174,6 +205,15 @@ const getSession = async (req: Request, res: Response) => {
  *               storyWorldId:
  *                 type: integer
  *                 description: 스토리 월드 ID
+ *               gameMasterId:
+ *                 type: integer
+ *                 description: "게임마스터 ID (default: 요청자 ID)"
+ *               minPlayers:
+ *                 type: integer
+ *                 description: "최소 플레이어 수 (default: 2)"
+ *               maxPlayers:
+ *                 type: integer
+ *                 description: "최대 플레이어 수 (default: 6)"
  *     responses:
  *       201:
  *         description: 생성된 세션 정보를 반환합니다
@@ -185,13 +225,22 @@ const getSession = async (req: Request, res: Response) => {
  *         description: 서버 오류
  */
 const createSession = async (req: Request, res: Response) => {
-  const { name, userIds, storyId, storyWorldId } = req.body;
+  const { name, userIds, storyId, storyWorldId, gameMasterId, description, minPlayers, maxPlayers } = req.body;
 
-  if (!name || !userIds || userIds.length === 0 || !storyId || !storyWorldId) {
-    return res.status(400).json({ error: '세션 이름, 참여 사용자, 스토리 및 스토리 월드 정보가 필요합니다' });
+  if (!name || !userIds || userIds.length === 0 || !storyId || !storyWorldId || !gameMasterId) {
+    return res.status(400).json({ error: '세션 이름, 참여 사용자, 스토리, 스토리 월드 및 게임마스터 정보가 필요합니다' });
   }
 
   try {
+    // 게임마스터가 유효한 사용자인지 확인
+    const gameMaster = await prisma.user.findUnique({
+      where: { id: Number(gameMasterId) }
+    });
+
+    if (!gameMaster) {
+      return res.status(404).json({ error: '게임마스터를 찾을 수 없습니다' });
+    }
+
     const users = await prisma.user.findMany({
       where: {
         id: { in: userIds }
@@ -215,10 +264,29 @@ const createSession = async (req: Request, res: Response) => {
       return res.status(400).json({ error: '스토리에 퀘스트가 없습니다' });
     }
 
+    // 슬러그 생성
+    let baseSlug = slugify(name);
+    let slug = baseSlug;
+    let counter = 1;
+    
+    // 중복된 슬러그가 있는지 확인
+    let existingSession = await prisma.session.findUnique({ where: { slug } });
+    while (existingSession) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+      existingSession = await prisma.session.findUnique({ where: { slug } });
+    }
+
     const newSession = await prisma.session.create({
       data: {
         name,
+        slug,
         storyWorldId: Number(storyWorldId),
+        gameMasterId: Number(gameMasterId),
+        status: 'WAITING_FOR_PLAYERS',
+        description: description || null,
+        minPlayers: minPlayers || 2,
+        maxPlayers: maxPlayers || 6,
         progress: {
           create: {
             storyId: Number(storyId),
@@ -247,7 +315,14 @@ const createSession = async (req: Request, res: Response) => {
             user: true
           }
         },
-        progress: true
+        progress: true,
+        gameMaster: {
+          select: {
+            id: true,
+            walletAddress: true
+          }
+        },
+        storyWorld: true
       }
     });
 
@@ -262,7 +337,7 @@ const createSession = async (req: Request, res: Response) => {
  * @swagger
  * /api/sessions/{idOrSlug}/status:
  *   put:
- *     summary: 세션의 DAO 상태를 업데이트합니다
+ *     summary: 세션의 상태를 업데이트합니다
  *     tags: [Sessions]
  *     parameters:
  *       - in: path
@@ -282,8 +357,8 @@ const createSession = async (req: Request, res: Response) => {
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [IDLE, VOTING, RESOLVED]
- *                 description: 변경할 DAO 상태
+ *                 enum: [WAITING_FOR_PLAYERS, IN_PROGRESS, COMPLETED, PAUSED]
+ *                 description: 변경할 세션 상태
  *     responses:
  *       200:
  *         description: 업데이트된 세션 상태를 반환합니다
@@ -298,9 +373,9 @@ const updateSessionStatus = async (req: Request, res: Response) => {
   const { idOrSlug } = req.params;
   const { status } = req.body;
 
-  const validStatuses = ['IDLE', 'VOTING', 'RESOLVED'];
+  const validStatuses = ['WAITING_FOR_PLAYERS', 'IN_PROGRESS', 'COMPLETED', 'PAUSED'];
   if (!status || !validStatuses.includes(status)) {
-    return res.status(400).json({ error: '유효한 상태값이 필요합니다 (IDLE, VOTING, RESOLVED)' });
+    return res.status(400).json({ error: '유효한 상태값이 필요합니다 (WAITING_FOR_PLAYERS, IN_PROGRESS, COMPLETED, PAUSED)' });
   }
 
   try {
@@ -310,20 +385,12 @@ const updateSessionStatus = async (req: Request, res: Response) => {
       return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
     }
 
-    const sessionProgress = await prisma.sessionProgress.findUnique({
-      where: { sessionId: sessionBase.id }
+    const updatedSession = await prisma.session.update({
+      where: { id: sessionBase.id },
+      data: { status }
     });
 
-    if (!sessionProgress) {
-      return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
-    }
-
-    const updatedProgress = await prisma.sessionProgress.update({
-      where: { sessionId: sessionBase.id },
-      data: { daoStatus: status }
-    });
-
-    res.json(updatedProgress);
+    res.json(updatedSession);
   } catch (error) {
     console.error('세션 상태 업데이트 오류:', error);
     res.status(500).json({ error: '세션 상태 업데이트 중 오류가 발생했습니다' });

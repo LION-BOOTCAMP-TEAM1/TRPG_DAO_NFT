@@ -8,6 +8,8 @@
   },
   {
     "id": 2,
+    "userId": 101,
+    "nftTokenId": "nft-xyz-002",
     "name": "초보자 검",
     "description": "이세계에서 처음 지급받은 검.",
     "rarity": "Common",

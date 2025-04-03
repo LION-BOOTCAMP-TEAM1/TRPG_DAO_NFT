@@ -10,11 +10,13 @@ datasource db {
 model User {
   id                 Int                  @id @default(autoincrement())
   walletAddress      String               @unique
-  nonce              String?              // 로그인 인증에 사용되는 nonce 값
   createdAt          DateTime             @default(now())
+  nonce              String?
+  friendlyId         String?              @unique
   chapterProgress    ChapterProgress[]
   characters         Character[]
   playerNFTs         PlayerNFT[]
+  gameMasterSessions Session[]            @relation("GameMasterSession")
   SessionParticipant SessionParticipant[]
   storyProgress      StoryProgress[]
   UserAction         UserAction[]
@@ -32,29 +34,29 @@ model CharacterClass {
 }
 
 model Character {
-  id           Int            @id @default(autoincrement())
-  userId       Int
-  sessionId    Int?
-  name         String
-  gender       String
-  age          Int
-  attribute    String
-  health       Int            @default(4)
-  strength     Int            @default(4)
-  agility      Int            @default(4)
-  intelligence Int            @default(4)
-  wisdom       Int            @default(4)
-  charisma     Int            @default(4)
-  physicalAttack Int          @default(10)
-  magicAttack  Int            @default(10)
-  createdAt    DateTime       @default(now())
-  classId      Int
-  hp           Int            @default(4)
-  mp           Int            @default(4)
-  class        CharacterClass @relation(fields: [classId], references: [id])
-  user         User           @relation(fields: [userId], references: [id])
-  session      Session?       @relation(fields: [sessionId], references: [id])
-  inventory    Inventory?
+  id             Int            @id @default(autoincrement())
+  userId         Int
+  name           String
+  gender         String
+  age            Int
+  attribute      String
+  health         Int            @default(4)
+  strength       Int            @default(4)
+  agility        Int            @default(4)
+  intelligence   Int            @default(4)
+  wisdom         Int            @default(4)
+  charisma       Int            @default(4)
+  createdAt      DateTime       @default(now())
+  classId        Int
+  hp             Int            @default(4)
+  mp             Int            @default(4)
+  magicAttack    Int            @default(10)
+  physicalAttack Int            @default(10)
+  sessionId      Int?
+  class          CharacterClass @relation(fields: [classId], references: [id])
+  session        Session?       @relation(fields: [sessionId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
+  inventory      Inventory?
 }
 
 model UserAction {
@@ -269,13 +271,20 @@ model PlayerNFT {
 model Session {
   id           Int                  @id @default(autoincrement())
   name         String
+  slug         String               @unique
+  description  String?
+  status       SessionStatus        @default(WAITING_FOR_PLAYERS)
+  minPlayers   Int                  @default(2)
+  maxPlayers   Int                  @default(6)
   createdAt    DateTime             @default(now())
   storyWorldId Int
+  gameMasterId Int
+  characters   Character[]
+  gameMaster   User                 @relation("GameMasterSession", fields: [gameMasterId], references: [id])
   storyWorld   StoryWorld           @relation(fields: [storyWorldId], references: [id])
   participants SessionParticipant[]
   progress     SessionProgress?
   users        User[]               @relation("UserSession")
-  characters   Character[]
 }
 
 model SessionParticipant {
@@ -346,4 +355,7 @@ enum SessionStatus {
   IDLE
   VOTING
   RESOLVED
+  WAITING_FOR_PLAYERS
+  IN_PROGRESS
+  COMPLETED
 }
