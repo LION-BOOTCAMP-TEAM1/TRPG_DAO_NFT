@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -13,7 +13,7 @@ contract GameItems is ERC1155, Ownable {
 
     uint256 public mintPrice = 0.01 ether;
 
-    constructor() ERC1155("https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeicr6hlq6sommzbslgk3o6hhg4ljd4aegu3g6cd747qtqwe4nwjice/{id}.json") Ownable(msg.sender) {
+    constructor() ERC1155("https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeie3imjcrijt5hc5gzdtzijg4b62jsv3wkntytg7laaojtzpdpgyle/{id}.json") Ownable(msg.sender) {
         admin = msg.sender;
     }
 
@@ -32,9 +32,9 @@ contract GameItems is ERC1155, Ownable {
     }
 
     // 새로운 아이템 민팅
-    function mint(address to, uint256 id, uint256 amount) public onlyAdmin {
-        _mint(to, id, amount, "");
-        _addTokenToOwnerEnumeration(to, id);
+    function mint(uint256 id, uint256 amount) public onlyAdmin {
+        _mint(msg.sender, id, amount, "");
+        _addTokenToOwnerEnumeration(msg.sender, id);
         existingTokenIds.push(id);
     }
 
