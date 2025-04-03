@@ -10,7 +10,11 @@ contract GameItems is ERC1155, Ownable {
     mapping(address => uint256[]) private _ownedTokens; // 소유자가 가진 모든 토큰 ID
     mapping(address => mapping(uint256 => uint256)) private _ownedTokenIndex; // 토큰 ID의 인덱스 저장 (중복 방지)
     uint256[] public existingTokenIds;
+    mapping(uint256 => bool) public existingTokenIdMap;
 
+    function getArray() public view returns(uint256[] memory){
+        return existingTokenIds;
+    }
     uint256 public mintPrice = 0.01 ether;
 
     constructor() ERC1155("https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeie3imjcrijt5hc5gzdtzijg4b62jsv3wkntytg7laaojtzpdpgyle/{id}.json") Ownable(msg.sender) {
@@ -35,13 +39,27 @@ contract GameItems is ERC1155, Ownable {
     function mint(uint256 id, uint256 amount) public onlyAdmin {
         _mint(msg.sender, id, amount, "");
         _addTokenToOwnerEnumeration(msg.sender, id);
-        existingTokenIds.push(id);
+        if (!existingTokenIdMap[id]) {
+            existingTokenIds.push(id);
+            existingTokenIdMap[id] = true;
+        }
+    }
+
+    // 관리자만 여러 개 한 번에 발행
+    function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts) external onlyOwner {
+        _mintBatch(to, ids, amounts, "");
+        for(uint i = 0; i < ids.length; i++) {
+            _addTokenToOwnerEnumeration(to, ids[i]);
+            if (!existingTokenIdMap[ids[i]]) {
+                existingTokenIds.push(ids[i]);
+                existingTokenIdMap[ids[i]] = true;
+            }
+        }
     }
 
     event MintedRandom(address indexed user, uint256 tokenId);
-
     /// @notice payable 랜덤 민팅 (기존 토큰 중 하나)
-    function mintRandom() external payable {
+    function mintRandom() external payable returns (uint) {
         require(msg.value >= mintPrice, "Not enough ETH");
         require(existingTokenIds.length > 0, "No tokens available");
 
@@ -58,14 +76,8 @@ contract GameItems is ERC1155, Ownable {
 
         // ✅ 이벤트 발생
         emit MintedRandom(msg.sender, tokenId);
-    }
 
-    // 관리자만 여러 개 한 번에 발행
-    function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts) external onlyOwner {
-        _mintBatch(to, ids, amounts, "");
-        for(uint i = 0; i < ids.length; i++) {
-            _addTokenToOwnerEnumeration(to, ids[i]);
-        }
+        return tokenId;
     }
 
     // 소유자가 보유한 모든 아이템 ID 조회
