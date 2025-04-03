@@ -35,8 +35,11 @@
   "devDependencies": {
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "autoprefixer": "^10.4.21",
     "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.1"
   },
   "keywords": [
     "trpg",

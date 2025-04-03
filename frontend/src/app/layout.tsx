@@ -3,11 +3,13 @@ import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
 import { ReduxProvider } from "../store/provider";
 import AuthProvider from './providers/AuthProvider';
+import LayoutWrapper from './components/LayoutWrapper';
+import ThemeProvider from './components/ThemeProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Another World Adventure',
+  title: 'CRPG',
   description: 'A TRPG DAO NFT Web3 Game Project',
 };
 
@@ -21,7 +23,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ReduxProvider>
           <AuthProvider>
-            {children}
+            <ThemeProvider>
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
+            </ThemeProvider>
           </AuthProvider>
         </ReduxProvider>
       </body>
