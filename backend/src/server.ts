@@ -351,9 +351,7 @@ if (process.env.NODE_ENV === "production") {
         }
       }, KEEPALIVE_INTERVAL);
 
-      console.log(
-        `Render 환경용 keepAlive 인터벌 설정됨: ${KEEPALIVE_INTERVAL / 60000}분 간격`
-      );
+      console.log(`Render 환경용 keepAlive 인터벌 설정됨: ${KEEPALIVE_INTERVAL / 60000}분 간격`);
     } else {
       // 비 Render 환경에서의 인터벌 (2분)
       keepAliveInterval = setInterval(async () => {
