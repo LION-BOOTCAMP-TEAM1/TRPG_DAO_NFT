@@ -121,7 +121,15 @@ const characterSlice = createSlice({
         characterSlice.caseReducers.updateStat(state);
     },
     addItemToInventory(state, action: PayloadAction<Item>) {
-        state.inventory.push(action.payload);
+        const existingItem = state.inventory.find(item => item.id === action.payload.id);
+
+        if (existingItem) {
+            // 이미 있는 아이템이면 수량만 증가
+            existingItem.amount += action.payload.amount;
+        } else {
+            // 없으면 추가
+            state.inventory.push(action.payload);
+        }
       
         // 정렬: rarity → id → isNFT (false < true)
         state.inventory.sort((a, b) => {
@@ -134,7 +142,7 @@ const characterSlice = createSlice({
           // rarity, id 같으면 NFT가 먼저 오도록 (true < false → false가 우선)
           return (a.isNFT === b.isNFT) ? 0 : (a.isNFT ? 1 : -1);
         });
-      }      
+    }
   },
 });
 
