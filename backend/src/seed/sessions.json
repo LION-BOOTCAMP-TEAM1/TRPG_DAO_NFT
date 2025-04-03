@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "slug": "first-adventure-session",
+    "name": "첫 번째 모험 세션",
+    "description": "모여라! 이 세계를 구할 영웅들!",
+    "gameMasterId": 1,
+    "storyWorldId": 1,
+    "storyId": 1,
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "status": "WAITING_FOR_PLAYERS",
+    "participants": [
+      {
+        "userId": 1,
+        "isReady": true
+      },
+      {
+        "userId": 101,
+        "isReady": false
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "slug": "dark-dungeon-exploration",
+    "name": "어둠의 던전 탐험",
+    "description": "신비한 던전 속 숨겨진 보물을 찾아서",
+    "gameMasterId": 101,
+    "storyWorldId": 2,
+    "storyId": 2,
+    "minPlayers": 3,
+    "maxPlayers": 5,
+    "status": "IN_PROGRESS",
+    "participants": [
+      {
+        "userId": 1,
+        "isReady": true
+      },
+      {
+        "userId": 101,
+        "isReady": true
+      }
+    ]
+  }
+] 
