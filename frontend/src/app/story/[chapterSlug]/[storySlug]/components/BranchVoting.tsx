@@ -30,7 +30,9 @@ export const BranchVoting = ({
         disabled={isVoting}
       >
         <span className="font-medium">{choice.text}</span>{' '}
-        <span className="text-gray-500">({voteResults[choice.id] ?? 0}표)</span>
+        <span className="text-gray-500">
+          ({voteResults[choice.id - 1] ?? 0}표)
+        </span>
       </button>
     ))}
     <p className="text-sm text-gray-500 mt-3">
