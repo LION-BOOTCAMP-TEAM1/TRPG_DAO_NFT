@@ -70,6 +70,12 @@ const Header: FC<HeaderProps> = () => {
                       )}
                     </span>
                   </div>
+                  
+                  {user?.friendlyId && (
+                    <div className="modalst text-sm text-gray-500">
+                      <span>ID: {user.friendlyId}</span>
+                    </div>
+                  )}
 
                   <div className="modalst">
                     <FaPerson />

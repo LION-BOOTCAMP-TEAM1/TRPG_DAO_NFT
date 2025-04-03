@@ -24,7 +24,7 @@ console.log(`Render 환경 감지: ${isRenderEnv}`);
 console.log('==== 서버 시작 ====');
 console.log(`NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
 console.log(`SKIP_DB_SYNC: ${process.env.SKIP_DB_SYNC || 'false'}`);
-console.log(`PORT: ${process.env.PORT || '3000'}`);
+console.log(`PORT: ${process.env.BACKEND_ORIGIN || '3000'}`);
 console.log(`실행 시간: ${new Date().toISOString()}`);
 console.log('===================');
 
@@ -51,7 +51,9 @@ console.log('========================');
 const memoryUsage = process.memoryUsage();
 console.log('==== 메모리 진단 정보 ====');
 console.log(`RSS: ${Math.round(memoryUsage.rss / 1024 / 1024)}MB`);
-console.log(`Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`);
+console.log(
+  `Heap: ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}/${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`
+);
 console.log('========================');
 
 // 전역 에러 핸들러 설정
@@ -157,8 +159,8 @@ try {
           rss: `${rss}MB`,
           heapUsed: `${heapUsedMB}MB`,
           heapTotal: `${heapTotalMB}MB`,
-          heapUsage: `${Math.round((heapUsedMB / heapTotalMB) * 100)}%`
-        }
+          heapUsage: `${Math.round((heapUsedMB / heapTotalMB) * 100)}%`,
+        },
       });
     } catch (error) {
       console.error('Health check failed:', error);
@@ -337,7 +339,7 @@ if (process.env.NODE_ENV === 'production') {
 
     // Render 환경에서는 keepAlive 인터벌 최적화
     let keepAliveInterval: NodeJS.Timeout | null = null;
-    
+
     // 메모리 누수 방지를 위한 추가 설정
     // Render 환경에서는 활성 연결 유지를 위한 인터벌 최적화 (5분)
     if (isRenderEnv) {
@@ -374,7 +376,8 @@ if (process.env.NODE_ENV === 'production') {
         }
 
         // 간헐적 DB 연결 확인 - 불필요한 중복 확인 방지
-        if (uptime % 600 === 0) { // 10분마다
+        if (uptime % 600 === 0) {
+          // 10분마다
           try {
             await prisma.$queryRaw`SELECT 1`;
             console.log(
@@ -389,7 +392,9 @@ if (process.env.NODE_ENV === 'production') {
         }
       }, KEEPALIVE_INTERVAL);
 
-      console.log(`Render 환경용 keepAlive 인터벌 설정됨: ${KEEPALIVE_INTERVAL / 60000}분 간격`);
+      console.log(
+        `Render 환경용 keepAlive 인터벌 설정됨: ${KEEPALIVE_INTERVAL / 60000}분 간격`
+      );
     } else {
       // 비 Render 환경에서의 인터벌 (2분)
       keepAliveInterval = setInterval(async () => {
@@ -416,7 +421,6 @@ if (process.env.NODE_ENV === 'production') {
 
     process.on('SIGTERM', cleanupResources);
     process.on('SIGINT', cleanupResources);
-
   } catch (e) {
     console.error('최상위 레벨에서 서버 시작 오류 발생:', e);
   }
