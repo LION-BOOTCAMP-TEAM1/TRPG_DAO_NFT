@@ -93,3 +93,42 @@ html.dark {
 .MST {
   @apply border px-2 py-1 rounded-2xl cursor-pointer hover:bg-sky-100 transition text-xl;
 }
+
+@keyframes blink {
+  0%, 100% {
+    color: black;
+  }
+  50% {
+    color: white;
+  }
+}
+
+.blinking-box {
+  animation: blink 0.1s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.rarity-1 {
+  border-color: #d1d5db; /* gray-300 */
+  background-color: #d1d5db; /* gray-300 */
+}
+.rarity-2 {
+  border-color: #22c55e; /* green-500 */
+  background-color: #22c55e; /* green-500 */
+}
+.rarity-3 {
+  border-color: #3b82f6; /* blue-500 */
+  background-color: #3b82f6; /* blue-500 */
+}
+.rarity-4 {
+  border-color: #8b5cf6; /* purple-500 */
+  background-color: #8b5cf6; /* purple-500 */
+}
+.rarity-5 {
+  border-color: #facc15; /* yellow-400 */
+  background-color: #facc15; /* yellow-400 */
+}

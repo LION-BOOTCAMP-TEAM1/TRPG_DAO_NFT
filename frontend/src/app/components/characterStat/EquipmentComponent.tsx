@@ -53,10 +53,10 @@ const EquipmentComponent = () => {
         {/* 장비중 아이템 */}
         <p className="m-1">장비중 아이템</p>
         <div className="flex flex-wrap justify-between mb-4">
-          <EquipedItem image={myNFTs.equipment.weapon?.image} defaultImage="/slot1.png" removeEvent={() => dispatch(disarmItem(1))}/>
-          <EquipedItem image={myNFTs.equipment.armor?.image} defaultImage="/slot2.png" removeEvent={() => dispatch(disarmItem(2))}/>
-          <EquipedItem image={myNFTs.equipment.accessory?.image} defaultImage="/slot3.png" removeEvent={() => dispatch(disarmItem(3))}/>
-          <EquipedItem image={myNFTs.equipment.title?.image} defaultImage="/slot4.png" removeEvent={() => dispatch(disarmItem(4))}/>
+          <EquipedItem image={myNFTs.equipment.weapon?.image} rarity={myNFTs.equipment.weapon?.rarity} defaultImage="/slot1.png" removeEvent={() => dispatch(disarmItem(1))}/>
+          <EquipedItem image={myNFTs.equipment.armor?.image} rarity={myNFTs.equipment.armor?.rarity} defaultImage="/slot2.png" removeEvent={() => dispatch(disarmItem(2))}/>
+          <EquipedItem image={myNFTs.equipment.accessory?.image} rarity={myNFTs.equipment.accessory?.rarity} defaultImage="/slot3.png" removeEvent={() => dispatch(disarmItem(3))}/>
+          <EquipedItem image={myNFTs.equipment.title?.image} rarity={myNFTs.equipment.title?.rarity} defaultImage="/slot4.png" removeEvent={() => dispatch(disarmItem(4))}/>
         </div>
 
         {/* 능력치 */}
@@ -109,39 +109,51 @@ const EquipmentComponent = () => {
           tabs={['무기', '방어구', '악세사리', '칭호']}
           contents={[
             <div key="1">
-              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
-                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
+              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2 flex justify-center">
+                {weapons.length > 0 
+                ? <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
                 {Object.values(weapons).map((item, index) => (
                   <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
                 ))}
                 </div>
+                : <p className="text-white align-middle p-4">보유중인 아이템이 없습니다</p>
+                }
               </div>
             </div>,
             <div key="2">
-              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
-                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
+              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2 flex justify-center">
+                {armors.length > 0 
+                ? <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
                   {Object.values(armors).map((item, index) => (
                     <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
                   ))}
                 </div>
+                : <p className="text-white align-middle p-4">보유중인 아이템이 없습니다</p>
+                }
               </div>
             </div>,
             <div key="3">
-              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
-                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
+              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2 flex justify-center">
+                {accessories.length > 0 
+                ? <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
                   {Object.values(accessories).map((item, index) => (
                     <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
                   ))}
                 </div>
+                : <p className="text-white align-middle p-4">보유중인 아이템이 없습니다</p> 
+                }
               </div>
             </div>,
             <div key="4">
-              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2">
-                <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
+              <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent pr-2 flex justify-center">
+                {titles.length > 0 
+                ? <div className="grid grid-cols-5 w-full justify-items-center gap-y-4 p-4">
                   {Object.values(titles).map((item, index) => (
                     <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
                   ))}
                 </div>
+                : <p className="text-white align-middle p-4">보유중인 아이템이 없습니다</p> 
+                }
               </div>
             </div>
           ]}
