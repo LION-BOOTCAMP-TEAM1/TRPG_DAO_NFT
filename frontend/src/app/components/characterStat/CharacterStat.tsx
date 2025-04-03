@@ -2,7 +2,7 @@
 
 import EquipmentComponent from "./EquipmentComponent";
 
-import {getNFTList} from "@/utils/web3";
+import {getNFTList, randomMint} from "@/utils/web3";
 import { RootState, AppDispatch } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import BattleComponent from "../battle/BattleComponent";
@@ -74,6 +74,7 @@ const CharacterStat = () => {
       <div className='w-full flex justify-center items-center'>
         <div
           className="flex flex-col justify-center items-center px-4 py-2 bg-gradient-to-r from-yellow-400 to-red-500 text-white rounded-xl shadow-lg hover:scale-105 hover:brightness-110 active:scale-95 transition-all duration-300 mb-4"
+          onClick={() => randomMint(dispatch)}
         >
           <p className='font-bold text-lg'>🎁 아이템 뽑기!</p>
           <div className='font-light text-sm blinking-box'>단돈 0.01 🇪🇹🇭</div>

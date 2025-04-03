@@ -116,7 +116,7 @@ const EquipmentComponent = () => {
                   <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
                 ))}
                 </div>
-                : <p className="text-white">보유중인 아이템이 없습니다</p> 
+                : <p className="text-white align-middle p-4">보유중인 아이템이 없습니다</p>
                 }
               </div>
             </div>,
@@ -128,7 +128,7 @@ const EquipmentComponent = () => {
                     <ItemComponent item={item} key={index} clickEvent={(item) => setSelectedItem(item)} />
                   ))}
                 </div>
-                : <p className="text-white align-middle p-4">보유중인 아이템이 없습니다</p> 
+                : <p className="text-white align-middle p-4">보유중인 아이템이 없습니다</p>
                 }
               </div>
             </div>,
