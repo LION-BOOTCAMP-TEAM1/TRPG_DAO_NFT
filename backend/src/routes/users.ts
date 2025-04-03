@@ -39,18 +39,77 @@ const getUsers = async (req: express.Request, res: express.Response) => {
     select: {
       id: true,
       walletAddress: true,
-      createdAt: true
+      createdAt: true,
+      friendlyId: true
     }
   });
   
-  // 각 사용자에 대해 친숙한 ID 생성
-  const usersWithFriendlyId = users.map(user => ({
-    ...user,
-    friendlyId: createFriendlyUserId(user.walletAddress)
+  // DB에 friendlyId가 없는 사용자만 friendlyId 생성
+  const usersWithFriendlyId = await Promise.all(users.map(async user => {
+    if (!user.friendlyId) {
+      const friendlyId = createFriendlyUserId(user.walletAddress);
+      
+      // DB에 friendlyId 업데이트
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { friendlyId }
+      });
+      
+      return { ...user, friendlyId };
+    }
+    return user;
   }));
   
   res.json(usersWithFriendlyId);
 };
+
+/**
+ * @swagger
+ * /api/users/by-friendly-id/{friendlyId}:
+ *   get:
+ *     summary: friendlyId로 사용자 정보를 조회합니다
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: friendlyId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 친숙한 형태의 사용자 ID
+ *     responses:
+ *       200:
+ *         description: 사용자 정보를 반환합니다
+ *       404:
+ *         description: 사용자를 찾을 수 없습니다
+ */
+router.get("/by-friendly-id/:friendlyId", async (req, res) => {
+  const { friendlyId } = req.params;
+  
+  if (!friendlyId) {
+    return res.status(400).json({ error: "친숙한 ID가 필요합니다" });
+  }
+  
+  try {
+    const user = await prisma.user.findUnique({ 
+      where: { friendlyId },
+      select: {
+        id: true,
+        walletAddress: true,
+        createdAt: true,
+        friendlyId: true
+      }
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: "사용자를 찾을 수 없습니다" });
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error("사용자 조회 중 오류 발생:", error);
+    res.status(500).json({ error: "서버 오류가 발생했습니다" });
+  }
+});
 
 /**
  * @swagger
@@ -78,7 +137,8 @@ router.get("/:id", async (req, res) => {
     select: {
       id: true,
       walletAddress: true,
-      createdAt: true
+      createdAt: true,
+      friendlyId: true
     }
   });
   
@@ -86,13 +146,20 @@ router.get("/:id", async (req, res) => {
     return res.status(404).json({ error: "사용자를 찾을 수 없습니다" });
   }
   
-  // 친숙한 ID 추가
-  const userWithFriendlyId = {
-    ...user,
-    friendlyId: createFriendlyUserId(user.walletAddress)
-  };
+  // DB에 friendlyId가 없는 경우 생성하고 DB 업데이트
+  if (!user.friendlyId) {
+    const friendlyId = createFriendlyUserId(user.walletAddress);
+    
+    // DB에 friendlyId 업데이트
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { friendlyId }
+    });
+    
+    return res.json({ ...user, friendlyId });
+  }
   
-  res.json(userWithFriendlyId);
+  res.json(user);
 });
 
 /**
@@ -142,19 +209,93 @@ const createUser = async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const user = await prisma.user.upsert({
-    where: { walletAddress: wallet },
-    update: {}, // 업데이트할 내용이 없으면 빈 객체
-    create: { walletAddress: wallet },
-  });
+  // nonce 생성 추가
+  const nonce = `${require('crypto').randomBytes(16).toString('hex')}`;
+  const friendlyId = createFriendlyUserId(wallet);
 
-  // 친숙한 ID 추가 (응답에만 포함)
-  const userWithFriendlyId = {
-    ...user,
-    friendlyId: createFriendlyUserId(user.walletAddress)
-  };
+  try {
+    // 사용자 조회
+    const existingUser = await prisma.user.findUnique({ 
+      where: { walletAddress: wallet } 
+    });
 
-  res.status(201).json(userWithFriendlyId);
+    if (existingUser) {
+      // 기존 사용자 업데이트
+      const updatedUser = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: { nonce }
+      });
+      console.log('사용자 업데이트 결과:', updatedUser);
+
+      // upsert 이후에 확인 쿼리 추가
+      const verifiedUser = await prisma.user.findUnique({
+        where: { walletAddress: wallet }
+      });
+      
+      if (!verifiedUser || verifiedUser.nonce !== nonce) {
+        console.log('nonce 업데이트 실패, 강제 업데이트 시도');
+        await prisma.user.update({
+          where: { walletAddress: wallet },
+          data: { nonce }
+        });
+      }
+    } else {
+      // 새 사용자 생성
+      const newUser = await prisma.user.create({
+        data: { 
+          walletAddress: wallet, 
+          nonce, 
+          friendlyId 
+        }
+      });
+      console.log('새 사용자 생성 결과:', newUser);
+
+      // upsert 이후에 확인 쿼리 추가
+      const verifiedUser = await prisma.user.findUnique({
+        where: { walletAddress: wallet }
+      });
+      
+      if (!verifiedUser || verifiedUser.nonce !== nonce) {
+        console.log('nonce 업데이트 실패, 강제 업데이트 시도');
+        await prisma.user.update({
+          where: { walletAddress: wallet },
+          data: { nonce }
+        });
+      }
+    }
+
+    res.status(201).json({ walletAddress: wallet, friendlyId });
+  } catch (error: any) {
+    console.error("사용자 생성 중 오류 발생:", error);
+    
+    // 중복된 friendlyId로 인한 오류인 경우 처리
+    if (error.code === 'P2002' && error.meta?.target?.includes('friendlyId')) {
+      // 새로운 friendlyId 생성 시도 (랜덤 요소 추가)
+      const uniqueFriendlyId = `${friendlyId}-${Math.floor(Math.random() * 1000)}`;
+      
+      try {
+        const retryUser = await prisma.user.upsert({
+          where: { walletAddress: wallet },
+          update: { 
+            friendlyId: uniqueFriendlyId,
+            nonce
+          },
+          create: { 
+            walletAddress: wallet,
+            nonce,
+            friendlyId: uniqueFriendlyId
+          },
+        });
+        
+        return res.status(201).json(retryUser);
+      } catch (retryError) {
+        console.error("중복 friendlyId 오류 해결 중 추가 오류:", retryError);
+        return res.status(500).json({ error: "사용자 생성 중 오류가 발생했습니다" });
+      }
+    }
+    
+    res.status(500).json({ error: "서버 오류가 발생했습니다" });
+  }
 };
 
 // 라우터에 핸들러 연결

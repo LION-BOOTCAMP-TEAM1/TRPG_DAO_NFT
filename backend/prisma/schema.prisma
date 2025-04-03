@@ -12,15 +12,15 @@ model User {
   walletAddress      String               @unique
   createdAt          DateTime             @default(now())
   nonce              String?
-  friendlyId         String?
+  friendlyId         String?              @unique
   chapterProgress    ChapterProgress[]
   characters         Character[]
   playerNFTs         PlayerNFT[]
+  gameMasterSessions Session[]            @relation("GameMasterSession")
   SessionParticipant SessionParticipant[]
   storyProgress      StoryProgress[]
   UserAction         UserAction[]
   Session            Session[]            @relation("UserSession")
-  gameMasterSessions Session[]            @relation("GameMasterSession")
 }
 
 model CharacterClass {
@@ -280,8 +280,8 @@ model Session {
   storyWorldId Int
   gameMasterId Int
   characters   Character[]
-  storyWorld   StoryWorld           @relation(fields: [storyWorldId], references: [id])
   gameMaster   User                 @relation("GameMasterSession", fields: [gameMasterId], references: [id])
+  storyWorld   StoryWorld           @relation(fields: [storyWorldId], references: [id])
   participants SessionParticipant[]
   progress     SessionProgress?
   users        User[]               @relation("UserSession")

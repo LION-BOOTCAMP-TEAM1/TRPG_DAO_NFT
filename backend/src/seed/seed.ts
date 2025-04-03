@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { prisma } from '../utils/prisma-manager'; // prisma-manager에서 인스턴스 가져오기
+import { createFriendlyUserId } from '../utils/userUtils'; // friendlyId 생성 유틸리티 추가
 
 // 환경 변수 로드
 dotenv.config();
@@ -283,55 +284,53 @@ async function customUpsert<T extends { id?: number }>(
   entityName: string,
   identifierValue: string | number,
 ) {
-  // 먼저 해당 데이터가 이미 존재하는지 확인
-  const existing = await model.findUnique({
-    where
-  });
-
-  // 업데이트용 데이터에서 id 필드 제거
-  const updateData = { ...data };
-  if ('id' in updateData) {
-    delete updateData.id;
-  }
-
-  if (existing) {
-    duplicatesFound++;
-    
-    if (OVERWRITE_DUPLICATES) {
-      // 덮어쓰기 모드: 업데이트 실행 (id 필드 제외)
-      await model.update({
-        where: { id: existing.id },
-        data: updateData // id가 제거된 데이터로 업데이트
-      });
-      updatedItems++;
-      
-      if (duplicatesFound % 10 === 0) {
-        console.log(`🔄 중복 ${entityName} 업데이트: ${identifierValue} (총 ${duplicatesFound}개 중복 발견)`);
-      }
-      
-      return existing.id;
-    } else {
-      // 건너뛰기 모드: 업데이트 없이 기존 ID 반환
-      skippedItems++;
-      
-      if (duplicatesFound % 10 === 0) {
-        console.log(`⏭️ 중복 ${entityName} 건너뜀: ${identifierValue} (총 ${duplicatesFound}개 중복 발견)`);
-      }
-      
-      return existing.id;
+  try {
+    // 최대한 오류 없이 처리하기 위한 구현
+    // where 조건에 friendlyId가 있는지 확인하고, 있다면 제거
+    const modifiedWhere = { ...where };
+    if ('friendlyId' in modifiedWhere) {
+      console.log(`${entityName} 쿼리에서 friendlyId 제거`);
+      delete modifiedWhere.friendlyId;
     }
-  } else {
-    // 새 데이터 생성 (여기서는 id 포함해도 됨)
-    const result = await model.create({
-      data: data
+
+    // where 조건으로 레코드 찾기
+    const existingItem = await model.findUnique({
+      where: modifiedWhere,
     });
-    newItemsCreated++;
-    
-    if (newItemsCreated % 10 === 0) {
-      console.log(`✅ 새 ${entityName} 생성: ${identifierValue} (총 ${newItemsCreated}개 생성)`);
+
+    if (existingItem) {
+      // friendlyId가 data에 있는지 확인
+      const modifiedData = { ...data };
+      if ('friendlyId' in modifiedData && !('friendlyId' in model)) {
+        console.log(`${entityName} 업데이트에서 friendlyId 제거`);
+        delete modifiedData.friendlyId;
+      }
+
+      // 레코드 업데이트
+      const updatedItem = await model.update({
+        where: { id: existingItem.id },
+        data: modifiedData,
+      });
+      console.log(`🔄 ${entityName} 업데이트: ${identifierValue}`);
+      return updatedItem;
+    } else {
+      // friendlyId가 data에 있는지 확인
+      const modifiedData = { ...data };
+      if ('friendlyId' in modifiedData && !('friendlyId' in model)) {
+        console.log(`${entityName} 생성에서 friendlyId 제거`);
+        delete modifiedData.friendlyId;
+      }
+
+      // 레코드 생성
+      const newItem = await model.create({
+        data: modifiedData,
+      });
+      console.log(`✅ 새 ${entityName} 생성: ${identifierValue}`);
+      return newItem;
     }
-    
-    return result.id;
+  } catch (error) {
+    console.error(`${entityName} 처리 중 오류:`, error);
+    throw error;
   }
 }
 
@@ -1221,52 +1220,109 @@ export async function seedCharacterClasses() {
 
 // 사용자(User) 시딩 함수 추가
 export async function seedUsers() {
-  // userUtils에서 createFriendlyUserId 함수 import
-  const { createFriendlyUserId } = require('../utils/userUtils');
-  
+  // 시드 사용자 데이터
   const users = [
-    {
-      id: 1,
-      walletAddress: "0x0000000000000000000000000000000000000001",
-      nonce: "random-nonce-1"
-    },
-    {
-      id: 101, 
-      walletAddress: "0x0000000000000000000000000000000000000101",
-      nonce: "random-nonce-2"
-    }
+    { id: 1, walletAddress: '0x1234567890abcdef1234567890abcdef12345678', nonce: null },
+    { id: 2, walletAddress: '0xabcdef1234567890abcdef1234567890abcdef12', nonce: null },
+    // 더 많은 사용자 데이터를 추가할 수 있습니다
   ];
   
-  // 데이터베이스에 직접 쿼리를 실행하여 사용자를 추가합니다
+  // Prisma Client API를 사용하여 사용자를 추가합니다
   for (const user of users) {
     try {
-      // friendlyId 생성
-      const friendlyId = createFriendlyUserId(user.walletAddress);
+      // 기존 사용자 확인 (walletAddress로만 검색)
+      const existingUser = await prisma.user.findUnique({
+        where: { walletAddress: user.walletAddress }
+      });
       
-      // 기존 사용자 확인 (raw SQL 사용)
-      const existingUsers = await prisma.$queryRaw`
-        SELECT id FROM "User" WHERE id = ${user.id}
-      `;
-      
-      if (Array.isArray(existingUsers) && existingUsers.length > 0) {
-        // 기존 사용자가 있으면 raw SQL로 업데이트
-        await prisma.$executeRaw`
-          UPDATE "User" 
-          SET "walletAddress" = ${user.walletAddress}, "nonce" = ${user.nonce}, "friendlyId" = ${friendlyId}
-          WHERE id = ${user.id}
-        `;
-        console.log(`🔄 사용자 업데이트: ID ${user.id}, friendlyId ${friendlyId}`);
+      if (existingUser) {
+        // 기존 사용자가 있으면 업데이트 (friendlyId는 DB 구조에 있는 경우에만 설정)
+        const friendlyIdValue = user.walletAddress ? createFriendlyUserId(user.walletAddress) : undefined;
+        
+        try {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { 
+              walletAddress: user.walletAddress, 
+              nonce: user.nonce,
+              // SchemaInspector를 사용하여 필드 존재 여부를 확인하는 것이 이상적이지만, 
+              // 지금은 try-catch로 처리
+              friendlyId: friendlyIdValue
+            }
+          });
+          console.log(`🔄 사용자 업데이트: ID ${user.id}`);
+        } catch (updateError) {
+          // friendlyId 컬럼이 없는 경우 friendlyId 없이 다시 시도
+          console.log(`friendlyId 없이 사용자 업데이트 재시도: ID ${user.id}`);
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { 
+              walletAddress: user.walletAddress, 
+              nonce: user.nonce
+            }
+          });
+        }
       } else {
-        // 새 사용자 생성 (raw SQL 사용)
-        await prisma.$executeRaw`
-          INSERT INTO "User" (id, "walletAddress", "nonce", "friendlyId", "createdAt") 
-          VALUES (${user.id}, ${user.walletAddress}, ${user.nonce}, ${friendlyId}, NOW())
-        `;
-        console.log(`✅ 새 사용자 생성: ID ${user.id}, friendlyId ${friendlyId}`);
+        // 새 사용자 생성 (friendlyId는 DB 구조에 있는 경우에만 설정)
+        const friendlyIdValue = user.walletAddress ? createFriendlyUserId(user.walletAddress) : undefined;
+        
+        try {
+          await prisma.user.create({
+            data: { 
+              id: user.id,
+              walletAddress: user.walletAddress, 
+              nonce: user.nonce,
+              friendlyId: friendlyIdValue,
+              createdAt: new Date()
+            }
+          });
+          console.log(`✅ 새 사용자 생성: ID ${user.id}`);
+        } catch (createError) {
+          // friendlyId 컬럼이 없는 경우 friendlyId 없이 다시 시도
+          console.log(`friendlyId 없이 사용자 생성 재시도: ID ${user.id}`);
+          await prisma.user.create({
+            data: { 
+              id: user.id,
+              walletAddress: user.walletAddress, 
+              nonce: user.nonce,
+              createdAt: new Date()
+            }
+          });
+        }
       }
     } catch (error) {
-      console.error(`사용자 시딩 중 오류:`, error);
-      throw error;
+      // 오류 발생 시 friendlyId 없이 시도
+      console.error(`사용자 시딩 중 오류, friendlyId 없이 재시도:`, error);
+      
+      try {
+        const existingUserRetry = await prisma.user.findUnique({
+          where: { id: user.id }
+        });
+        
+        if (existingUserRetry) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { 
+              walletAddress: user.walletAddress, 
+              nonce: user.nonce
+            }
+          });
+          console.log(`🔄 사용자 업데이트(재시도): ID ${user.id}`);
+        } else {
+          await prisma.user.create({
+            data: { 
+              id: user.id,
+              walletAddress: user.walletAddress, 
+              nonce: user.nonce,
+              createdAt: new Date()
+            }
+          });
+          console.log(`✅ 새 사용자 생성(재시도): ID ${user.id}`);
+        }
+      } catch (retryError) {
+        console.error(`사용자 시딩 재시도 중 오류:`, retryError);
+        throw retryError;
+      }
     }
   }
 }
