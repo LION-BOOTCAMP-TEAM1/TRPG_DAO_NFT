@@ -75,6 +75,19 @@
   },
 
   {
+    "slug": "follow-cult-symbols",
+    "questSlug": "cult-pursuit-or-contact",
+    "text": "🔍 수상한 기호를 따라가 본다",
+    "nextStorySlug": "cult-stirring"
+  },
+  {
+    "slug": "contact-cult-agent",
+    "questSlug": "cult-pursuit-or-contact",
+    "text": "🕵️‍♀️ 직접 그들과 접촉해 본다",
+    "nextStorySlug": "cult-stirring"
+  },
+
+  {
     "slug": "observe-secret-deal",
     "questSlug": "explore-market",
     "text": "🕵️‍♂️ 수상한 거래를 몰래 관찰한다",
@@ -121,6 +134,7 @@
     "text": "🔥 의식을 따라하며 완전히 동화되는 척한다",
     "nextStorySlug": "ritual-chamber"
   },
+  
   {
     "slug": "resist-and-escape",
     "questSlug": "cult-initiation-test",

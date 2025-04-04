@@ -20,7 +20,11 @@
     "storySlug": "royal-market",
     "title": "시장 탐방",
     "description": "당신은 시장을 자유롭게 돌아다닌다. 사람들과 대화하거나 흥미로운 아이템을 살펴볼 수 있다.",
-    "choices": ["talk-to-spice-merchant", "observe-secret-deal", "join-market-show"]
+    "choices": [
+      "talk-to-spice-merchant",
+      "observe-secret-deal",
+      "join-market-show"
+    ]
   },
 
   {
@@ -45,7 +49,7 @@
 
   {
     "slug": "cult-pursuit-or-contact",
-    "storySlug": "cult-stirring",
+    "storySlug": "shady-deal-complete",
     "title": "이교도의 흔적",
     "description": "마을 안에서 퍼지는 이교도의 기운. 추적하여 실체를 밝힐 것인가, 혹은 그들과 은밀히 접촉할 것인가?",
     "choices": ["follow-cult-symbols", "contact-cult-agent"]
@@ -68,12 +72,6 @@
     "storySlug": "ritual-chamber",
     "title": "의식의 결정",
     "description": "당신은 이교도의 의식에 참여하며, 그들의 진정한 신뢰를 얻을 기회를 갖게 된다. 그러나 이 선택은 돌이킬 수 없다.",
-    "choices": [
-      "swear-to-cult",
-      "refuse-ritual",
-      "pretend-and-escape"
-    ]
+    "choices": ["swear-to-cult", "refuse-ritual", "pretend-and-escape"]
   }
-
-
 ]

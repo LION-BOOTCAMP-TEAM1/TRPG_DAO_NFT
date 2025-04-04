@@ -834,6 +834,17 @@ export async function seedStoryScenes() {
     storySlugToId.set(story.slug, story.id);
   }
   
+  // 기존 스토리씬 맵 구축 (storyId_sequence를 키로 사용)
+  const existingSceneMap = new Map();
+  const allScenes = await prisma.storyScene.findMany();
+  
+  for (const scene of allScenes) {
+    const key = `${scene.storyId}_${scene.sequence}`;
+    existingSceneMap.set(key, scene);
+  }
+  
+  console.log(`기존 스토리씬 ${allScenes.length}개 로드 완료. 중복 체크 시작...`);
+  
   // 스토리 씬 추가 - 배치 처리 사용
   await processBatch(
     storyScenes as unknown as StoryScene[],
@@ -846,21 +857,41 @@ export async function seedStoryScenes() {
         return;
       }
       
-      // 스토리 씬 생성 또는 업데이트
-      await prisma.storyScene.upsert({
-        where: {
-          id: scene.id || -1,  // ID가 없으면 새로 생성되도록 존재하지 않는 ID 사용
-        },
-        update: {
-          text: scene.text,
-          sequence: scene.sequence,
-        },
-        create: {
-          storyId: storyId,
-          text: scene.text,
-          sequence: scene.sequence,
-        },
-      });
+      // 중복 체크를 위한 키 생성
+      const key = `${storyId}_${scene.sequence}`;
+      const existingScene = existingSceneMap.get(key);
+      
+      try {
+        if (existingScene) {
+          // 이미 존재하는 경우 업데이트만 수행 (내용이 다른 경우만)
+          if (existingScene.text !== scene.text) {
+            await prisma.storyScene.update({
+              where: { id: existingScene.id },
+              data: { text: scene.text }
+            });
+            console.log(`🔄 스토리 씬 업데이트: 스토리 ID ${storyId}, 시퀀스 ${scene.sequence}`);
+            updatedItems++;
+          } else {
+            console.log(`⏩ 변경 없음 건너뜀: 스토리 ID ${storyId}, 시퀀스 ${scene.sequence}`);
+            skippedItems++;
+          }
+        } else {
+          // 새로 생성
+          const newScene = await prisma.storyScene.create({
+            data: {
+              storyId: storyId,
+              text: scene.text,
+              sequence: scene.sequence
+            }
+          });
+          // 새로 생성된 씬을 맵에 추가 (이후 중복 체크를 위해)
+          existingSceneMap.set(key, newScene);
+          console.log(`✅ 새 스토리 씬 생성: 스토리 ID ${storyId}, 시퀀스 ${scene.sequence}`);
+          newItemsCreated++;
+        }
+      } catch (error) {
+        console.error(`스토리 씬 처리 중 오류: 스토리 ${scene.storySlug}, 시퀀스 ${scene.sequence}`, error);
+      }
     },
     '스토리 씬'
   );
@@ -919,6 +950,15 @@ export async function seedBranchPointScenes() {
     branchPointSlugToId.set(bp.slug, bp.id);
   }
   
+  // 기존 브랜치 포인트 씬 맵 구축
+  const existingSceneMap = new Map();
+  const allScenes = await prisma.branchPointScene.findMany();
+  
+  for (const scene of allScenes) {
+    const key = `${scene.branchPointId}_${scene.order}`;
+    existingSceneMap.set(key, scene);
+  }
+  
   // 브랜치 포인트 씬 추가 - 배치 처리 사용
   await processBatch(
     branchPointScenes as unknown as BranchPointScene[],
@@ -931,21 +971,41 @@ export async function seedBranchPointScenes() {
         return;
       }
       
-      // 브랜치 포인트 씬 생성 또는 업데이트
-      await prisma.branchPointScene.upsert({
-        where: {
-          id: scene.id || -1,  // ID가 없으면 새로 생성되도록 존재하지 않는 ID 사용
-        },
-        update: {
-          text: scene.text,
-          order: scene.order,
-        },
-        create: {
-          branchPointId: branchPointId,
-          text: scene.text,
-          order: scene.order,
-        },
-      });
+      // 중복 체크를 위한 키 생성
+      const key = `${branchPointId}_${scene.order}`;
+      const existingScene = existingSceneMap.get(key);
+      
+      try {
+        if (existingScene) {
+          // 이미 존재하는 경우 업데이트만 수행 (내용이 다른 경우만)
+          if (existingScene.text !== scene.text) {
+            await prisma.branchPointScene.update({
+              where: { id: existingScene.id },
+              data: { text: scene.text, order: scene.order }
+            });
+            console.log(`🔄 브랜치 포인트 씬 업데이트: 브랜치 포인트 ID ${branchPointId}, 순서 ${scene.order}`);
+            updatedItems++;
+          } else {
+            console.log(`⏩ 변경 없음 건너뜀: 브랜치 포인트 ID ${branchPointId}, 순서 ${scene.order}`);
+            skippedItems++;
+          }
+        } else {
+          // 새로 생성
+          const newScene = await prisma.branchPointScene.create({
+            data: {
+              branchPointId: branchPointId,
+              text: scene.text,
+              order: scene.order
+            }
+          });
+          // 새로 생성된 씬을 맵에 추가
+          existingSceneMap.set(key, newScene);
+          console.log(`✅ 새 브랜치 포인트 씬 생성: 브랜치 포인트 ID ${branchPointId}, 순서 ${scene.order}`);
+          newItemsCreated++;
+        }
+      } catch (error) {
+        console.error(`브랜치 포인트 씬 처리 중 오류: 브랜치 포인트 ${scene.branchPointSlug}, 순서 ${scene.order}`, error);
+      }
     },
     '브랜치 포인트 씬'
   );
