@@ -9,6 +9,7 @@ import { useChapterDetail } from './hooks/useChapterDetail';
 import { useImageLoader } from './hooks/useImageLoader';
 import { useSession } from './hooks/useSession';
 import { useCurrentUser } from './hooks/useCurrentUser';
+import FantasyButton from '../../components/FantasyButton';
 
 export default function ChapterClient() {
   const router = useRouter();
@@ -51,17 +52,19 @@ export default function ChapterClient() {
   if (loading || !session || !chapter) {
     console.log('[render] Still loading...', { loading, session, chapter });
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f4efe1]">
+      <div className="flex items-center justify-center min-h-screen bg-fantasy-bronze dark:bg-fantasy-background">
         Loading chapter...
       </div>
     );
   }
 
   return (
-    <div className="p-6 min-h-screen bg-[#f4efe1] space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#3e2d1c]">{chapter.title}</h1>
-        <p className="text-[#5e4b3c] mb-4">{chapter.description}</p>
+    <div className="p-6 min-h-screen space-y-6 mt-12 bg-fantasy-bronze dark:bg-fantasy-background text-fantasy-text">
+      <div className="pl-6">
+        <h1 className="text-2xl font-bold text-fantasy-text">
+          {chapter.title}
+        </h1>
+        <p className="text-fantasy-text/80 mb-4">{chapter.description}</p>
 
         {imageSrc && (
           <div className="w-full max-w-3xl mx-auto">
@@ -70,20 +73,21 @@ export default function ChapterClient() {
               alt={chapter.title}
               width={800}
               height={450}
-              className="rounded shadow-md object-cover w-full h-auto"
+              className="rounded shadow-md object-cover w-full h-auto border border-fantasy-copper"
             />
           </div>
         )}
       </div>
 
       <div className="space-y-2">
-        <button
+        <FantasyButton
           onClick={handleStartStory}
-          disabled={isJoining}
-          className="inline-block px-4 py-2 mt-4 bg-[#1e40af] text-white rounded hover:bg-[#374fc9] transition-colors disabled:opacity-50"
+          variant="primary"
+          size="lg"
+          className={isJoining ? 'opacity-50 cursor-not-allowed' : ''}
         >
           👉 스토리 시작하기
-        </button>
+        </FantasyButton>
       </div>
     </div>
   );
