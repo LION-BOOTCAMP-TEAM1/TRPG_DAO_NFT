@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useScenePlayback } from '../[storySlug]/hooks/useScenePlayback';
 import { useImageLoader } from '../hooks/useImageLoader';
 import { useDaoContract } from './hooks/useDaoContract';
+import { useChapterDetail } from '../hooks/useChapterDetail';
 import { useStoryDetail } from '../[storySlug]/hooks/useStoryDetail';
 import { useProposalHandler } from './hooks/useProposalHandler';
 
@@ -12,9 +13,12 @@ import { SceneDisplay } from './components/SceneDisplay';
 import { QuestSelector } from './components/QuestSelector';
 import { BranchVoting } from './components/BranchVoting';
 import { VotingResult } from './components/VotingResult';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 const DetailClient = () => {
   const { storySlug, chapterSlug } = useParams();
+  const { chapter } = useChapterDetail(chapterSlug as string);
   const { story } = useStoryDetail(storySlug as string);
   const { displayedScenes, currentText, setIsSkipping, isSceneComplete } =
     useScenePlayback(story?.StoryScene ?? []);
@@ -36,9 +40,22 @@ const DetailClient = () => {
   } = useProposalHandler({
     dao,
     branchPoint: story?.BranchPoint?.[0],
-    sessionId: 1,
+    sessionId: chapter?.id ?? 1,
     onVoteEnd: () => setIsSkipping(true),
   });
+
+  const errorToast = (err: string) => {
+    toast('Proposal 생성 오류', {
+      description: err,
+      id: 'proposal-error',
+    });
+  };
+
+  useEffect(() => {
+    if (proposalError) {
+      errorToast(proposalError);
+    }
+  }, [proposalError]);
 
   if (!story) {
     return (
@@ -93,10 +110,6 @@ const DetailClient = () => {
             chapterSlug={chapterSlug as string}
           />
         )}
-
-      {proposalError && (
-        <p className="text-red-600 mt-4">❌ 오류: {proposalError}</p>
-      )}
     </div>
   );
 };

@@ -119,8 +119,7 @@ export function useProposalHandler({
           setProposalCreated(true);
 
           // 종료 여부 확인
-          const now = Math.floor(Date.now() / 1000);
-          if (!existing.active || Number(existing.voteEndTime) < now) {
+          if (!existing.active) {
             setVoteEnded(true);
             const results: bigint[] = await dao.getProposalResults(existingId);
             const numeric = results.map(Number);
