@@ -1,15 +1,18 @@
 import { Item } from "@/store/types";
 import { useState } from "react";
 import { toast } from "sonner";
+import { setForSale } from "@/utils/web3_market";
 
 interface MyNFTItemProps {
     nft: Item;
     approve: Boolean;
+    refresh: () => void;
 }
 
-const MyNFTItem = ({nft, approve}: MyNFTItemProps) => {
+const MyNFTItem = ({nft, approve, refresh}: MyNFTItemProps) => {
   const [amount, setAmount] = useState('');
   const [price, setPrice] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const getTypeString = (v: number) => {
     switch(v){
@@ -26,7 +29,7 @@ const MyNFTItem = ({nft, approve}: MyNFTItemProps) => {
     }
   }
 
-  const handleSale = () => {
+  const handleSale = async () => {
     if(Number.isNaN(Number(amount))) {
         toast.error('수량을 숫자로 입력해주세요');
         return;
@@ -40,6 +43,14 @@ const MyNFTItem = ({nft, approve}: MyNFTItemProps) => {
         return;
     }
     
+    setIsLoading(true);
+    const result = await setForSale(nft.id, Number(amount), price);
+    if(result) {
+        setAmount('');
+        setPrice('');
+        refresh();
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -78,14 +89,35 @@ const MyNFTItem = ({nft, approve}: MyNFTItemProps) => {
         <div className="relative group inline-block">
             <button
                 onClick={() => handleSale()}
-                disabled={!approve}
+                disabled={!approve || isLoading}
                 className={`px-3 py-1 rounded text-sm transition 
                 ${approve 
                     ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
                     : "bg-zinc-600 text-zinc-400 cursor-not-allowed opacity-60"
                 }`}
             >
-                등록
+                {isLoading
+                ? <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    ></circle>
+                    <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                    ></path>
+                </svg>
+                :<p>등록</p>}
             </button>
 
             {/* 안내 텍스트 (툴팁) */}

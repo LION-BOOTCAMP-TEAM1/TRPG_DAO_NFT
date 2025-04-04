@@ -12,14 +12,21 @@ export default function NFTMarketplace() {
   const myNFTs = useSelector((state: RootState) => state.character);
   const [marketItems, setMarketItems] = useState<saleContent[]>([]);
   const [approvedReady, setApprovedReady] = useState(false);
+  const [refreshApproval, setRefreshApproval] = useState(0);
+
+  const fetchSales = async () => {
+    const list = await getSaleList();
+    if (list) {
+      setMarketItems([...list]);
+    }
+  };
+
+  const refresh = () => {
+    fetchSales();
+    setRefreshApproval((v) => v + 1);
+  };
+
   useEffect(() => {
-    const fetchSales = async () => {
-      const list = await getSaleList();
-      if (list) {
-        setMarketItems([...list]);
-      }
-    };
-  
     fetchSales();
   }, []);
   
@@ -71,12 +78,12 @@ export default function NFTMarketplace() {
         <div className="flex flex-col h-full overflow-hidden">
           <div className="flex flex-row items-center gap-10 mb-3">
             <h2 className="text-xl font-semibold">🎒 내 NFT</h2>
-            <ApproveButton onApproved={() => setApprovedReady(true)} />
+            <ApproveButton onApproved={() => setApprovedReady(true)} refresh={refreshApproval} />
           </div>
           <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent pb-6">
             {myNFTs.inventory.length === 0 && <p className="p-4 text-center">보유한 NFT가 없습니다</p>}
             {myNFTs.inventory.map((nft) => (
-              <MyNFTItem nft={nft} approve={approvedReady} />
+              <MyNFTItem nft={nft} approve={approvedReady} refresh={refresh} />
             ))}
           </div>
         </div>

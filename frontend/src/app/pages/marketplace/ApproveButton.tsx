@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import { setApprovalForAll, isApprovedForAll } from "@/utils/web3";
 
-export default function ApproveButton({onApproved}: any) {
+export default function ApproveButton({onApproved, refresh}: any) {
     const [isLoading, setIsLoading] = useState(false);
     const [isApproved, setIsApproved] = useState(false);
 
+    const fetchApproval = async () => {
+        const result = await isApprovedForAll();
+        setIsApproved(result);
+    };
+
     useEffect(() => {
-        const fetchSales = async () => {
-            const result = await isApprovedForAll();
-            setIsApproved(result);
-        };
-        fetchSales();
+        fetchApproval();
     }, [])
+
+    useEffect(() => {
+        fetchApproval();
+      }, [refresh]);
 
     useEffect(() => {
         if (isApproved && onApproved) {
@@ -61,7 +66,7 @@ export default function ApproveButton({onApproved}: any) {
           승인 중...
         </span>
       ) : isApproved ? (
-        "승인 완료"
+        "승인됨"
       ) : (
         "NFT 승인"
       )}
