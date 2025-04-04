@@ -57,7 +57,7 @@ const Header: FC<HeaderProps> = () => {
                 Story
               </span>
             </Link>
-            <Link href={'/marketplace'}>
+            <Link href={'/pages/marketplace'}>
               <span className="text-fantasy-text dark:text-[var(--fantasy-text)] text-sm hover:text-fantasy-gold dark:hover:text-[var(--fantasy-gold)]">
                 Marketplace
               </span>
@@ -65,12 +65,13 @@ const Header: FC<HeaderProps> = () => {
           </div>
 
           <div className="flex items-center space-x-6 w-40 justify-end">
-            <Login 
-              buttonClassName="px-4 py-1 bg-fantasy-bronze dark:bg-[var(--fantasy-blood)] text-white dark:text-[var(--fantasy-gold)] text-sm rounded-full hover:opacity-90 transition-opacity"
-            />
+            <Login buttonClassName="px-4 py-1 bg-fantasy-bronze dark:bg-[var(--fantasy-blood)] text-white dark:text-[var(--fantasy-gold)] text-sm rounded-full hover:opacity-90 transition-opacity" />
 
             <div className="flex justify-center">
-              <ThemeToggleButton onToggle={toggleTheme} isDarkMode={isDarkMode} />
+              <ThemeToggleButton
+                onToggle={toggleTheme}
+                isDarkMode={isDarkMode}
+              />
             </div>
           </div>
         </div>

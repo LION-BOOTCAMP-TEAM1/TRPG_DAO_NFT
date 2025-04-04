@@ -5,6 +5,7 @@ import { ReduxProvider } from "../store/provider";
 import AuthProvider from './providers/AuthProvider';
 import LayoutWrapper from './components/LayoutWrapper';
 import ThemeProvider from './components/ThemeProvider';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
                 {children}
               </LayoutWrapper>
             </ThemeProvider>
+            <Toaster richColors position="top-right" />
           </AuthProvider>
         </ReduxProvider>
       </body>

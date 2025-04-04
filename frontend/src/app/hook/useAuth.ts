@@ -43,10 +43,9 @@ export default function useAuth() {
     try {
       const response = await api.post('/api/characters', {
         ...characterData,
-        userId: authState.user.id, // 유저 ID 포함
+        userId: authState.user.id,
       });
 
-      console.log('캐릭터 생성 성공:', response.data);
       return response.data;
     } catch (error) {
       console.error('캐릭터 생성 오류:', error);
@@ -339,7 +338,6 @@ export default function useAuth() {
 
       try {
         const response = await api.get('/api/auth/me');
-        console.log('📌 /api/auth/me 응답:', response.data);
         if (response.data && response.data.user) {
           // Store or update friendlyId in localStorage
           if (response.data.user.friendlyId) {
