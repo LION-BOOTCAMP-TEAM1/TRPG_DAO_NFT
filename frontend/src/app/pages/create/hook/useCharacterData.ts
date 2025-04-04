@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import useAuth from '@/app/hook/useAuth';
+import { classStats } from '../components/CharacterStats';
 
 export default function useCharacterData() {
   const { user, createCharacter } = useAuth();
@@ -51,8 +52,8 @@ export default function useCharacterData() {
       return;
     }
 
-    if (!/[a-zA-Z]/.test(characterName)) {
-      setMessage('영문자를 포함하세요.');
+    if (/^[ㄱ-ㅎㅏ-ㅣ]+$/.test(characterName)) {
+      setMessage('완성된 글자를 입력해주세요.');
       return;
     }
 
@@ -66,6 +67,9 @@ export default function useCharacterData() {
       return;
     }
 
+    const stats =
+      classStats[selectedClass?.id as keyof typeof classStats] || {};
+
     try {
       const response = await createCharacter({
         name: characterName,
@@ -73,6 +77,7 @@ export default function useCharacterData() {
         gender,
         age: Number(age),
         attribute,
+        ...stats,
       });
 
       if (response) {

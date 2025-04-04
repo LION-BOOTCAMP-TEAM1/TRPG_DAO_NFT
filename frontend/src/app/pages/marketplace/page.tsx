@@ -1,5 +1,10 @@
 'use client';
 
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
+import { getSaleList } from "@/utils/web3_market";
+import { useEffect } from "react";
+
 const marketItems = Array.from({ length: 20 }).map((_, i) => ({
   id: i,
   item: {
@@ -26,28 +31,13 @@ const marketItems = Array.from({ length: 20 }).map((_, i) => ({
   amountAvailable: 1,
 }));
 
-const userNFTs = Array.from({ length: 20 }).map((_, i) => ({
-  id: i,
-  name: `내 item ${i}`,
-  description: '설명입니다~',
-  image: "/slot2.png",
-  type: i % 4 + 1,
-  rarity: i % 5 + 1,
-  isNFT: true,
-  amount: i % 2 + 1,
-  stat: {
-    attack: 10,
-    magic: 20,
-    strength: 2,
-    agility: 1,
-    intelligence: 2,
-    charisma: 1,
-    health: 2,
-    wisdom: 1,
-  },
-}));
-
 export default function NFTMarketplace() {
+  const myNFTs = useSelector((state: RootState) => state.character);
+  
+  useEffect(() => {
+    getSaleList();
+  }, [])
+  
   const getTypeString = (v: number) => {
     switch(v){
       case 1:
@@ -70,7 +60,7 @@ export default function NFTMarketplace() {
         {/* 왼쪽: 시장에 등록된 상품 */}
         <div className="flex flex-col h-full overflow-hidden">
           <h2 className="text-xl font-semibold mb-3">🔥 시장 상품</h2>
-          <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent">
+          <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent pb-6">
             {marketItems.map(({ id, item, seller, pricePerItem }) => (
               <div key={id} className="bg-zinc-800 px-4 py-3 rounded border border-zinc-700 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0">
@@ -94,19 +84,23 @@ export default function NFTMarketplace() {
         {/* 오른쪽: 내가 보유한 NFT */}
         <div className="flex flex-col h-full overflow-hidden">
           <h2 className="text-xl font-semibold mb-3">🎒 내 NFT</h2>
-          <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent">
-            {userNFTs.map((nft) => (
+          <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent pb-6">
+            {myNFTs.inventory.length === 0 && <p className="p-4 text-center">보유한 NFT가 없습니다</p>}
+            {myNFTs.inventory.map((nft) => (
               <div key={nft.id} className="bg-zinc-800 px-4 py-3 rounded border border-zinc-700 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0">
                   <div className={`rarity-${nft.rarity} p-1`}>
-                    <img src={nft.image} alt={nft.name} className="w-12 h-12 rounded" />
+                    <img src={nft.image} alt={nft.name} className="w-12 h-12 rounded shrink-0" />
                   </div>
-                  <div className="min-w-0">
-                  <p className="font-semibold text-sm truncate">{`[${getTypeString(nft.type)}] ${nft.name}`}</p>
+                  <div className="flex flex-col w-[30%]">
+                    <p className="font-semibold text-xs truncate">{`[${getTypeString(nft.type)}]`}</p>
+                    <p className="font-semibold text-sm truncate">{nft.name}</p>
                     <p className="text-xs text-zinc-400">수량: {nft.amount}</p>
                   </div>
                   <div className="text-zinc-500 mx-3">|</div>
-                  <p className="text-xs text-zinc-400 truncate">{nft.description}</p>
+                  <p className="text-xs text-zinc-400 whitespace-pre-wrap flex-1">
+                    {nft.description}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <input
