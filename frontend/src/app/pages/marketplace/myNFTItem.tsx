@@ -45,6 +45,7 @@ const MyNFTItem = ({nft, approve, refresh}: MyNFTItemProps) => {
     
     setIsLoading(true);
     const result = await setForSale(nft.id, Number(amount), price);
+    console.log(result)
     if(result) {
         setAmount('');
         setPrice('');
@@ -92,7 +93,9 @@ const MyNFTItem = ({nft, approve, refresh}: MyNFTItemProps) => {
                 disabled={!approve || isLoading}
                 className={`px-3 py-1 rounded text-sm transition 
                 ${approve 
-                    ? "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
+                    ? isLoading 
+                    ? "bg-green-600 text-white cursor-pointer"
+                    : "bg-green-600 text-white hover:bg-green-700 cursor-pointer hover:scale-110 duration-300"
                     : "bg-zinc-600 text-zinc-400 cursor-not-allowed opacity-60"
                 }`}
             >

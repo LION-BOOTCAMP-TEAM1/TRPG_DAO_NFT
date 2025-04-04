@@ -75,17 +75,24 @@ async function getSaleList() {
   }
 }
 
-async function buyNFT() {
+async function buyNFT(id: number, seller: String, amount: number, price: number) {
   const contract = await getMarketContract();
-  const NFTContract = await getContract();
-  const result: saleContent[] = [];
+  console.log(id, seller, amount, price)
   try {
-      const saleList = await contract.buy();
-      
-      return result;
+    const totalPrice = BigInt(price) * BigInt(amount);
+    const tx = await contract.buy(id, seller, amount, {
+      value: totalPrice
+    });
+
+    // 영수증 기다리기..
+    await tx.wait();
+    return 1;
   } catch (error) {
       console.error("Error buy NFT:", error);
-      return null;
+      if (error.code === 'INSUFFICIENT_FUNDS') {
+        return 0;
+      }
+      return -1;
   }
 }
 
