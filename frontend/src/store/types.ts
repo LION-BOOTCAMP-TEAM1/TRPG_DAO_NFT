@@ -37,4 +37,11 @@ export interface Character {
         wisdom: number;
     }>;
 }
-  
+
+export interface saleContent {
+    seller: string;
+    price: number;
+    nft_id: number;  
+    amount: number;
+    item: Item;
+}

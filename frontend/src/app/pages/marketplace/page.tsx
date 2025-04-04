@@ -3,40 +3,23 @@
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import { getSaleList } from "@/utils/web3_market";
-import { useEffect } from "react";
-
-const marketItems = Array.from({ length: 20 }).map((_, i) => ({
-  id: i,
-  item: {
-    name: `넘의 item ${i}`,
-    description: '설명입니다~',
-    image: "/slot1.png",
-    type: i % 4 + 1,
-    rarity: i % 5 + 1,
-    isNFT: true,
-    amount: i % 2 + 1,
-    stat: {
-      attack: 10,
-      magic: 20,
-      strength: 2,
-      agility: 1,
-      intelligence: 2,
-      charisma: 1,
-      health: 2,
-      wisdom: 1,
-    },
-  },
-  seller: '0x1234',
-  pricePerItem: 100,
-  amountAvailable: 1,
-}));
+import { useEffect, useState } from "react";
+import { saleContent } from "@/store/types";
 
 export default function NFTMarketplace() {
   const myNFTs = useSelector((state: RootState) => state.character);
-  
+  const [marketItems, setMarketItems] = useState<saleContent[]>([]);
+
   useEffect(() => {
-    getSaleList();
-  }, [])
+    const fetchSales = async () => {
+      const list = await getSaleList();
+      if (list) {
+        setMarketItems([...list]);
+      }
+    };
+  
+    fetchSales();
+  }, []);
   
   const getTypeString = (v: number) => {
     switch(v){
@@ -61,8 +44,9 @@ export default function NFTMarketplace() {
         <div className="flex flex-col h-full overflow-hidden">
           <h2 className="text-xl font-semibold mb-3">🔥 시장 상품</h2>
           <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent pb-6">
-            {marketItems.map(({ id, item, seller, pricePerItem }) => (
-              <div key={id} className="bg-zinc-800 px-4 py-3 rounded border border-zinc-700 flex items-center justify-between gap-4">
+            {marketItems.length === 0 && <p className="p-4 text-center">판매중인 NFT가 없습니다</p>}
+            {marketItems.map(({ item, seller, price }, index) => (
+              <div key={index} className="bg-zinc-800 px-4 py-3 rounded border border-zinc-700 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0">
                   <div className={`rarity-${item.rarity} p-1`}>
                     <img src={item.image} alt={item.name} className="w-12 h-12 rounded" />
@@ -70,7 +54,7 @@ export default function NFTMarketplace() {
                   <div className="min-w-0">
                     <p className="font-semibold text-sm truncate">{`[${getTypeString(item.type)}] ${item.name}`}</p>
                     <p className="text-xs text-zinc-400">판매자: {seller}</p>
-                    <p className="text-xs text-zinc-400">가격: {pricePerItem} ETH</p>
+                    <p className="text-xs text-zinc-400">가격: {price / Math.pow(10, 18)} ETH</p>
                   </div>
                   <div className="text-zinc-500 mx-3">|</div>
                   <p className="text-xs text-zinc-400 truncate">{item.description}</p>

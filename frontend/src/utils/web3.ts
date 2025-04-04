@@ -144,4 +144,4 @@ async function randomMint(dispatch: any) {
   }
 }
 
-export { getNFTList, randomMint };
+export { getContract, getIPFSFile, getNFTList, randomMint };
