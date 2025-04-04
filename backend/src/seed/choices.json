@@ -134,7 +134,7 @@
     "text": "🔥 의식을 따라하며 완전히 동화되는 척한다",
     "nextStorySlug": "ritual-chamber"
   },
-  
+
   {
     "slug": "resist-and-escape",
     "questSlug": "cult-initiation-test",
@@ -153,7 +153,7 @@
       "minIntelligence": 6
     }
   },
-  
+
   {
     "slug": "swear-to-cult",
     "questSlug": "ritual-decision",
@@ -174,5 +174,24 @@
     "conditions": {
       "minAgility": 6
     }
+  },
+
+  {
+    "slug": "solve-with-logic",
+    "questSlug": "seal-puzzle",
+    "text": "📚 고대의 마법서를 참고하며 논리적으로 접근한다",
+    "nextStorySlug": "ruins-awakening"
+  },
+  {
+    "slug": "force-it-open",
+    "questSlug": "seal-puzzle",
+    "text": "🔨 퍼즐을 무력으로 강제로 푼다",
+    "nextStorySlug": "ruins-awakening"
+  },
+  {
+    "slug": "look-for-clues",
+    "questSlug": "seal-puzzle",
+    "text": "🕵️ 퍼즐 주변의 숨겨진 단서를 조사한다",
+    "nextStorySlug": "ruins-awakening"
   }
 ]

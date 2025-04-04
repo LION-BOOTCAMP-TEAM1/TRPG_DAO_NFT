@@ -90,5 +90,27 @@
     "title": "거짓된 정체",
     "summary": "자신을 왕실 사절이라 속인 당신. 병사들은 반신반의하며 당신을 호위한다. 그러나 그 눈빛은 예리하다.",
     "quests": []
+  },
+
+  {
+    "slug": "royal-summons",
+    "title": "왕국의 부름",
+    "summary": "왕국은 대륙 중앙의 고대 유적을 조사하기 위해 원정대를 소집하고, 당신은 선택된 탐험자가 된다.",
+    "quests": ["seal-puzzle"],
+    "imageUrl": "/static/images/stories/royal-summons.png"
+  },
+  {
+    "slug": "ruins-awakening",
+    "title": "깨어나는 유적",
+    "summary": "봉인이 풀리자 유적이 요동치고, 그 안에서 고대 드래곤이 깨어나며 유적이 붉게 물든다.",
+    "quests": [],
+    "imageUrl": "/static/images/stories/ruins-awakening.png"
+  },
+  {
+    "slug": "ancient-power-revealed",
+    "title": "고대의 힘",
+    "summary": "드래곤의 죽음 이후, 유적 깊은 곳에서 고대 아티팩트가 모습을 드러낸다.",
+    "quests": [],
+    "imageUrl": "/static/images/stories/ancient-power-revealed.png"
   }
 ]

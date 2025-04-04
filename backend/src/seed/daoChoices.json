@@ -18,13 +18,11 @@
   {
     "branchPointSlug": "expose-or-hide-cult",
     "text": "⚖️ 왕국에 이교도의 존재를 알린다",
-    "nextStorySlug": "reveal-the-truth"
+    "nextStorySlug": "royal-summons"
   },
   {
     "branchPointSlug": "expose-or-hide-cult",
     "text": "🤫 아무 말도 하지 않고 이교도 조직에 더 접근한다",
     "nextStorySlug": "deeper-infiltration"
   }
-
-  
 ]
