@@ -42,7 +42,9 @@ const Header: FC<HeaderProps> = () => {
             <Link href={'/pages/playpage'}>
               <button className="homemsst">Play</button>
             </Link>
+            <Link href={'/pages/marketplace'}>
             <button className="homemsst">Market</button>
+            </Link>
             <button className="homemsst">Explore</button>
           </div>
 
