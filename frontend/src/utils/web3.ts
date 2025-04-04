@@ -2,11 +2,11 @@ import { ethers } from "ethers";
 import axios from "axios";
 import CONTRACT_ABI from "./abis/GameItem.json";
 import {Item} from "../store/types";
-import {addItemToInventory} from "../store/characterSlice"
+import {addItemToInventory, clearInventory} from "../store/characterSlice"
 
 const CONTRACT_ADDRESS = "0x5db67a1bd6106ccfb5edf6f0760a4535f77c2321";
 
-export function getProvider() {
+function getProvider() {
   if (typeof window !== "undefined" && (window as any).ethereum) {
     return new ethers.BrowserProvider((window as any).ethereum);
   } else {
@@ -15,12 +15,12 @@ export function getProvider() {
 }
 
 async function getSigner() {
-    return await getProvider().getSigner();
+  return await getProvider().getSigner();
 }
 
 async function getContract() {
-    const signer = await getSigner();
-    return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer); 
+  const signer = await getSigner();
+  return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer); 
 }
 
 async function getIPFSFile(uri: string) {
@@ -36,11 +36,12 @@ async function getIPFSFile(uri: string) {
 }
 
 async function getNFTList(dispatch: any) {
+  dispatch(clearInventory());
+    const contract = await getContract();
 
-    const contract = await getContract(); 
     try {
         const signer = await getSigner();
-        const myAddress = "0x1e99e1F4C043968e19682404d8671BA104Faf372"; // 내 지갑 ㅠ signer.address
+        const myAddress = signer.address;
         const myNFTids_BI = await contract.getOwnedTokens(myAddress);
         
         // BigInt to Number 변환
@@ -48,7 +49,7 @@ async function getNFTList(dispatch: any) {
         const myNFTids = Object.values(myNFTids_BI).map(value => Number(value));
         const myNFTamounts_BI = await contract.balanceOfBatch(addresses, myNFTids);
         const myNFTamounts = Object.values(myNFTamounts_BI).map(value => Number(value));
-
+        
         // NFT 데이터를 전역에 저장
         await Promise.all(
           Object.values(myNFTids).map(async (id, index) => {

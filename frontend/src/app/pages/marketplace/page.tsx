@@ -64,7 +64,7 @@ export default function NFTMarketplace() {
   }
   return (
     <div className="bg-zinc-900 text-white h-screen p-6 overflow-hidden">
-      <h1 className="text-2xl font-bold mb-4">🛒 NFT Marketplace</h1>
+      <h1 className="text-2xl font-bold mb-4 mt-20">🛒 NFT Marketplace</h1>
 
       <div className="grid grid-cols-2 gap-8 h-[90%]">
         {/* 왼쪽: 시장에 등록된 상품 */}

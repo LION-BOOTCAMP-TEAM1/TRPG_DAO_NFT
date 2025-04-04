@@ -87,7 +87,7 @@ const CharacterStat = () => {
           onClick={mintNFT}
         >
           <p className='font-bold text-lg'>🎁 아이템 뽑기!</p>
-          <div className='font-light text-sm blinking-box'>단돈 0.01 🇪🇹🇭</div>
+          <div className='font-light text-sm blinking-box'>단돈 0.01 ETH</div>
         </div>
       </div>
     </div>
