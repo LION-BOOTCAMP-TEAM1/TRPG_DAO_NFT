@@ -59,7 +59,17 @@
     "neon:reset": "node scripts/fix-db.js reset && echo '✅ 데이터베이스 초기화 완료'",
     "neon:monitor:10min": "node --expose-gc scripts/neon-monitor.js 10",
     "build:optimized": "tsc && cp -r prisma dist/ && cp -r static dist/ && npm run neon:cleanup",
-    "render:deploy:optimized": "npm run build:optimized && npm run optimized:start"
+    "render:deploy:optimized": "npm run build:optimized && npm run optimized:start",
+    "db:cleanup:scenes": "ts-node scripts/cleanupDuplicateScenes.ts",
+    "db:cleanup:all": "ts-node scripts/cleanupDuplicateScenes.ts --all",
+    "db:cleanup:story-scenes": "ts-node scripts/cleanupDuplicateScenes.ts --type=story-scenes",
+    "db:cleanup:branch-scenes": "ts-node scripts/cleanupDuplicateScenes.ts --type=branch-scenes",
+    "db:cleanup:export-json": "ts-node scripts/cleanupDuplicateScenes.ts --export=json",
+    "db:cleanup:report": "ts-node scripts/cleanupDuplicateScenes.ts --report",
+    "db:cleanup:quests": "ts-node scripts/cleanupDuplicateScenes.ts --type=quests",
+    "db:cleanup:choices": "ts-node scripts/cleanupDuplicateScenes.ts --type=choices",
+    "db:cleanup:dao-choices": "ts-node scripts/cleanupDuplicateScenes.ts --type=dao-choices",
+    "db:cleanup:choice-conditions": "ts-node scripts/cleanupDuplicateScenes.ts --type=choice-conditions"
   },
   "keywords": [],
   "author": "",
