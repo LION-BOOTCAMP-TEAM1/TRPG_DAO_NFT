@@ -142,6 +142,9 @@ const characterSlice = createSlice({
           // rarity, id 같으면 NFT가 먼저 오도록 (true < false → false가 우선)
           return (a.isNFT === b.isNFT) ? 0 : (a.isNFT ? 1 : -1);
         });
+    },
+    clearInventory(state) {
+        state.inventory = [];
     }
   },
 });
@@ -150,6 +153,7 @@ export const {
   equipItem,
   disarmItem,
   addItemToInventory,
+  clearInventory,
 } = characterSlice.actions;
 
 export default characterSlice.reducer;

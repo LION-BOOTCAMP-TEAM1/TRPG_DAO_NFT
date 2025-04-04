@@ -2,6 +2,11 @@ import { FC, useState } from 'react';
 import { FaWallet } from 'react-icons/fa';
 import useAuth from '../../hook/useAuth';
 
+// get NFT
+import { AppDispatch } from "@/store";
+import { useDispatch } from "react-redux";
+import {getNFTList} from '@/utils/web3';
+
 interface LoginProps {
   onLoginSuccess?: () => void;
   buttonClassName?: string;
@@ -23,6 +28,8 @@ const Login: FC<LoginProps> = ({
   } = useAuth();
 
   const [isConnecting, setIsConnecting] = useState(false);
+  
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,6 +37,8 @@ const Login: FC<LoginProps> = ({
 
     try {
       const connectedSigner = await connectWallet(e);
+      
+      getNFTList(dispatch);
 
       if (connectedSigner) {
         const success = await login(connectedSigner);
