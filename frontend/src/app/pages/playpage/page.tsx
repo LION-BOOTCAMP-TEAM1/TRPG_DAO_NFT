@@ -37,14 +37,6 @@ export default function PlayPage() {
   return (
     /*다크모트 */
     <ThemeProvider>
-      {/* 헤더 프롭스 */}
-      <div>
-        <Header
-          onToggle={toggleTheme}
-          isDarkMode={isDarkMode}
-        />
-      </div>
-
       <div className="flex justify-center pt-11 text-4xl font-bold">
         <h1>Where to adventure?</h1>
       </div>

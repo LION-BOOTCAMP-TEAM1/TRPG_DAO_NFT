@@ -1,5 +1,35 @@
 @import 'tailwindcss';
 
+:root {
+  /* Light mode (default) */
+  --fantasy-background: #fefcf9;
+  --fantasy-surface: #f5e9d7;
+  --fantasy-bronze: #b87b47;
+  --fantasy-gold: #f5c542;
+  --fantasy-copper: #d6a76c;
+  --fantasy-text: #000000;
+  --fantasy-blood: #b91c1c;
+  --fantasy-magic: #5b21b6;
+  --fantasy-leather: #7b5e57;
+  --fantasy-iron: #8d8d8d;
+  --fantasy-forest: #2f855a;
+}
+
+html.dark {
+  /* Dark mode */
+  --fantasy-background: #121217;
+  --fantasy-surface: #1f1f2a;
+  --fantasy-bronze: #c29463;
+  --fantasy-gold: #f6e05e;
+  --fantasy-copper: #cc9966;
+  --fantasy-text: #dcd3c9;
+  --fantasy-blood: #ef4444;
+  --fantasy-magic: #7c3aed;
+  --fantasy-leather: #9c7c6e;
+  --fantasy-iron: #a3a3a3;
+  --fantasy-forest: #38a169;
+}
+
 @font-face {
   font-family: 'continuous';
   src: url('/continuous.ttf') format('truetype');
@@ -32,13 +62,13 @@ body {
 }
 
 html {
-  background-color: white;
-  color: black;
+  background-color: var(--fantasy-background);
+  color: var(--fantasy-text);
 }
 
 html.dark {
-  background-color: #1b1d25;
-  color: white;
+  background-color: var(--fantasy-background);
+  color: var(--fantasy-text);
 }
 
 .equipment-wrapper {

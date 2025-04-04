@@ -226,19 +226,6 @@ const createUser = async (req: express.Request, res: express.Response) => {
         data: { nonce }
       });
       console.log('사용자 업데이트 결과:', updatedUser);
-
-      // upsert 이후에 확인 쿼리 추가
-      const verifiedUser = await prisma.user.findUnique({
-        where: { walletAddress: wallet }
-      });
-      
-      if (!verifiedUser || verifiedUser.nonce !== nonce) {
-        console.log('nonce 업데이트 실패, 강제 업데이트 시도');
-        await prisma.user.update({
-          where: { walletAddress: wallet },
-          data: { nonce }
-        });
-      }
     } else {
       // 새 사용자 생성
       const newUser = await prisma.user.create({
@@ -249,19 +236,6 @@ const createUser = async (req: express.Request, res: express.Response) => {
         }
       });
       console.log('새 사용자 생성 결과:', newUser);
-
-      // upsert 이후에 확인 쿼리 추가
-      const verifiedUser = await prisma.user.findUnique({
-        where: { walletAddress: wallet }
-      });
-      
-      if (!verifiedUser || verifiedUser.nonce !== nonce) {
-        console.log('nonce 업데이트 실패, 강제 업데이트 시도');
-        await prisma.user.update({
-          where: { walletAddress: wallet },
-          data: { nonce }
-        });
-      }
     }
 
     res.status(201).json({ walletAddress: wallet, friendlyId });

@@ -30,7 +30,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/app/components/ThemeProvider.js"
+    "src/app/components/ThemeProvider.tsx"
   ],
   "exclude": ["node_modules"]
 }

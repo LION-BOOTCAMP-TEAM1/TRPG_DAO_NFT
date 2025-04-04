@@ -1,101 +1,78 @@
+'use client';
+
 import { FC, useEffect, useState } from 'react';
 import Link from 'next/link';
 import ThemeToggleButton from './ThemeToggleButton';
-import Modal from './modal';
-import { FaWallet } from 'react-icons/fa';
-import { FaPerson } from 'react-icons/fa6';
-import { RiProhibited2Line } from 'react-icons/ri';
+import { useTheme } from './ThemeProvider';
 import Login from './login/Login';
-import useAuth from '../hook/useAuth';
 
-interface HeaderProps {
-  onToggle: () => void;
-  isDarkMode: boolean;
-}
+interface HeaderProps {}
 
 const Header: FC<HeaderProps> = () => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark';
-  });
-
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, [isDarkMode]);
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
 
-  const onToggle = () => {
-    setIsDarkMode((prev) => !prev);
-  };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   return (
-    <div className="max-w-screen">
-      <header className="border-b-2 border-gray-400 px-12">
-        <div className="flex items-center text-2xl font-bold">
-          {/* Logo */}
-          <Link href={'/'}>
-            <img src="/Logo.png" alt="logo" className="w-60" />
-          </Link>
-
-          <div className="flex flex-grow justify-evenly text-3xl gap-20">
-            <Link href={'/pages/playpage'}>
-              <button className="homemsst">Play</button>
+    <div
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-fantasy-background/80 dark:bg-[var(--fantasy-background)]/80 backdrop-blur-sm'
+          : 'bg-transparent bg-fantasy-background'
+      }`}
+    >
+      <header className="max-w-7xl mx-auto py-4 px-6">
+        <div className="flex items-center justify-between">
+          <div className="w-40">
+            <Link
+              href={'/'}
+              className="text-black hover:text-fantasy-gold dark:text-[var(--fantasy-gold)] text-xl font-bold"
+            >
+              CRPG
             </Link>
-            <Link href={'/pages/marketplace'}>
-            <button className="homemsst">Market</button>
-            </Link>
-            <button className="homemsst">Explore</button>
           </div>
 
-          <div className="flex flex-row gap-4">
-            {!isAuthenticated ? (
-              <Login />
-            ) : (
-              // 모달 프롭스
-              <Modal
-                trigger={
-                  <img
-                    src="/checkbuttonon.png"
-                    className="w-10 hover:bg-gray-600 rounded-2xl cursor-pointer"
-                  />
-                }
+          <div className="flex justify-center absolute left-1/2 transform -translate-x-1/2 space-x-12">
+            <Link href={'/'}>
+              <span className="text-fantasy-text dark:text-[var(--fantasy-text)] text-sm hover:text-fantasy-gold dark:hover:text-[var(--fantasy-gold)]">
+                Home
+              </span>
+            </Link>
+            <Link href={'/story'}>
+              <span className="text-fantasy-text dark:text-[var(--fantasy-text)] text-sm hover:text-fantasy-gold dark:hover:text-[var(--fantasy-gold)]">
+                Story
+              </span>
+            </Link>
+            <Link href={'/pages/marketplace'}>
+              <span className="text-fantasy-text dark:text-[var(--fantasy-text)] text-sm hover:text-fantasy-gold dark:hover:text-[var(--fantasy-gold)]">
+                Marketplace
+              </span>
+            </Link>
+          </div>
+
+          <div className="flex items-center space-x-6 w-40 justify-end">
+            <Login buttonClassName="px-4 py-1 bg-fantasy-bronze dark:bg-[var(--fantasy-blood)] text-white dark:text-[var(--fantasy-gold)] text-sm rounded-full hover:opacity-90 transition-opacity" />
+
+            <div className="flex justify-center">
+              <ThemeToggleButton
+                onToggle={toggleTheme}
                 isDarkMode={isDarkMode}
-              >
-                <div className="flex flex-col gap-3">
-                  <div className="modalst">
-                    <FaWallet />
-                    <span>
-                      {user?.walletAddress?.substring(0, 7)}...
-                      {user?.walletAddress?.substring(
-                        user.walletAddress.length - 5,
-                      )}
-                    </span>
-                  </div>
-                  
-                  {user?.friendlyId && (
-                    <div className="modalst text-sm text-gray-500">
-                      <span>ID: {user.friendlyId}</span>
-                    </div>
-                  )}
-
-                  <div className="modalst">
-                    <FaPerson />
-                    <button>Profile</button>
-                  </div>
-
-                  <div className="modalst">
-                    <RiProhibited2Line />
-                    <button className="homemsst" onClick={() => logout()}>
-                      Disconnect
-                    </button>
-                  </div>
-                </div>
-              </Modal>
-            )}
-
-            {/* 다크 모드 토글 버튼 */}
-            <ThemeToggleButton onToggle={onToggle} isDarkMode={isDarkMode} />
+              />
+            </div>
           </div>
         </div>
       </header>
