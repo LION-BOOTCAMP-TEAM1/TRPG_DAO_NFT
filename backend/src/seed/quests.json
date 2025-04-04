@@ -73,5 +73,13 @@
     "title": "의식의 결정",
     "description": "당신은 이교도의 의식에 참여하며, 그들의 진정한 신뢰를 얻을 기회를 갖게 된다. 그러나 이 선택은 돌이킬 수 없다.",
     "choices": ["swear-to-cult", "refuse-ritual", "pretend-and-escape"]
+  },
+
+  {
+    "slug": "seal-puzzle",
+    "storySlug": "royal-summons",
+    "title": "봉인의 퍼즐을 풀어라",
+    "description": "고대 유적의 입구를 가로막은 퍼즐을 해결해야 한다. 룬과 고대 문자를 해석해 봉인을 해제하자.",
+    "choices": ["solve-with-logic", "force-it-open", "look-for-clues"]
   }
 ]
