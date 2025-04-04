@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useTheme } from '../ThemeProvider';
+import { useThemeContext } from '@/app/providers/AppProvider';
 
 interface HeroSectionProps {
   title: string;
@@ -15,10 +15,10 @@ export default function HeroSection({
   title = "Decide the Fate, Mint the Story.",
   subtitle = "판타지 세계를 누비며 전설의 퀘스트를 시작하세요",
   ctaButtonText = "지금 시작하기",
-  ctaButtonLink = "/pages/playpage",
+  ctaButtonLink = "/story",
   backgroundImage = "/main/hero-banner.png"
 }: Partial<HeroSectionProps>) {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode } = useThemeContext();
   
   return (
     <div className="relative h-screen flex items-center justify-center overflow-hidden">
