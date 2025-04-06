@@ -79,9 +79,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 try {
   // CORS 설정 - Vercel과 Render 도메인이 다르기 때문에 origin을 명시해야 함
+  const frontendOrigin = process.env.FRONTEND_ORIGIN || "https://crpg-nft-dao-project.vercel.app/";
+  // 끝에 슬래시가 있으면 제거
+  const normalizedOrigin = frontendOrigin.endsWith('/') ? frontendOrigin.slice(0, -1) : frontendOrigin;
+  
   app.use(
     cors({
-      origin: process.env.FRONTEND_ORIGIN || "https://your-frontend.vercel.app",
+      origin: normalizedOrigin,
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
       credentials: true,
