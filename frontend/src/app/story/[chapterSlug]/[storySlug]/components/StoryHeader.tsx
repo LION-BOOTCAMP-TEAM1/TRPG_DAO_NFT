@@ -14,7 +14,7 @@ export const StoryHeader = ({
       <img
         src={imageSrc}
         alt={story.title}
-        className="w-[40%] max-w-3xl rounded-lg border border-[#d2c5ae]"
+        className="w-[40%] max-w-3xl rounded-lg border border-fantasy-copper"
       />
     )}
   </div>
