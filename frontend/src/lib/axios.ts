@@ -11,7 +11,11 @@ console.log(`API baseURL: ${baseURL}, Environment: ${process.env.NODE_ENV}`);
 const api = axios.create({
   baseURL: baseURL,
   withCredentials: true,
-  timeout: 10000,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Credentials': 'true'
+  }
 });
 
 api.interceptors.request.use(

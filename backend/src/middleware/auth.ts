@@ -32,14 +32,24 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
   // 쿠키에서 토큰 가져오기
   const token = req.cookies.token;
   
+  console.log('쿠키 확인:', req.cookies); // 디버깅용
+  
+  // Authorization 헤더에서도 확인 (대안)
+  const authHeader = req.headers.authorization;
+  const headerToken = authHeader && authHeader.startsWith('Bearer ') 
+    ? authHeader.slice(7) 
+    : null;
+  
+  const finalToken = token || headerToken;
+  
   // 토큰이 없으면 인증 실패
-  if (!token) {
+  if (!finalToken) {
     return res.status(401).json({ error: '인증이 필요합니다' });
   }
 
   try {
     // 토큰 검증
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(finalToken, JWT_SECRET) as JwtPayload;
     
     // req.user에 사용자 정보 추가
     req.user = {

@@ -86,9 +86,11 @@ try {
   app.use(
     cors({
       origin: normalizedOrigin,
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "x-api-key", "Access-Control-Allow-Credentials"],
       credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     })
   );
 
