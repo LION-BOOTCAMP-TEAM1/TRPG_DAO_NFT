@@ -183,7 +183,7 @@ router.post('/verify', async (req, res) => {
     console.log(`사용할 nonce: ${user.nonce}`);
 
     // 서명 검증
-    const recovered = ethers.verifyMessage(user.nonce, signature);
+    const recovered = ethers.utils.verifyMessage(user.nonce, signature);
     console.log(`복구된 주소: ${recovered}, 원래 주소: ${address}`);
     
     if (recovered.toLowerCase() !== address.toLowerCase()) {
