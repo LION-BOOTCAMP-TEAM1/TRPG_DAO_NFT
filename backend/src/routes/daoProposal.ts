@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { ethers } from 'ethers';
-import DAOABI from '../../../frontend/src/utils/abis/DAO.json';
+import DAOABI from '../utils/abis/DAO.json';
 import prisma from '../prismaClient';
 
 const router = express.Router();

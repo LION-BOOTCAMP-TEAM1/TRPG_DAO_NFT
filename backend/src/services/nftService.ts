@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import GameNFTABI from '../../../frontend/src/utils/abis/GameItem.json';
+import GameNFTABI from '../utils/abis/GameItem.json';
 import { prisma } from '../utils/prisma-manager';
 import { uploadMetadata } from '../utils/ipfsService';
 
