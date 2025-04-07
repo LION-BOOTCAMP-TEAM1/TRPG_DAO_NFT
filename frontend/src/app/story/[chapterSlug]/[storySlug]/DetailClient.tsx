@@ -13,8 +13,8 @@ import { SceneDisplay } from './components/SceneDisplay';
 import { QuestSelector } from './components/QuestSelector';
 import { BranchVoting } from './components/BranchVoting';
 import { VotingResult } from './components/VotingResult';
-import { toast } from 'sonner';
-import { useEffect } from 'react';
+import BattleHandler from './components/BattleHandler';
+import EndStoryButton from './components/EndStoryButton';
 
 const DetailClient = () => {
   const { storySlug, chapterSlug } = useParams();
@@ -43,19 +43,6 @@ const DetailClient = () => {
     sessionId: chapter?.id ?? 1,
     onVoteEnd: () => setIsSkipping(true),
   });
-
-  const errorToast = (err: string) => {
-    toast('Proposal 생성 오류', {
-      description: err,
-      id: 'proposal-error',
-    });
-  };
-
-  useEffect(() => {
-    if (proposalError) {
-      errorToast(proposalError);
-    }
-  }, [proposalError]);
 
   if (!story) {
     return (
@@ -110,6 +97,21 @@ const DetailClient = () => {
             chapterSlug={chapterSlug as string}
           />
         )}
+
+      {isSceneComplete &&
+        story?.quests?.length === 0 &&
+        !story?.BranchPoint?.[0] &&
+        storySlug != 'ancient-power-revealed' && (
+          <BattleHandler
+            isSceneComplete={isSceneComplete}
+            story={story}
+            chapterSlug={chapterSlug as string}
+          />
+        )}
+
+      {isSceneComplete && storySlug == 'ancient-power-revealed' && (
+        <EndStoryButton />
+      )}
     </div>
   );
 };
