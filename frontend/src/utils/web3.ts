@@ -4,8 +4,9 @@ import CONTRACT_ABI from "./abis/GameItem.json";
 import {Item} from "../store/types";
 import {addItemToInventory, clearInventory} from "../store/characterSlice"
 
-const CONTRACT_ADDRESS = "0x5db67a1bd6106ccfb5edf6f0760a4535f77c2321";
-const MARKET_CONTRACT_ADDRESS = '0x1dcC22a0D550ef5066A73b8a9699cd43E2bB27B2';
+const CONTRACT_ADDRESS = "0x994fDDa7215E84202e3585B8EBCcA89960b42705";
+const MARKET_CONTRACT_ADDRESS = '0x16FE8D89Cb7Bf27c72660d7bDf8b9905B4455807';
+
 function getProvider() {
   if (typeof window !== "undefined" && (window as any).ethereum) {
     return new ethers.BrowserProvider((window as any).ethereum);
