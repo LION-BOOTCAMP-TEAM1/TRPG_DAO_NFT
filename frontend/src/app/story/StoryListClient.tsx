@@ -8,13 +8,20 @@ import { StorySummary } from './types/story';
 import useAuth from '../hook/useAuth';
 import Image from 'next/image';
 import FantasyButton from '../components/FantasyButton';
+import axios from 'axios';
 
 const StoryListPage = () => {
   const [branchpoints, setBranchpoints] = useState<StorySummary[]>([]);
 
+  // useEffect(() => {
+  //   api
+  //     .get('/api/branchpoints')
+  //     .then((response) => setBranchpoints(response.data))
+  //     .catch((error) => console.error('Error fetching data:', error));
+  // }, []);
   useEffect(() => {
-    api
-      .get('/api/branchpoints')
+    axios
+      .get('https://trpg-dao-nft.onrender.com/api/branchpoints')
       .then((response) => setBranchpoints(response.data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
