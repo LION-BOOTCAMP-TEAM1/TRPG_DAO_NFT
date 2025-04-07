@@ -7,7 +7,7 @@ import apiRoutes from "./routes";
 import path from "path";
 import cookieParser from "cookie-parser";
 
-// 환경 변수 로드 - 최우선 실행
+// 환경 변수 로드 - 최우선 
 try {
   dotenv.config();
   console.log("환경 변수 로드 성공");
@@ -93,39 +93,68 @@ try {
   // CORS 설정 로깅 추가
   console.log(`CORS 허용된 origins: ${allowedOrigins.join(', ')}`);
   
+  //  CORS ERROR
+  // app.use(
+  //   cors({
+  //     origin: function(origin, callback) {
+  //       if (!origin || allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+  //         callback(null, true);
+  //       } else {
+  //         console.log(`CORS 오류: Origin ${origin}에서의 요청이 거부됨`);
+  //         callback(null, false);  // 에러를 던지는 대신 false만 반환
+  //       }
+  //     },
+  //     credentials: true,
+  //     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  //     allowedHeaders: [
+  //       "Content-Type", 
+  //       "Authorization", 
+  //       "x-api-key", 
+  //       "Accept", 
+  //       "Origin", 
+  //       "X-Requested-With",
+  //       "Access-Control-Request-Method",
+  //       "Access-Control-Request-Headers"
+  //     ],
+  //     exposedHeaders: ["set-cookie"]
+  //   })
+  // );
+
   app.use(
     cors({
-      origin: function(origin, callback) {
-        // origin이 undefined인 경우 (서버 간 요청 등)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
-          callback(null, true);
-        } else {
-          console.log(`CORS 오류: Origin ${origin}에서의 요청이 거부됨`);
-          callback(new Error('CORS policy violation'));
-        }
-      },
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-      allowedHeaders: [
-        "Content-Type", 
-        "Authorization", 
-        "x-api-key", 
-        "Accept", 
-        "Origin", 
-        "X-Requested-With",
-        "Access-Control-Request-Method",
-        "Access-Control-Request-Headers"
-      ],
-      credentials: true,
-      preflightContinue: false,
-      optionsSuccessStatus: 204,
-      exposedHeaders: ["set-cookie"]
-    })
+      origin: '*',
+  })
   );
+
+  // 모든 OPTIONS 요청에 대해 200 응답을 보내는 미들웨어 추가
+  app.options('*', (req, res) => {
+    res.status(200).end();
+  });
 
   // 디버그용 요청 로깅 미들웨어 추가
   app.use((req, res, next) => {
+    // 기본 요청 정보 로깅
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log(`Origin: ${req.headers.origin || 'no origin'}`);
+    
+    // 원본 응답 헤더 설정 메소드 저장
+    const originalSetHeader = res.setHeader;
+    
+    // 응답 헤더 설정 메소드 오버라이드
+    res.setHeader = function(name, value) {
+      console.log(`Response Header: ${name}: ${value}`);
+      return originalSetHeader.call(this, name, value);
+    };
+    
+    // 응답 완료 이벤트 리스너
+    res.on('finish', () => {
+      console.log(`Response Status: ${res.statusCode}`);
+    });
+    
+    next();
+  });
+
+    app.use((req, res, next) => {
     // 기본 요청 정보 로깅
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     console.log(`Origin: ${req.headers.origin || 'no origin'}`);

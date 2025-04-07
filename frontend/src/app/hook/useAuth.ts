@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { ethers } from 'ethers';
 import api, { setAuthToken, removeAuthToken } from '../../lib/axios';
+import axios from 'axios';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -281,8 +282,10 @@ export default function useAuth() {
 
       if (success) {
         try {
-          const userResponse = await api.get('/api/auth/me');
-
+          // const userResponse = await api.get('/api/auth/me');
+          const userResponse = await axios.get(
+            'http://localhost:5001/api/auth/me',
+          );
           if (userResponse.data && userResponse.data.user) {
             // If the user has a friendlyId, store it in localStorage
             if (userResponse.data.user.friendlyId) {
