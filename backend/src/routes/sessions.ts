@@ -65,13 +65,7 @@ const getSessions = async (req: Request, res: Response) => {
           }
         },
         progress: true,
-        storyWorld: true,
-        gameMaster: {
-          select: {
-            id: true,
-            walletAddress: true
-          }
-        }
+        storyWorld: true
       }
     });
     
@@ -139,13 +133,7 @@ const getSession = async (req: Request, res: Response) => {
             story: true
           }
         },
-        storyWorld: true,
-        gameMaster: {
-          select: {
-            id: true,
-            walletAddress: true
-          }
-        }
+        storyWorld: true
       }
     };
     
@@ -186,7 +174,6 @@ const getSession = async (req: Request, res: Response) => {
  *               - userIds
  *               - storyId
  *               - storyWorldId
- *               - gameMasterId
  *             properties:
  *               name:
  *                 type: string
@@ -205,15 +192,6 @@ const getSession = async (req: Request, res: Response) => {
  *               storyWorldId:
  *                 type: integer
  *                 description: 스토리 월드 ID
- *               gameMasterId:
- *                 type: integer
- *                 description: "게임마스터 ID (default: 요청자 ID)"
- *               minPlayers:
- *                 type: integer
- *                 description: "최소 플레이어 수 (default: 2)"
- *               maxPlayers:
- *                 type: integer
- *                 description: "최대 플레이어 수 (default: 6)"
  *     responses:
  *       201:
  *         description: 생성된 세션 정보를 반환합니다
@@ -225,22 +203,13 @@ const getSession = async (req: Request, res: Response) => {
  *         description: 서버 오류
  */
 const createSession = async (req: Request, res: Response) => {
-  const { name, userIds, storyId, storyWorldId, gameMasterId, description, minPlayers, maxPlayers } = req.body;
+  const { name, userIds, storyId, storyWorldId, description } = req.body;
 
-  if (!name || !userIds || userIds.length === 0 || !storyId || !storyWorldId || !gameMasterId) {
-    return res.status(400).json({ error: '세션 이름, 참여 사용자, 스토리, 스토리 월드 및 게임마스터 정보가 필요합니다' });
+  if (!name || !userIds || userIds.length === 0 || !storyId || !storyWorldId) {
+    return res.status(400).json({ error: '세션 이름, 참여 사용자, 스토리, 스토리 월드 정보가 필요합니다' });
   }
 
   try {
-    // 게임마스터가 유효한 사용자인지 확인
-    const gameMaster = await prisma.user.findUnique({
-      where: { id: Number(gameMasterId) }
-    });
-
-    if (!gameMaster) {
-      return res.status(404).json({ error: '게임마스터를 찾을 수 없습니다' });
-    }
-
     const users = await prisma.user.findMany({
       where: {
         id: { in: userIds }
@@ -282,11 +251,8 @@ const createSession = async (req: Request, res: Response) => {
         name,
         slug,
         storyWorldId: Number(storyWorldId),
-        gameMasterId: Number(gameMasterId),
         status: 'WAITING_FOR_PLAYERS',
         description: description || null,
-        minPlayers: minPlayers || 2,
-        maxPlayers: maxPlayers || 6,
         progress: {
           create: {
             storyId: Number(storyId),
@@ -316,12 +282,6 @@ const createSession = async (req: Request, res: Response) => {
           }
         },
         progress: true,
-        gameMaster: {
-          select: {
-            id: true,
-            walletAddress: true
-          }
-        },
         storyWorld: true
       }
     });

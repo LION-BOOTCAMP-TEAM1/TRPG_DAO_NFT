@@ -232,6 +232,9 @@ type Reward = {
   description?: string;
   rarity?: string;
   ownerId?: number;
+  tokenURI?: string;
+  mintType?: string;
+  image?: string;
 };
 
 // 추가: StoryProgress 타입 정의
@@ -391,18 +394,16 @@ export async function seedSessions() {
             slug: sessionData.slug || `session-${sessionData.id}`,
             description: sessionData.description || null,
             status: sessionData.status as any, // SessionStatus enum으로 변환
-            minPlayers: sessionData.minPlayers || 2,
-            maxPlayers: sessionData.maxPlayers || 6,
             storyWorldId: sessionData.storyWorldId,
-            gameMasterId: sessionData.gameMasterId,
+            users: {
+              connect: [{ id: sessionData.gameMasterId }]
+            }
           },
           update: {
             name: sessionData.name,
             slug: sessionData.slug || `session-${sessionData.id}`,
             description: sessionData.description || null,
             status: sessionData.status as any,
-            minPlayers: sessionData.minPlayers || 2,
-            maxPlayers: sessionData.maxPlayers || 6,
           },
         });
         
@@ -1231,15 +1232,18 @@ export async function seedRewards() {
         update: {
           nftTokenId: reward.nftTokenId,
           choiceId: choiceId,
-          itemId: itemId,
-          createdAt: reward.createdAt ? new Date(reward.createdAt) : new Date(),
+          mintedAt: reward.createdAt ? new Date(reward.createdAt) : new Date(),
         },
         create: {
           nftTokenId: reward.nftTokenId,
           userId: reward.userId || 1, // 기본 사용자 ID 설정
           choiceId: choiceId,
-          itemId: itemId,
-          createdAt: reward.createdAt ? new Date(reward.createdAt) : new Date(),
+          mintedAt: reward.createdAt ? new Date(reward.createdAt) : new Date(),
+          tokenURI: reward.tokenURI || 'default-uri',
+          mintType: reward.mintType || 'DEFAULT',
+          name: reward.name || 'Default NFT',
+          description: reward.description || 'Default description',
+          image: reward.image || 'default-image.png'
         },
       });
     } catch (error) {

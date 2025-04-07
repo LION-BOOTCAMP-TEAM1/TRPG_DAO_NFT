@@ -27,6 +27,10 @@ import {
   seedChoiceConditions,
   seedRewards 
 } from '../seed/seed';
+import { setupEventListeners } from '../services/blockchainSync';
+import daoProposalRouter from './daoProposal';
+import { setupNFTEventListeners, startNFTProcessingSchedule } from '../services/nftService';
+import nftRouter from './nft';
 
 
 const router = express.Router();
@@ -153,5 +157,14 @@ router.use('/playernfts', playerNftRoutes);
 router.use('/story-worlds', storyWorldRoutes);
 router.use('/chapters', chapterRoutes);
 
+// DAO Proposal 라우터 등록
+router.use('/api/proposals', daoProposalRouter);
+
+// NFT 이벤트 리스너 설정 및 처리 스케줄 시작
+setupNFTEventListeners();
+startNFTProcessingSchedule();
+
+// NFT API 라우터 등록
+router.use('/api/nft', nftRouter);
 
 export default router;

@@ -16,11 +16,12 @@ model User {
   chapterProgress    ChapterProgress[]
   characters         Character[]
   playerNFTs         PlayerNFT[]
-  gameMasterSessions Session[]            @relation("GameMasterSession")
   SessionParticipant SessionParticipant[]
   storyProgress      StoryProgress[]
   UserAction         UserAction[]
   Session            Session[]            @relation("UserSession")
+  GameMasterSession  Session[]            @relation("GameMasterSession")
+  MintQueue          MintQueue[]
 }
 
 model CharacterClass {
@@ -168,6 +169,7 @@ model Quest {
   chapter     Chapter?     @relation(fields: [chapterId], references: [id])
   story       Story        @relation(fields: [storyId], references: [id])
   UserAction  UserAction[]
+  PlayerNFT   PlayerNFT[]
 }
 
 model Choice {
@@ -261,30 +263,45 @@ model PlayerNFT {
   id         Int      @id @default(autoincrement())
   userId     Int
   nftTokenId String   @unique
-  choiceId   Int?
-  createdAt  DateTime @default(now())
-  itemId     Int?
-  choice     Choice?  @relation(fields: [choiceId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  tokenURI   String // NFT 메타데이터 URI
+  mintedAt   DateTime @default(now())
+  mintType   String // "QUEST", "RANDOM", "COMPLETION" 등
+  txHash     String? // 민팅 트랜잭션 해시
+  confirmed  Boolean  @default(false)
+
+  // 관계
+  user      User     @relation(fields: [userId], references: [id])
+  sessionId Int? // 어느 세션에서 획득했는지
+  session   Session? @relation(fields: [sessionId], references: [id])
+  questId   Int? // 어느 퀘스트에서 획득했는지
+  quest     Quest?   @relation(fields: [questId], references: [id])
+
+  // NFT 메타데이터
+  name        String
+  description String
+  image       String
+  attributes  Json? // 추가 메타데이터 (능력치, 희귀도 등)
+  Choice      Choice? @relation(fields: [choiceId], references: [id])
+  choiceId    Int?
 }
 
 model Session {
   id           Int                  @id @default(autoincrement())
   name         String
-  slug         String               @unique
   description  String?
-  status       SessionStatus        @default(WAITING_FOR_PLAYERS)
-  minPlayers   Int                  @default(2)
-  maxPlayers   Int                  @default(6)
   createdAt    DateTime             @default(now())
   storyWorldId Int
-  gameMasterId Int
+  slug         String               @unique
+  status       SessionStatus        @default(IDLE)
+  gameMasterId Int?
   characters   Character[]
-  gameMaster   User                 @relation("GameMasterSession", fields: [gameMasterId], references: [id])
   storyWorld   StoryWorld           @relation(fields: [storyWorldId], references: [id])
+  gameMaster   User?                @relation("GameMasterSession", fields: [gameMasterId], references: [id])
   participants SessionParticipant[]
   progress     SessionProgress?
   users        User[]               @relation("UserSession")
+  proposals    DAOProposal[]
+  PlayerNFT    PlayerNFT[]
 }
 
 model SessionParticipant {
@@ -358,4 +375,49 @@ enum SessionStatus {
   WAITING_FOR_PLAYERS
   IN_PROGRESS
   COMPLETED
+}
+
+model DAOProposal {
+  id          Int       @id @default(autoincrement())
+  sessionId   Int
+  proposalId  Int       @unique
+  description String
+  voteEndTime DateTime
+  status      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  votes       DAOVote[]
+  session     Session   @relation(fields: [sessionId], references: [id])
+}
+
+model DAOVote {
+  id         Int         @id @default(autoincrement())
+  proposalId Int
+  voter      String // 투표자 지갑 주소
+  option     Int
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  proposal   DAOProposal @relation(fields: [proposalId], references: [proposalId])
+
+  @@unique([proposalId, voter]) // 한 사용자는 하나의 proposal에 한 번만 투표
+}
+
+model SyncState {
+  id        Int @id @default(1) // 단일 레코드만 사용
+  lastBlock Int
+}
+
+model MintQueue {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  walletAddress String
+  metadataURI   String
+  mintType      String
+  createdAt     DateTime  @default(now())
+  processed     Boolean   @default(false)
+  processedAt   DateTime?
+  sessionId     Int?
+  questId       Int?
+
+  user User @relation(fields: [userId], references: [id])
 }
