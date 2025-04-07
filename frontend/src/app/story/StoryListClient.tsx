@@ -8,6 +8,7 @@ import { StorySummary } from './types/story';
 import useAuth from '../hook/useAuth';
 import Image from 'next/image';
 import FantasyButton from '../components/FantasyButton';
+import axios from 'axios';
 
 const StoryListPage = () => {
   const [branchpoints, setBranchpoints] = useState<StorySummary[]>([]);
@@ -25,12 +26,12 @@ const StoryListPage = () => {
       <div className="relative flex justify-center items-center mb-16">
         {/* Background decorative elements */}
         <div className="absolute inset-0 bg-gradient-to-b from-fantasy-magic/10 to-fantasy-background/0 rounded-3xl mx-4 sm:mx-12"></div>
-        
+
         {/* Main cover container with border effect */}
         <div className="relative w-full max-w-5xl overflow-hidden">
           {/* Decorative top border */}
           <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-fantasy-bronze/20 via-fantasy-gold to-fantasy-bronze/20 z-10"></div>
-          
+
           {/* Cover image with overlay */}
           <div className="relative">
             <Image
@@ -43,21 +44,21 @@ const StoryListPage = () => {
             {/* Subtle image overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-fantasy-shadow/60 to-transparent rounded-2xl"></div>
           </div>
-          
+
           {/* Title and tagline container */}
           <div className="absolute bottom-0 left-0 w-full p-8 sm:p-12 text-center sm:text-right">
             <div className="inline-block relative">
               {/* Decorative line */}
               <div className="hidden sm:block absolute -left-12 top-1/2 w-10 h-[3px] bg-fantasy-gold transform -translate-y-1/2"></div>
-              
+
               <h1 className="font-continuous text-4xl sm:text-5xl lg:text-6xl text-white font-bold mb-2 drop-shadow-[0_2px_5px_rgba(0,0,0,0.9)]">
                 소환된 영혼들의 연대기
               </h1>
-              
+
               <p className="text-xl text-white font-semibold mb-6 drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)]">
                 Decide the fate. Mint the Story.
               </p>
-              
+
               {/* Using FantasyButton component */}
               <div className="mt-4">
                 <FantasyButton href="/pages/login" size="lg">
@@ -68,7 +69,7 @@ const StoryListPage = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Main content section */}
       <div className="flex flex-col mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-24">
         {/* 특징 */}
@@ -88,9 +89,7 @@ const StoryListPage = () => {
               <p className="text-fantasy-text/60 italic">Loading stories...</p>
             </div>
           ) : (
-            branchpoints.map((bp) => (
-              <StoryCard key={bp.slug} story={bp} />
-            ))
+            branchpoints.map((bp) => <StoryCard key={bp.slug} story={bp} />)
           )}
         </div>
       </div>

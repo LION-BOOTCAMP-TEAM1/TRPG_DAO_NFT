@@ -20,9 +20,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/contracts/*": ["../blockchain/artifacts/contracts/dao.sol/*"],
-      "@/deployments/*": ["./deployments/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
