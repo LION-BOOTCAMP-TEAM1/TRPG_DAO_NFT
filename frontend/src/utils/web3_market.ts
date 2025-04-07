@@ -3,7 +3,7 @@ import CONTRACT_ABI from "./abis/MarketPlace.json";
 import {getContract, getIPFSFile} from "./web3";
 import { Item, saleContent } from "@/store/types"
 
-const CONTRACT_ADDRESS = "0x1dcC22a0D550ef5066A73b8a9699cd43E2bB27B2";
+const CONTRACT_ADDRESS = "0x16FE8D89Cb7Bf27c72660d7bDf8b9905B4455807";
 
 function getProvider() {
   if (typeof window !== "undefined" && (window as any).ethereum) {

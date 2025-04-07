@@ -60,11 +60,11 @@ const MarketItem = ({item, seller, price, refresh}: MarketItemProps) => {
             </div>
             <div className="min-w-0">
             <p className="font-semibold text-sm truncate">{`[${getTypeString(item.type)}] ${item.name}`}</p>
-            <p className="text-xs text-zinc-400">판매자: {seller}</p>
+            <p className="text-xs text-zinc-400">판매자:<span style={{ fontSize: '10px' }}>{seller}</span></p>
             <p className="text-xs text-zinc-400">가격: {price / Math.pow(10, 18)} ETH</p>
             </div>
             <div className="text-zinc-500 mx-3">|</div>
-            <p className="text-xs text-zinc-400 truncate">{item.description}</p>
+            <p className="text-xs text-zinc-400 truncate max-w-xs">{item.description}</p>
         </div>
         <div className="flex items-center gap-2">
             <input

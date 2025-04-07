@@ -5,6 +5,29 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract GameItems is ERC1155, Ownable {
+    // 게임 관리 계정
+    address admin;
+    modifier adminOnly() {
+        require(msg.sender == admin, "Only admin can call this function");
+        _;
+    }
+    function setAdmin(address addr) public onlyOwner {
+        admin = addr;
+    }
+
+    // 새로운 토큰 관리
+    mapping(uint256 => string) private customURIs;
+    function setCustomURI(uint256 tokenId, string memory ipfsURI) external {
+        customURIs[tokenId] = ipfsURI;
+    }
+
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        if (bytes(customURIs[tokenId]).length > 0) {
+            return customURIs[tokenId];
+        }
+        return string(abi.encodePacked(super.uri(tokenId)));
+    }
+
     // 소유자가 가진 모든 토큰 조회
     mapping(address => uint256[]) private _ownedTokens;
     mapping(address => mapping(uint256 => uint256)) private _ownedTokenIndex;
@@ -20,6 +43,7 @@ contract GameItems is ERC1155, Ownable {
     ERC1155("https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeie3imjcrijt5hc5gzdtzijg4b62jsv3wkntytg7laaojtzpdpgyle/{id}.json")
     Ownable(msg.sender)
     {
+        admin = msg.sender;
         for (uint i = 0; i < 91; i++){
             addTokenId(i);
         }
@@ -54,6 +78,16 @@ contract GameItems is ERC1155, Ownable {
         }
 
         emit minted(addr, tokenId); // 반환값 이벤트로 emit
+    }
+
+    function mintByID(address addr, uint256 tokenID) external adminOnly {
+        require(existingTokenIdMap[tokenID], "No tokens available");
+
+        // 유저에게 해당 ID 민팅
+        _mint(addr, tokenID, 1, "");
+        _addTokenToOwnerEnumeration(addr, tokenID);
+
+        emit minted(addr, tokenID); // 반환값 이벤트로 emit
     }
 
     // 수익 인출
