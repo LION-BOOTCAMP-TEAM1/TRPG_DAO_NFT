@@ -10,7 +10,6 @@ console.log(`API baseURL: ${baseURL}, Environment: ${process.env.NODE_ENV}`);
 
 const api = axios.create({
   baseURL: baseURL,
-  withCredentials: true, // 쿠키를 포함한 요청을 위해 필수
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
