@@ -1,6 +1,7 @@
 import { FC, useState } from 'react';
 import { FaWallet } from 'react-icons/fa';
 import useAuth from '../../hook/useAuth';
+import { useRouter } from 'next/navigation';
 
 // get NFT
 import { AppDispatch } from "@/store";
@@ -31,6 +32,7 @@ const Login: FC<LoginProps> = ({
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,6 +62,7 @@ const Login: FC<LoginProps> = ({
     try {
       await logout();
       setShowLogoutModal(false);
+      router.push('/');
     } catch (error) {
       console.error('로그아웃 중 오류 발생:', error);
       setShowLogoutModal(false);
@@ -138,20 +141,31 @@ const Login: FC<LoginProps> = ({
 
       {/* 로그아웃 확인 모달 */}
       {showLogoutModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0}}>
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-[9999]" 
+          style={{
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.25)' // Using rgba for transparency (0.25 = 25% opacity)
+          }}
+        >
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h3 className="text-lg font-medium mb-4">로그아웃 확인</h3>
-            <p className="mb-6">정말 로그아웃 하시겠습니까?</p>
+            <p className="mb-2">정말 로그아웃 하시겠습니까?</p>
+            <p className="mb-6 text-orange-500 font-medium text-sm">※ 저장하지 않은 작업들이 모두 사라집니다.</p>
             <div className="flex justify-end gap-3">
               <button 
                 onClick={handleCancelLogout}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded"
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-500"
               >
                 취소
               </button>
               <button 
                 onClick={handleConfirmLogout}
-                className="px-4 py-2 bg-red-500 text-white rounded"
+                className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer hover:bg-red-600"
               >
                 확인
               </button>
