@@ -5,7 +5,7 @@ import {Item} from "../store/types";
 import {addItemToInventory, clearInventory} from "../store/characterSlice"
 
 const CONTRACT_ADDRESS = "0x5db67a1bd6106ccfb5edf6f0760a4535f77c2321";
-
+const MARKET_CONTRACT_ADDRESS = '0x1dcC22a0D550ef5066A73b8a9699cd43E2bB27B2';
 function getProvider() {
   if (typeof window !== "undefined" && (window as any).ethereum) {
     return new ethers.BrowserProvider((window as any).ethereum);
@@ -86,6 +86,37 @@ async function getNFTList(dispatch: any) {
     }
 }
 
+async function setApprovalForAll() {
+  try {
+    const contract = await getContract();
+    const signer = await getSigner();
+    const tx = await contract.setApprovalForAll(MARKET_CONTRACT_ADDRESS, true);
+    
+    // 영수증 기다리기..
+    await tx.wait();
+
+    // Approve 가져오기
+    return isApprovedForAll();
+  } catch (err) {
+    console.error("❌ Approve 실패:", err);
+    return false;
+  }
+}
+
+async function isApprovedForAll() {
+  try {
+    const contract = await getContract();
+    const signer = await getSigner();
+
+    // Approve 가져오기
+    const approve = await contract.isApprovedForAll(signer.address, MARKET_CONTRACT_ADDRESS);
+    return approve;
+  } catch (err) {
+    console.error("❌ Approve 실패:", err);
+    return false;
+  }
+}
+
 async function randomMint(dispatch: any) {
   try {
     const contract = await getContract();
@@ -144,4 +175,4 @@ async function randomMint(dispatch: any) {
   }
 }
 
-export { getNFTList, randomMint };
+export { getContract, getIPFSFile, getNFTList, randomMint, setApprovalForAll, isApprovedForAll };

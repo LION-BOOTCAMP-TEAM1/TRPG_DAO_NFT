@@ -2,7 +2,7 @@
 
 import EquipmentComponent from "./EquipmentComponent";
 
-import {getNFTList, randomMint} from "@/utils/web3";
+import {randomMint} from "@/utils/web3";
 import { RootState, AppDispatch } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import BattleComponent from "../battle/BattleComponent";
@@ -11,24 +11,23 @@ import { toast } from 'sonner';
 
 const CharacterStat = () => {
   const myNFTs = useSelector((state: RootState) => state.character);
+  const dispatch = useDispatch<AppDispatch>();
 
   // 테스트 코드
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState("");
-  const dispatch = useDispatch<AppDispatch>();
-  const test = () => {
-    getNFTList(dispatch);
-  }
   //
 
   const mintNFT = async () => {
     const item = await randomMint(dispatch);
-    const typeString = item?.type === 1 ? '무기' : item?.type === 2 ? '방어구' : item?.type === 3 ? '악세사리' : '칭호';
+    if(item) {
+      const typeString = item?.type === 1 ? '무기' : item?.type === 2 ? '방어구' : item?.type === 3 ? '악세사리' : '칭호';
     
-    toast(`[${typeString}] ${item?.name}`, {
-      description: item?.description,
-      icon: <img src={item?.image} alt="item" width={64} height={64} />,
-    });
+      toast(`[${typeString}] ${item?.name}`, {
+        description: item?.description,
+        icon: <img src={item?.image} alt="item" width={64} height={64} />,
+      });
+    }
   }
 
   return (
@@ -67,10 +66,6 @@ const CharacterStat = () => {
       </div>
 
       <EquipmentComponent />
-
-      <div className="bg-red-500 rounded-2xl p-1">
-        <button className="text-white" onClick={() => test()}>GetNFT Test</button>
-      </div>
 
       <div className="bg-red-500 rounded-2xl p-1">
         <button className="text-white" onClick={() => setOpen(true)}>Battle Test</button>

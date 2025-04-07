@@ -1,7 +1,9 @@
 'use client';
 
 import CharacterClassSelection from './components/characterClassSelection';
+
 import CharacterDetails from './components/characterDetails';
+import CharacterText from './components/CharacterText';
 import Message from './components/Message';
 import useCharacterData from './hook/useCharacterData';
 
@@ -39,13 +41,16 @@ export default function CreatePage() {
 
       {/* 선택된 클래스 정보 및 캐릭터 생성 입력 폼 */}
       {selectedClass && (
-        <CharacterDetails
-          selectedClass={selectedClass}
-          characterName={characterName}
-          setCharacterName={setCharacterName}
-          handleCreateCharacter={handleCreateCharacter}
-          isCreated={isCreated}
-        />
+        <div className="flex flex-row">
+          <CharacterDetails
+            selectedClass={selectedClass}
+            characterName={characterName}
+            setCharacterName={setCharacterName}
+            handleCreateCharacter={handleCreateCharacter}
+            isCreated={isCreated}
+          />
+          <CharacterText selectedClass={selectedClass} />
+        </div>
       )}
 
       {/* 하단 메세지 */}

@@ -9,14 +9,14 @@ export const metadata: Metadata = {
 
 export default function StoryDetailPage() {
   return (
-    <div className="flex flex-row w-full">
+    <div className="flex flex-row w-full pt-12 bg-fantasy-background text-fantasy-text">
       <div className="flex-[4]">
         <DetailClient />
       </div>
 
-      <div className="h-auto w-px bg-gray-300" />
+      <div className="h-auto w-px bg-fantasy-copper/30" />
 
-      <div className="flex-[1] bg-[#f4efe1] p-4">
+      <div className="flex-[1] p-4">
         <div className="sticky top-4">
           <CharacterStat />
         </div>

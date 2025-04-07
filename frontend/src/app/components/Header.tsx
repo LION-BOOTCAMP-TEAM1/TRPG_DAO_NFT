@@ -3,13 +3,13 @@
 import { FC, useEffect, useState } from 'react';
 import Link from 'next/link';
 import ThemeToggleButton from './ThemeToggleButton';
-import { useTheme } from './ThemeProvider';
+import { useThemeContext } from '../providers/AppProvider';
 import Login from './login/Login';
 
 interface HeaderProps {}
 
 const Header: FC<HeaderProps> = () => {
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleTheme } = useThemeContext();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const Header: FC<HeaderProps> = () => {
         scrolled
           ? 'bg-fantasy-background/80 dark:bg-[var(--fantasy-background)]/80 backdrop-blur-sm'
           : 'bg-transparent bg-fantasy-background'
-      }`}
+      }`} 
     >
       <header className="max-w-7xl mx-auto py-4 px-6">
         <div className="flex items-center justify-between">

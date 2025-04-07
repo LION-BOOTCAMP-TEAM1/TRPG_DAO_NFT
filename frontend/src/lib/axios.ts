@@ -6,10 +6,16 @@ const baseURL =
     ? 'https://trpg-dao-nft.onrender.com' // 프로덕션 환경
     : 'http://localhost:5001'; // 개발 환경 (백엔드 서버 포트에 맞게 수정)
 
+console.log(`API baseURL: ${baseURL}, Environment: ${process.env.NODE_ENV}`);
+
 const api = axios.create({
   baseURL: baseURL,
   withCredentials: true,
-  timeout: 10000,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Credentials': 'true'
+  }
 });
 
 api.interceptors.request.use(

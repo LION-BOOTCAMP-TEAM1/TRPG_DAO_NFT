@@ -59,7 +59,7 @@ const DetailClient = () => {
 
   if (!story) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f4efe1]">
+      <div className="flex items-center justify-center min-h-screen bg-fantasy-background text-fantasy-text">
         Loading...
       </div>
     );
@@ -67,7 +67,7 @@ const DetailClient = () => {
 
   return (
     <div
-      className="p-6 space-y-6 min-h-screen bg-cover bg-no-repeat bg-center bg-[#f4efe1]"
+      className="p-6 space-y-6 min-h-screen bg-fantasy-background bg-cover bg-no-repeat bg-center"
       onClick={() => setIsSkipping(true)}
     >
       <StoryHeader story={story} imageSrc={storyImageSrc} />

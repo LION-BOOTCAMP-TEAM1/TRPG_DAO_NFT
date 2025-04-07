@@ -1,11 +1,8 @@
 import '@/styles/globals.css';
 import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
-import { ReduxProvider } from "../store/provider";
-import AuthProvider from './providers/AuthProvider';
+import AppProvider from '@/app/providers/AppProvider';
 import LayoutWrapper from './components/LayoutWrapper';
-import ThemeProvider from './components/ThemeProvider';
-import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,16 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ReduxProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
-            </ThemeProvider>
-            <Toaster richColors position="top-right" />
-          </AuthProvider>
-        </ReduxProvider>
+        <AppProvider>
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
+        </AppProvider>
       </body>
     </html>
   );

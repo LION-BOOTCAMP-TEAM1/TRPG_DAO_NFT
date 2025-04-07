@@ -79,14 +79,73 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 try {
   // CORS 설정 - Vercel과 Render 도메인이 다르기 때문에 origin을 명시해야 함
+  const frontendOrigin = process.env.FRONTEND_ORIGIN || "https://trpg-dao-nft-frontend-eaf1.vercel.app";
+  // 끝에 슬래시가 있으면 제거
+  const normalizedOrigin = frontendOrigin.endsWith('/') ? frontendOrigin.slice(0, -1) : frontendOrigin;
+  
+  // 로컬 개발 환경과 프로덕션 환경을 모두 지원하기 위한 CORS 설정
+  const allowedOrigins = [
+    normalizedOrigin,
+    'http://localhost:3000',
+    'https://trpg-dao-nft-frontend-eaf1.vercel.app'
+  ];
+  
+  // CORS 설정 로깅 추가
+  console.log(`CORS 허용된 origins: ${allowedOrigins.join(', ')}`);
+  
   app.use(
     cors({
-      origin: process.env.FRONTEND_ORIGIN || "https://your-frontend.vercel.app",
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
+      origin: function(origin, callback) {
+        // origin이 undefined인 경우 (서버 간 요청 등)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+          callback(null, true);
+        } else {
+          console.log(`CORS 오류: Origin ${origin}에서의 요청이 거부됨`);
+          callback(new Error('CORS policy violation'));
+        }
+      },
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+      allowedHeaders: [
+        "Content-Type", 
+        "Authorization", 
+        "x-api-key", 
+        "Accept", 
+        "Origin", 
+        "X-Requested-With",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers"
+      ],
       credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+      exposedHeaders: ["set-cookie"]
     })
   );
+
+  // 디버그용 요청 로깅 미들웨어 추가
+  app.use((req, res, next) => {
+    // 기본 요청 정보 로깅
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log(`Origin: ${req.headers.origin || 'no origin'}`);
+    
+    // 원본 응답 헤더 설정 메소드 저장
+    const originalSetHeader = res.setHeader;
+    
+    // 응답 헤더 설정 메소드 오버라이드
+    res.setHeader = function(name, value) {
+      console.log(`Response Header: ${name}: ${value}`);
+      return originalSetHeader.call(this, name, value);
+    };
+    
+    // 응답 완료 이벤트 리스너
+    res.on('finish', () => {
+      console.log(`Response Status: ${res.statusCode}`);
+    });
+    
+    next();
+  });
 
   app.use(express.json());
   app.use(cookieParser() as any);
@@ -103,6 +162,16 @@ try {
       message: "Server is running",
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || "development",
+    });
+  });
+
+  // CORS 테스트용 엔드포인트
+  app.get("/cors-test", (req, res) => {
+    res.status(200).json({
+      status: "ok",
+      message: "CORS is working correctly",
+      origin: req.headers.origin || "No origin header",
+      timestamp: new Date().toISOString(),
     });
   });
 
