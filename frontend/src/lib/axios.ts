@@ -1,10 +1,8 @@
 import axios from 'axios';
 
 // 개발 환경과 프로덕션 환경에 따라 baseURL 설정
-const baseURL =
-  process.env.NODE_ENV === 'production'
-    ? 'https://trpg-dao-nft.onrender.com' // 프로덕션 환경
-    : 'http://localhost:5001'; // 개발 환경
+console.log(process.env.NODE_ENV)
+const baseURL = 'https://trpg-dao-nft.onrender.com'
 
 console.log(`API baseURL: ${baseURL}, Environment: ${process.env.NODE_ENV}`);
 
