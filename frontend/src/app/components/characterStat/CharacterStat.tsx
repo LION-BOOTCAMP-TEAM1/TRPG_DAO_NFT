@@ -6,17 +6,11 @@ import {randomMint} from "@/utils/web3";
 import { RootState, AppDispatch } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import BattleComponent from "../battle/BattleComponent";
-import { useState } from "react";
 import { toast } from 'sonner';
 
 const CharacterStat = () => {
   const myNFTs = useSelector((state: RootState) => state.character);
   const dispatch = useDispatch<AppDispatch>();
-
-  // 테스트 코드
-  const [open, setOpen] = useState(false);
-  const [result, setResult] = useState("");
-  //
 
   const mintNFT = async () => {
     const item = await randomMint(dispatch);
@@ -40,10 +34,10 @@ const CharacterStat = () => {
         {/* 오른쪽 정보 */}
         <div className="ml-2 flex flex-col justify-between">
           {/* 클래스 */}
-          <div className="bg-white px-2 py-1 rounded text-xs w-fit">{myNFTs.character?.class}</div>
+          <div className="text-gray-600 bg-white px-2 py-1 rounded text-xs w-fit">{myNFTs.character?.class}</div>
 
           {/* 이름 */}
-          <div className="bg-white px-2 py-1 rounded text-xs w-fit">{myNFTs.character?.name}</div>
+          <div className="text-gray-600 bg-white px-2 py-1 rounded text-xs w-fit">{myNFTs.character?.name}</div>
 
           <div className="grid grid-cols-4 gap-1 mt-2">
             {/* 체력 */}
@@ -67,15 +61,6 @@ const CharacterStat = () => {
 
       <EquipmentComponent />
 
-      <div className="bg-red-500 rounded-2xl p-1">
-        <button className="text-white" onClick={() => setOpen(true)}>Battle Test</button>
-      </div>
-      {result}
-      {open && <BattleComponent speed={500} onClose={(v) => {
-        setOpen(false);
-        if(v) setResult("이김");
-        else setResult("짐");
-      }} />}
       <div className='w-full flex justify-center items-center'>
         <div
           className="flex flex-col justify-center items-center px-4 py-2 bg-gradient-to-r from-yellow-400 to-red-500 text-white rounded-xl shadow-lg hover:scale-105 hover:brightness-110 active:scale-95 transition-all duration-300 mb-4"

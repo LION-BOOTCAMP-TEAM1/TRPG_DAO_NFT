@@ -82,13 +82,11 @@ export default function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ReduxProvider>
       <AuthContext.Provider value={auth}>
         <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
           {children}
           <Toaster richColors position="top-right" />
         </ThemeContext.Provider>
       </AuthContext.Provider>
-    </ReduxProvider>
   );
 } 
