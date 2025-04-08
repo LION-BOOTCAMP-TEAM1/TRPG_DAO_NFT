@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import ThemeProvider from '@/app/components/ThemeProvider';
-import useAuth from '@/app/hook/useAuth';
+import useAuth from '@/app/hooks/useAuth';
 import ClassModal from '@/app/components/classficationmodal';
 import CyberPunk from './cyberpunk';
-import MiddleAge from './middleage';  
+import MiddleAge from './middleage';
 import Galaxy from './galaxy';
 
 export default function PlayPage() {
@@ -17,7 +17,7 @@ export default function PlayPage() {
 
   /*헤더프롭스 */
   const {
-    connectWallet,  
+    connectWallet,
     registerWalletAddress,
     logout,
     signer,

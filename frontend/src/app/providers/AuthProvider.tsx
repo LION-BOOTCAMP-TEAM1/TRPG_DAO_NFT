@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, createContext, useContext } from 'react';
-import useAuth from '../hook/useAuth';
+import useAuth from '../hooks/useAuth';
 
 type AuthContextType = ReturnType<typeof useAuth>;
 
@@ -18,9 +18,5 @@ export const useAuthContext = () => {
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
 
-  return (
-    <AuthContext.Provider value={auth}>
-      {children}
-    </AuthContext.Provider>
-  );
-} 
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+}

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import FeatureSection from './components/FeatureSection';
 import StoryCard from './components/StoryCard';
 import { StorySummary } from './types/story';
-import useAuth from '../hook/useAuth';
+import useAuth from '../hooks/useAuth';
 import Image from 'next/image';
 import FantasyButton from '../components/FantasyButton';
 import axios from 'axios';
@@ -61,7 +61,7 @@ const StoryListPage = () => {
 
               {/* Using FantasyButton component */}
               <div className="mt-4">
-                <FantasyButton href="/pages/login" size="lg">
+                <FantasyButton href="/pages/create" size="lg">
                   모험 시작하기
                 </FantasyButton>
               </div>

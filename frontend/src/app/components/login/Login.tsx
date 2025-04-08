@@ -1,11 +1,11 @@
 import { FC, useState } from 'react';
 import { FaWallet } from 'react-icons/fa';
-import useAuth from '../../hook/useAuth';
+import useAuth from '../../hooks/useAuth';
 
 // get NFT
-import { AppDispatch } from "@/store";
-import { useDispatch } from "react-redux";
-import {getNFTList} from '@/utils/web3';
+import { AppDispatch } from '@/store';
+import { useDispatch } from 'react-redux';
+import { getNFTList } from '@/utils/web3';
 
 interface LoginProps {
   onLoginSuccess?: () => void;
@@ -29,7 +29,7 @@ const Login: FC<LoginProps> = ({
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  
+
   const dispatch = useDispatch<AppDispatch>();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -38,7 +38,7 @@ const Login: FC<LoginProps> = ({
 
     try {
       const connectedSigner = await connectWallet(e);
-      
+
       getNFTList(dispatch);
 
       if (connectedSigner) {
@@ -138,18 +138,21 @@ const Login: FC<LoginProps> = ({
 
       {/* 로그아웃 확인 모달 */}
       {showLogoutModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0}}>
+        <div
+          className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+        >
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h3 className="text-lg font-medium mb-4">로그아웃 확인</h3>
             <p className="mb-6">정말 로그아웃 하시겠습니까?</p>
             <div className="flex justify-end gap-3">
-              <button 
+              <button
                 onClick={handleCancelLogout}
                 className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded"
               >
                 취소
               </button>
-              <button 
+              <button
                 onClick={handleConfirmLogout}
                 className="px-4 py-2 bg-red-500 text-white rounded"
               >

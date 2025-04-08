@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import ChapterClient from './ChapterClient';
+import UnloadHandler from '@/app/components/UnloadHandler';
 
 export const metadata: Metadata = {
   title: 'Chapter Detail',
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function ChapterPage() {
-  return <ChapterClient />;
+  return (
+    <>
+      <ChapterClient />
+      <UnloadHandler isBlocking />
+    </>
+  );
 }
