@@ -43,6 +43,7 @@ const CharacterStat = () => {
       {/* 상단: 캐릭터 정보 */}
       <div className="flex w-full">
         {/* 캐릭터 이미지 */}
+        {/* 캐릭터, 클래스 데이터 다름 */}
         <img
           src={myNFTs.character?.image}
           alt="캐릭터"
