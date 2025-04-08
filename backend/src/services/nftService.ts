@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import GameNFTABI from '../../../frontend/src/utils/abis/GameItem.json';
+import GameNFTABI from '../utils/abis/GameItem.json';
 import { prisma } from '../utils/prisma-manager';
 import { uploadMetadata } from '../utils/ipfsService';
 
@@ -44,22 +44,24 @@ export async function processMintQueue() {
     for (const mintRequest of pendingMints) {
       try {
         // 트랜잭션 생성 및 전송
-        const tx = await nftContract.mintNFT(
+        // 원하는 토큰 ID 지정 (0-90 사이의 값, 컨트랙트에 존재하는 토큰)
+        const tokenId = 92; // 원하는 토큰 ID
+        const tx = await nftContract.mintByID(
           mintRequest.walletAddress,
-          mintRequest.metadataURI,
-          mintRequest.mintType
+          tokenId,
+          { gasLimit: 500000 }
         );
         
-        console.log(`민팅 트랜잭션 전송: ${tx.hash}`);
+        console.log(`민팅 트랜잭션 전송: ${tx.hash} (토큰 ID: ${tokenId})`);
         
         // 트랜잭션 완료 대기
         const receipt = await tx.wait();
         
         // 이벤트에서 토큰 ID 추출
-        const mintEvent = receipt.events?.find((e: any) => e.event === 'NFTMinted');
-        const tokenId = mintEvent?.args?.tokenId.toString();
+        const mintEvent = receipt.events?.find((e: any) => e.event === 'minted');
+        const confirmedTokenId = mintEvent?.args?.tokenId.toString();
         
-        if (!tokenId) {
+        if (!confirmedTokenId) {
           throw new Error('민팅 이벤트에서 토큰 ID를 추출할 수 없습니다');
         }
         
@@ -69,14 +71,14 @@ export async function processMintQueue() {
           ("userId", "nftTokenId", "tokenURI", "mintType", "txHash", "confirmed", "sessionId", "questId", "name", "description", "image", "attributes")
           VALUES (
             ${mintRequest.userId}, 
-            ${tokenId}, 
+            ${confirmedTokenId}, 
             ${mintRequest.metadataURI}, 
             ${mintRequest.mintType}, 
             ${tx.hash}, 
             ${true}, 
             ${mintRequest.sessionId}, 
             ${mintRequest.questId}, 
-            ${"Game Item #" + tokenId}, 
+            ${"Game Item #" + confirmedTokenId}, 
             ${"An item from the TRPG game"}, 
             ${"https://example.com/image.png"}, 
             ${{}}::jsonb
@@ -90,7 +92,14 @@ export async function processMintQueue() {
           WHERE "id" = ${mintRequest.id}
         `;
         
-        console.log(`NFT 민팅 완료: 유저 ${mintRequest.userId}, 토큰 ID ${tokenId}`);
+        console.log(`NFT 민팅 완료: 유저 ${mintRequest.userId}, 토큰 ID ${confirmedTokenId}`);
+        
+        // 커스텀 URI가 필요한 경우
+        if (mintRequest.metadataURI) {
+          await nftContract.setCustomURI(confirmedTokenId, mintRequest.metadataURI);
+          console.log(`토큰 ${confirmedTokenId}의 커스텀 URI가 설정되었습니다: ${mintRequest.metadataURI}`);
+        }
+        
       } catch (error) {
         console.error(`민팅 처리 오류:`, error);
       }
@@ -146,9 +155,9 @@ export function setupNFTEventListeners() {
     return;
   }
   
-  nftContract.on('NFTMinted', async (player: string, tokenId: string, tokenURI: string, eventType: string) => {
+  nftContract.on("minted", async (user: string, tokenId: string) => {
     try {
-      console.log(`NFT 민팅 이벤트 수신: 플레이어 ${player}, 토큰 ID ${tokenId}`);
+      console.log(`NFT 민팅 이벤트 수신: 사용자 ${user}, 토큰 ID ${tokenId}`);
       
       // 필요시 추가 처리
       // 예: 게임 내 알림, 보상 지급 등

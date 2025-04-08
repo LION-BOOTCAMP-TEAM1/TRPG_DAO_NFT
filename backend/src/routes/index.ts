@@ -158,13 +158,13 @@ router.use('/story-worlds', storyWorldRoutes);
 router.use('/chapters', chapterRoutes);
 
 // DAO Proposal 라우터 등록
-router.use('/api/proposals', daoProposalRouter);
+router.use('/proposals', daoProposalRouter);
 
 // NFT 이벤트 리스너 설정 및 처리 스케줄 시작
 setupNFTEventListeners();
 startNFTProcessingSchedule();
 
 // NFT API 라우터 등록
-router.use('/api/nft', nftRouter);
+router.use('/nft', nftRouter);
 
 export default router;

@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import DAOABI from '../../../frontend/src/utils/abis/DAO.json';
+import DAOABI from '../utils/abis/DAO.json';
 import prisma from '../prismaClient';
 
 // 프로바이더 및 컨트랙트 설정
@@ -63,6 +63,19 @@ export function setupEventListeners() {
         return;
       }
       
+      // option 데이터 타입에 따른 처리
+      let optionValue;
+      if (typeof option === 'number') {
+        optionValue = option;
+      } else if (typeof option === 'string') {
+        optionValue = parseInt(option);
+      } else if (option && typeof option.toNumber === 'function') {
+        optionValue = option.toNumber();
+      } else {
+        console.log('option 타입:', typeof option, option);
+        optionValue = Number(option); // 최후의 방법으로 Number 생성자 사용
+      }
+      
       await prisma.dAOVote.upsert({
         where: {
           proposalId_voter: {
@@ -71,12 +84,12 @@ export function setupEventListeners() {
           }
         },
         update: {
-          option: option.toNumber()
+          option: optionValue
         },
         create: {
           proposalId: proposalId.toNumber(),
           voter,
-          option: option.toNumber()
+          option: optionValue
         }
       });
       console.log(`Proposal ${proposalId}에 대한 투표 이벤트 처리됨`);
@@ -164,6 +177,19 @@ export async function syncBlockchainData() {
       
       const [proposalId, voter, option] = args;
       try {
+        // option 데이터 타입에 따른 처리
+        let optionValue;
+        if (typeof option === 'number') {
+          optionValue = option;
+        } else if (typeof option === 'string') {
+          optionValue = parseInt(option);
+        } else if (option && typeof option.toNumber === 'function') {
+          optionValue = option.toNumber();
+        } else {
+          console.log('option 타입:', typeof option, option);
+          optionValue = Number(option); // 최후의 방법으로 Number 생성자 사용
+        }
+        
         await prisma.dAOVote.upsert({
           where: {
             proposalId_voter: {
@@ -172,12 +198,12 @@ export async function syncBlockchainData() {
             }
           },
           update: {
-            option: option.toNumber()
+            option: optionValue
           },
           create: {
             proposalId: proposalId.toNumber(),
             voter,
-            option: option.toNumber()
+            option: optionValue
           }
         });
         console.log(`Proposal ${proposalId}에 대한 투표 이벤트 처리됨`);
