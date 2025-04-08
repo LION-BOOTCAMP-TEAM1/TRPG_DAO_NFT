@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import AppProvider from '@/app/providers/AppProvider';
 import LayoutWrapper from './components/LayoutWrapper';
 import { ReduxProvider } from '@/store/provider';
+import UnloadHandler from './components/UnloadHandler';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,11 +22,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ReduxProvider>
-        <AppProvider>
-          <LayoutWrapper>
-            {children}
-          </LayoutWrapper>
-        </AppProvider>
+          <AppProvider>
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </AppProvider>
         </ReduxProvider>
       </body>
     </html>

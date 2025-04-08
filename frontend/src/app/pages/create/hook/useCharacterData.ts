@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
-import useAuth from '@/app/hook/useAuth';
+import useAuth from '@/app/hooks/useAuth';
 import { classStats } from '../components/CharacterStats';
 
 export default function useCharacterData() {

@@ -1,9 +1,9 @@
 'use client';
 
 import { ReactNode, createContext, useContext } from 'react';
-import { ReduxProvider } from "../../store/provider";
+import { ReduxProvider } from '../../store/provider';
 import { AuthContext } from './AuthProvider';
-import useAuth from '../hook/useAuth';
+import useAuth from '../hooks/useAuth';
 import { ThemeContext } from '../components/ThemeProvider';
 import { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
@@ -38,7 +38,7 @@ export const useThemeContext = () => {
 export default function AppProvider({ children }: { children: ReactNode }) {
   // Auth 관련 상태 및 함수
   const auth = useAuth();
-  
+
   // Theme 관련 상태 및 함수
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [isThemeLoaded, setIsThemeLoaded] = useState<boolean>(false);
@@ -49,18 +49,20 @@ export default function AppProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
       // 저장된 테마가 없으면 시스템 테마 사용 (옵션)
-      const prefersDark = savedTheme === 'dark' || 
-        (savedTheme === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      
+      const prefersDark =
+        savedTheme === 'dark' ||
+        (savedTheme === null &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches);
+
       setIsDarkMode(prefersDark);
-      
+
       // 다크 모드 적용
       if (prefersDark) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
-      
+
       setIsThemeLoaded(true);
     }
   }, []);
@@ -70,23 +72,23 @@ export default function AppProvider({ children }: { children: ReactNode }) {
     setIsDarkMode((prev) => {
       const newTheme = !prev;
       localStorage.setItem('theme', newTheme ? 'dark' : 'light');
-      
+
       if (newTheme) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
-      
+
       return newTheme;
     });
   };
 
   return (
-      <AuthContext.Provider value={auth}>
-        <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-          {children}
-          <Toaster richColors position="top-right" />
-        </ThemeContext.Provider>
-      </AuthContext.Provider>
+    <AuthContext.Provider value={auth}>
+      <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+        {children}
+        <Toaster richColors position="top-right" />
+      </ThemeContext.Provider>
+    </AuthContext.Provider>
   );
-} 
+}

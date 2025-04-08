@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import CharacterImage from './CharacterImage';
 import Link from 'next/link';
+import UnloadHandler from '@/app/components/UnloadHandler';
 
 export default function CharacterDetails({
   selectedClass,
@@ -18,6 +19,7 @@ export default function CharacterDetails({
   return (
     <div className="rounded shadow flex flex-col justify-center items-center">
       <p className="text-2xl font-bold">{selectedClass.name}</p>
+      <UnloadHandler isBlocking />
 
       {/* 배경 테두리 */}
       <Image
@@ -44,6 +46,7 @@ export default function CharacterDetails({
             <input
               type="text"
               placeholder="캐릭터 이름"
+              aria-label="캐릭터 이름"
               value={characterName}
               onChange={(e) => {
                 const inputValue = e.target.value.replace(/\s/g, '');

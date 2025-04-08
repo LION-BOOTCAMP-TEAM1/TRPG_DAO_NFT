@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import DetailClient from './DetailClient';
 import CharacterStat from '@/app/components/characterStat/CharacterStat';
+import UnloadHandler from '@/app/components/UnloadHandler';
 
 export const metadata: Metadata = {
   title: 'Story Detail',
@@ -13,7 +14,7 @@ export default function StoryDetailPage() {
       <div className="flex-[4]">
         <DetailClient />
       </div>
-
+      <UnloadHandler isBlocking />
       <div className="h-auto w-px bg-fantasy-copper/30" />
 
       <div className="flex-[1] p-4">
