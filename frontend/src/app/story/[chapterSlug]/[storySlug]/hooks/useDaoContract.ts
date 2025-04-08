@@ -4,6 +4,7 @@ import DaoABI from '@/utils/abis/DAO.json';
 
 export const useDaoContract = () => {
   const [dao, setDao] = useState<ethers.Contract | null>(null);
+  const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -15,10 +16,11 @@ export const useDaoContract = () => {
         DaoABI,
         signer,
       );
+      setSigner(signer);
       setDao(instance);
     };
     init();
   }, []);
 
-  return dao;
+  return { dao, signer };
 };
