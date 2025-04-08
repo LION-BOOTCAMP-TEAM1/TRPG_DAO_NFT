@@ -11,7 +11,7 @@ export default function BetaSection({
   title = "베타 테스터로 전설을 시작하세요!",
   subtitle = "지금 베타 테스트에 참여하고 무료 랜덤 NFT 캐릭터를 받아보세요. 여러분의 선택이 스토리를 만듭니다!",
   buttonText = "베타 테스트 참여하기",
-  buttonLink = "/pages/signup"
+  buttonLink = "/signup"
 }: Partial<BetaSectionProps>) {
   return (
     <section className="py-20 bg-fantasy-background dark:bg-[var(--fantasy-background)] relative transition-colors duration-300">

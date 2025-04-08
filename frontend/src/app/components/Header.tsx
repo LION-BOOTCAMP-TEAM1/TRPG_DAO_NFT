@@ -57,7 +57,7 @@ const Header: FC<HeaderProps> = () => {
                 Story
               </span>
             </Link>
-            <Link href={'/pages/marketplace'}>
+            <Link href={'/marketplace'}>
               <span className="text-fantasy-text dark:text-[var(--fantasy-text)] text-sm hover:text-fantasy-gold dark:hover:text-[var(--fantasy-gold)]">
                 Marketplace
               </span>

@@ -61,7 +61,7 @@ const StoryListPage = () => {
 
               {/* Using FantasyButton component */}
               <div className="mt-4">
-                <FantasyButton href="/pages/create" size="lg">
+                <FantasyButton href="/create" size="lg">
                   모험 시작하기
                 </FantasyButton>
               </div>

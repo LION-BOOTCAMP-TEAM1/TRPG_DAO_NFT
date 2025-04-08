@@ -7,7 +7,7 @@ import TooltipPortal from "@/app/components/TooltipPortal";
 interface MarketItemProps {
     item: Item;
     seller: String;
-    price: Number;
+    price: number;
     refresh: () => void;
 }
 

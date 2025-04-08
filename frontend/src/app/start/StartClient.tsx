@@ -67,7 +67,7 @@ export default function StartClient() {
       </div>
       <div>
         <Link
-          href={'/pages/create'}
+          href={'/create'}
           className="inline-block bg-[#1e40af] text-white text-sm px-4 py-1 rounded hover:bg-[#374fc9] transition-colors"
         >
           생성하기
