@@ -55,21 +55,26 @@ export default function NFTMarketplace() {
   }, []);
   
   return (
-    <div className="bg-zinc-900 text-white h-screen p-6 overflow-visible">
-      <h1 className="text-2xl font-bold mb-4 mt-20">🛒 NFT Marketplace</h1>
+    <div className="text-white h-screen p-6 overflow-visible">
+      <p className="text-fantasy-gold dark:text-[var(--fantasy-gold)] text-2xl font-bold mb-4 mt-20">🛒 NFT Marketplace</p>
 
       <div className="grid grid-cols-2 gap-8 h-[90%]">
         {/* 왼쪽: 시장에 등록된 상품 */}
         <div className="flex flex-col h-full overflow-visible">
         <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-semibold">🔥 시장 상품</h2>
+            <h2 className="text-fantasy-gold dark:text-[var(--fantasy-gold)] text-xl font-semibold">🔥 시장 상품</h2>
             <div className="flex gap-2">
-              <button onClick={() => setSortPriceAsc((v) => !v )} className="bg-zinc-700 px-3 py-1 rounded text-sm hover:bg-zinc-600">가격순{sortPriceAsc ? '⬆️' : '⬇️'}</button>
+              <button
+                onClick={() => setSortPriceAsc((v) => !v )}
+                className="bg-zinc-700 px-3 py-1 rounded text-sm hover:bg-zinc-600"
+              >
+                가격순{sortPriceAsc ? '⬆️' : '⬇️'}
+                </button>
               <button onClick={() => setSortRarityAsc((v) => !v )} className="bg-zinc-700 px-3 py-1 rounded text-sm hover:bg-zinc-600">등급순{sortRarityAsc ? '⬆️' : '⬇️'}</button>
             </div>
           </div>
           <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent pb-6">
-            {marketItems.length === 0 && <p className="p-4 text-center">판매중인 NFT가 없습니다</p>}
+            {marketItems.length === 0 && <p className="text-fantasy-gold dark:text-[var(--fantasy-gold)] p-4 text-center">판매중인 NFT가 없습니다</p>}
             {marketItems.map(({ item, seller, price }, index) => (
               <MarketItem key={index} item={item} seller={seller} price={price} refresh={refresh} />
             ))}
@@ -79,11 +84,11 @@ export default function NFTMarketplace() {
         {/* 오른쪽: 내가 보유한 NFT */}
         <div className="flex flex-col h-full overflow-visible">
           <div className="flex flex-row items-center gap-10 mb-3">
-            <h2 className="text-xl font-semibold">🎒 내 NFT</h2>
+            <h2 className="text-fantasy-gold dark:text-[var(--fantasy-gold)] text-xl font-semibold">🎒 내 NFT</h2>
             <ApproveButton onApproved={() => setApprovedReady(true)} refresh={refreshApproval} />
           </div>
           <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent pb-6">
-            {myNFTs.inventory.length === 0 && <p className="p-4 text-center">보유한 NFT가 없습니다</p>}
+            {myNFTs.inventory.length === 0 && <p className="text-fantasy-gold dark:text-[var(--fantasy-gold)] p-4 text-center">보유한 NFT가 없습니다</p>}
             {myNFTs.inventory.map((nft, index) => (
               <MyNFTItem key={index} nft={nft} approve={approvedReady} refresh={refresh} />
             ))}

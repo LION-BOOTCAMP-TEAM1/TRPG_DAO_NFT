@@ -66,38 +66,40 @@ const MarketItem = ({item, seller, price, refresh}: MarketItemProps) => {
   }
 
   return (
-    <div className="bg-zinc-800 px-4 py-3 rounded border border-zinc-700 flex items-center justify-between gap-4">
-        <div
-          className="flex items-center gap-4 min-w-0"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
+    <div className="bg-fantasy-surface/80 dark:bg-[var(--fantasy-surface)]/80 px-4 py-3 rounded border flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
             <div className={`rarity-${item.rarity} p-1`}>
-              <img src={item.image} alt={item.name} className="w-12 h-12 rounded" />
+              <img
+                src={item.image} alt={item.name}
+                className="w-12 h-12 rounded" 
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              />
               <TooltipPortal visible={tooltipVisible} position={tooltipPos}>
-                <div className="bg-zinc-800 text-white p-3 rounded shadow-lg border border-zinc-600 w-64">
-                  <p className="text-base font-bold mb-1">{item.name}</p>
+                <div className="bg-zinc-800 p-3 rounded shadow-lg border border-zinc-600 w-64">
+                  <p className="text-fantasy-gold dark:text-[var(--fantasy-gold)] text-base font-bold mb-1">{item.name}</p>
                   <p className="text-zinc-400 mb-2">{item.description}</p>
               
                   <div className="border-t border-zinc-600 my-2" />
               
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm">
-                    <div><span className="text-zinc-400">공격력</span>: {item.stat?.attack ?? 0}</div>
-                    <div><span className="text-zinc-400">마법력</span>: {item.stat?.magic ?? 0}</div>
-                    <div><span className="text-zinc-400">근력</span>: {item.stat?.strength ?? 0}</div>
-                    <div><span className="text-zinc-400">민첩성</span>: {item.stat?.agility ?? 0}</div>
-                    <div><span className="text-zinc-400">지능</span>: {item.stat?.intelligence ?? 0}</div>
-                    <div><span className="text-zinc-400">매력</span>: {item.stat?.charisma ?? 0}</div>
-                    <div><span className="text-zinc-400">체력</span>: {item.stat?.health ?? 0}</div>
-                    <div><span className="text-zinc-400">지혜</span>: {item.stat?.wisdom ?? 0}</div>
+                    <div className="text-zinc-400"><span>공격력</span>: {item.stat?.attack ?? 0}</div>
+                    <div className="text-zinc-400"><span>마법력</span>: {item.stat?.magic ?? 0}</div>
+                    <div className="text-zinc-400"><span>근력</span>: {item.stat?.strength ?? 0}</div>
+                    <div className="text-zinc-400"><span>민첩성</span>: {item.stat?.agility ?? 0}</div>
+                    <div className="text-zinc-400"><span>지능</span>: {item.stat?.intelligence ?? 0}</div>
+                    <div className="text-zinc-400"><span>매력</span>: {item.stat?.charisma ?? 0}</div>
+                    <div className="text-zinc-400"><span>체력</span>: {item.stat?.health ?? 0}</div>
+                    <div className="text-zinc-400"><span>지혜</span>: {item.stat?.wisdom ?? 0}</div>
                   </div>
                 </div>
               </TooltipPortal>
             </div>
             <div className="min-w-0">
-            <p className="font-semibold text-sm truncate">{`[${getTypeString(item.type)}] ${item.name}`}</p>
-            <p className="text-xs text-zinc-400">판매자: {seller}</p>
-            <p className="text-xs text-zinc-400">가격: {price / Math.pow(10, 18)} ETH</p>
+              <p className="text-fantasy-gold dark:text-[var(--fantasy-gold)] font-semibold text-xs truncate">{`[${getTypeString(item.type)}]`}</p>
+              <p className="text-fantasy-gold dark:text-[var(--fantasy-gold)] font-semibold text-sm truncate">{`${item.name}`}</p>
+              <p className="text-xs text-zinc-400">판매자: {seller}</p>
+              <p className="text-xs text-zinc-400">가격: {price / Math.pow(10, 18)} ETH</p>
             </div>
             <div className="text-zinc-500 mx-3">|</div>
             <p className="text-xs text-zinc-400 truncate">{item.description}</p>
@@ -110,7 +112,10 @@ const MarketItem = ({item, seller, price, refresh}: MarketItemProps) => {
             max={item.amount}
             min={0}
             onChange={(e) => setAmount(e.target.value)}
-            className="bg-zinc-700 text-white px-2 py-1 rounded w-20 text-sm"
+            className="bg-gray-200 dark:bg-[var(--fantasy-surface)]/40
+              text-gray-600 dark:text-gray-400
+              border
+              px-2 py-1 rounded w-20 text-sm"
             />
             <button
                 onClick={() => handleBuy()}
