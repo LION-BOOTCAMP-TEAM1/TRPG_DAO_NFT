@@ -23,7 +23,6 @@ export default function useCharacterData() {
           api.get('/api/characterclasses'),
           api.get('/api/characters'),
         ]);
-
         setCharacterClasses(classesResponse.data);
         setCharacters(charactersResponse.data);
       } catch (error) {
@@ -49,22 +48,22 @@ export default function useCharacterData() {
   const handleCreateCharacter = async () => {
     if (!selectedClass || !characterName) {
       setMessage('닉네임을 입력하세요.');
-      return;
+      return null;
     }
 
     if (/^[ㄱ-ㅎㅏ-ㅣ]+$/.test(characterName)) {
       setMessage('완성된 글자를 입력해주세요.');
-      return;
+      return null;
     }
 
     if (!user) {
       setMessage('로그인 해주세요.');
-      return;
+      return null;
     }
 
     if (checkCharacterNameDuplicate(characterName)) {
       setMessage('닉네임 중복.');
-      return;
+      return null;
     }
 
     const stats =
@@ -83,12 +82,22 @@ export default function useCharacterData() {
       if (response) {
         setMessage('생성 완료.');
         setIsCreated(true);
+        return {
+          name: characterName,
+          class: characterClasses[selectedClass.id],
+          gender,
+          age: Number(age),
+          attribute,
+          ...stats,
+        };
       } else {
         setMessage('생성 실패');
+        return null;
       }
     } catch (error) {
       console.error('Error creating character:', error);
       setMessage('서버 오류');
+      return null;
     }
   };
 

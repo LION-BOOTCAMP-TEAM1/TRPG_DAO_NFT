@@ -65,10 +65,42 @@ const initialState: CharacterState = {
     inventory: [],
 };
 
+const classImages: { [key: number]: string } = {
+    1: '/character/magician.png',
+    2: '/character/assassin.png',
+    3: '/character/bard.png',
+    4: '/character/ranger.png',
+    5: '/character/warrior.png',
+  };
+
 const characterSlice = createSlice({
   name: "character",
   initialState,
   reducers: {
+    setCharacterInfo(state, action: PayloadAction<any>) {
+        const statData = {
+            HP: 4,
+            MT: 4,
+            attack: action.payload.physicalAttack,
+            magic: action.payload.magicAttack,
+            strength: action.payload.strength,
+            agility: action.payload.agility,
+            intelligence: action.payload.intelligence,
+            charisma: action.payload.charisma,
+            health: action.payload.health,
+            wisdom: action.payload.wisdom,
+        };
+
+        state.character = {
+            id: action.payload.class.id,
+            class: action.payload.class.name,
+            name: action.payload.name,
+            image: classImages[action.payload.class.id],
+            stat: statData,
+        };
+
+        state.stats = statData;        
+    },
     updateStat(state) {
         const statKeys = [
             "attack", "magic", "strength", "agility",
@@ -150,10 +182,11 @@ const characterSlice = createSlice({
 });
 
 export const {
-  equipItem,
-  disarmItem,
-  addItemToInventory,
-  clearInventory,
+    setCharacterInfo,
+    equipItem,
+    disarmItem,
+    addItemToInventory,
+    clearInventory,
 } = characterSlice.actions;
 
 export default characterSlice.reducer;

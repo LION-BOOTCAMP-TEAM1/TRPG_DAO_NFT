@@ -23,7 +23,7 @@ export default function CreatePage() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-[#f4efe1]">
       <div
-        className="text-6xl pt-10 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)]"
+        className="text-6xl pt-10 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,1)] mt-20"
         style={{ fontFamily: 'continuous' }}
       >
         <h1>New Adventure</h1>
