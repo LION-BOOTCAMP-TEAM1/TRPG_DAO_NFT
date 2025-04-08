@@ -64,13 +64,11 @@ const MyNFTItem = ({ nft, approve, refresh }: MyNFTItemProps) => {
   return (
     <div className="bg-fantasy-surface/80 dark:bg-[var(--fantasy-surface)]/80 px-4 py-3 rounded border flex items-center justify-between gap-4">
       <div className="flex items-center gap-4 min-w-0">
-        <div className={`rarity-${nft.rarity} p-1 relative`}>
-          <img
-            src={nft.image} alt={nft.name}
-            className="w-12 h-12 rounded shrink-0"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          />
+        <div className={`rarity-${nft.rarity} p-1 relative`}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <img src={nft.image} alt={nft.name} className="w-12 h-12 rounded shrink-0"/>
 
           <TooltipPortal visible={tooltipVisible} position={tooltipPos}>
             <div className="bg-zinc-800 text-white p-3 rounded shadow-lg border border-zinc-600 w-64">

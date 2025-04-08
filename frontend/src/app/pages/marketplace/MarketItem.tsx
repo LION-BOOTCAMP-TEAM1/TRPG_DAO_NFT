@@ -68,12 +68,13 @@ const MarketItem = ({item, seller, price, refresh}: MarketItemProps) => {
   return (
     <div className="bg-fantasy-surface/80 dark:bg-[var(--fantasy-surface)]/80 px-4 py-3 rounded border flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
-            <div className={`rarity-${item.rarity} p-1`}>
+            <div className={`rarity-${item.rarity} p-1`}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
               <img
                 src={item.image} alt={item.name}
-                className="w-12 h-12 rounded" 
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
+                className="w-12 h-12 rounded"
               />
               <TooltipPortal visible={tooltipVisible} position={tooltipPos}>
                 <div className="bg-zinc-800 p-3 rounded shadow-lg border border-zinc-600 w-64">
