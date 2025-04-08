@@ -544,6 +544,15 @@ const joinSession = async (req: Request, res: Response) => {
       return res.status(404).json({ error: '세션을 찾을 수 없습니다' });
     }
 
+    // 유저가 존재하는지 먼저 확인
+    const user = await prisma.user.findUnique({
+      where: { id: Number(userId) }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: '유저를 찾을 수 없습니다' });
+    }
+
     const existing = await prisma.sessionParticipant.findUnique({
       where: {
         sessionId_userId: {
