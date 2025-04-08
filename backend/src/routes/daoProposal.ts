@@ -8,6 +8,7 @@ const router = express.Router();
 // Provider 설정
 const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
 const DAO_CONTRACT_ADDRESS = process.env.DAO_CONTRACT_ADDRESS || '0x0';
+const CONTRACT_PRIVATE_KEY = process.env.CONTRACT_PRIVATE_KEY || '';
 
 /**
  * @swagger
@@ -27,7 +28,6 @@ const DAO_CONTRACT_ADDRESS = process.env.DAO_CONTRACT_ADDRESS || '0x0';
  *               - duration
  *               - numOptions
  *               - users
- *               - privateKey
  *             properties:
  *               description:
  *                 type: string
@@ -43,9 +43,6 @@ const DAO_CONTRACT_ADDRESS = process.env.DAO_CONTRACT_ADDRESS || '0x0';
  *                 items:
  *                   type: string
  *                 description: 투표 가능한 사용자 주소 목록
- *               privateKey:
- *                 type: string
- *                 description: 트랜잭션 서명에 사용할 개인키
  *     responses:
  *       200:
  *         description: 제안 생성 성공
@@ -69,15 +66,19 @@ const DAO_CONTRACT_ADDRESS = process.env.DAO_CONTRACT_ADDRESS || '0x0';
  */
 router.post('/create', async (req: Request, res: Response) => {
   try {
-    const { description, duration, numOptions, users, privateKey } = req.body;
+    const { description, duration, numOptions, users } = req.body;
     
     // 요청 검증
-    if (!description || !duration || !numOptions || !users || !privateKey) {
+    if (!description || !duration || !numOptions || !users) {
       return res.status(400).json({ error: '필수 정보가 누락되었습니다' });
     }
     
+    if (!CONTRACT_PRIVATE_KEY) {
+      return res.status(500).json({ error: '컨트랙트 개인키 설정이 누락되었습니다' });
+    }
+    
     // 트랜잭션 처리를 위한 서명자 생성
-    const wallet = new ethers.Wallet(privateKey, provider);
+    const wallet = new ethers.Wallet(CONTRACT_PRIVATE_KEY, provider);
     const daoContract = new ethers.Contract(
       DAO_CONTRACT_ADDRESS,
       DAOABI,
@@ -285,7 +286,6 @@ router.get('/:proposalId', async (req: Request, res: Response) => {
  *               - duration
  *               - numOptions
  *               - users
- *               - privateKey
  *             properties:
  *               description:
  *                 type: string
@@ -301,9 +301,6 @@ router.get('/:proposalId', async (req: Request, res: Response) => {
  *                 items:
  *                   type: string
  *                 description: 투표 가능한 사용자 주소 목록
- *               privateKey:
- *                 type: string
- *                 description: 트랜잭션 서명에 사용할 개인키
  *     responses:
  *       200:
  *         description: 제안 생성 성공
@@ -327,15 +324,19 @@ router.get('/:proposalId', async (req: Request, res: Response) => {
  */
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { description, duration, numOptions, users, privateKey } = req.body;
+    const { description, duration, numOptions, users } = req.body;
     
     // 요청 검증
-    if (!description || !duration || !numOptions || !users || !privateKey) {
+    if (!description || !duration || !numOptions || !users) {
       return res.status(400).json({ error: '필수 정보가 누락되었습니다' });
     }
     
+    if (!CONTRACT_PRIVATE_KEY) {
+      return res.status(500).json({ error: '컨트랙트 개인키 설정이 누락되었습니다' });
+    }
+    
     // 트랜잭션 처리를 위한 서명자 생성
-    const wallet = new ethers.Wallet(privateKey, provider);
+    const wallet = new ethers.Wallet(CONTRACT_PRIVATE_KEY, provider);
     const daoContract = new ethers.Contract(
       DAO_CONTRACT_ADDRESS,
       DAOABI,
@@ -383,18 +384,6 @@ router.post('/', async (req: Request, res: Response) => {
  *         schema:
  *           type: integer
  *         description: 종료할 제안의 ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - privateKey
- *             properties:
- *               privateKey:
- *                 type: string
- *                 description: 트랜잭션 서명에 사용할 개인키
  *     responses:
  *       200:
  *         description: 제안 종료 성공
@@ -419,10 +408,9 @@ router.post('/', async (req: Request, res: Response) => {
 router.post('/:proposalId/close', async (req: Request, res: Response) => {
   try {
     const { proposalId } = req.params;
-    const { privateKey } = req.body;
     
-    if (!privateKey) {
-      return res.status(400).json({ error: '프라이빗 키가 필요합니다' });
+    if (!CONTRACT_PRIVATE_KEY) {
+      return res.status(500).json({ error: '컨트랙트 개인키 설정이 누락되었습니다' });
     }
     
     // 실제 구현 시에는 마이그레이션 후 아래 주석을 해제하세요
@@ -442,7 +430,7 @@ router.post('/:proposalId/close', async (req: Request, res: Response) => {
     */
     
     // 트랜잭션 처리
-    const wallet = new ethers.Wallet(privateKey, provider);
+    const wallet = new ethers.Wallet(CONTRACT_PRIVATE_KEY, provider);
     const daoContract = new ethers.Contract(
       DAO_CONTRACT_ADDRESS,
       DAOABI,
@@ -485,14 +473,10 @@ router.post('/:proposalId/close', async (req: Request, res: Response) => {
  *             type: object
  *             required:
  *               - option
- *               - privateKey
  *             properties:
  *               option:
  *                 type: integer
  *                 description: 투표 옵션 (0부터 시작하는 인덱스)
- *               privateKey:
- *                 type: string
- *                 description: 트랜잭션 서명에 사용할 개인키
  *     responses:
  *       200:
  *         description: 투표 성공
@@ -517,11 +501,15 @@ router.post('/:proposalId/close', async (req: Request, res: Response) => {
 router.post('/:proposalId/vote', async (req: Request, res: Response) => {
   try {
     const { proposalId } = req.params;
-    const { option, privateKey } = req.body;
+    const { option } = req.body;
     
     // 요청 검증
-    if (option === undefined || !privateKey) {
-      return res.status(400).json({ error: '필수 정보가 누락되었습니다' });
+    if (option === undefined) {
+      return res.status(400).json({ error: '투표 옵션은 필수입니다' });
+    }
+    
+    if (!CONTRACT_PRIVATE_KEY) {
+      return res.status(500).json({ error: '컨트랙트 개인키 설정이 누락되었습니다' });
     }
     
     // 실제 구현 시에는 마이그레이션 후 아래 주석을 해제하세요
@@ -541,7 +529,7 @@ router.post('/:proposalId/vote', async (req: Request, res: Response) => {
     */
     
     // 트랜잭션 처리
-    const wallet = new ethers.Wallet(privateKey, provider);
+    const wallet = new ethers.Wallet(CONTRACT_PRIVATE_KEY, provider);
     const daoContract = new ethers.Contract(
       DAO_CONTRACT_ADDRESS,
       DAOABI,
