@@ -9,8 +9,8 @@ import UnloadHandler from './components/UnloadHandler';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CRPG',
-  description: 'A TRPG DAO NFT Web3 Game Project',
+  title: 'TRPG DAO NFT',
+  description: 'TRPG DAO NFT Platform',
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ReduxProvider>
           <AppProvider>

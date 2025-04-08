@@ -17,43 +17,43 @@ const renderStats = (item: Item) => {
     <div className="flex flex-col">
         <div className="grid grid-cols-2 gap-1 text-sm mt-1">
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-            <img src="/attack.png" alt="공격력" className="w-5 h-5" />
+            <img src="/stat-icons/attack.png" alt="공격력" className="w-5 h-5" />
             <span className={`${item.stat.attack ? "text-white" : "text-gray-500"} text-sm font-medium`}>+{item.stat.attack ?? 0}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-            <img src="/magic.png" alt="마법력" className="w-5 h-5" />
+            <img src="/stat-icons/magic.png" alt="마법력" className="w-5 h-5" />
             <span className={`${item.stat.magic ? "text-white" : "text-gray-500"} text-sm font-medium`}>+{item.stat.magic ?? 0}</span>
             </div>
         </div>
         
         <div className="grid grid-cols-3 gap-1 text-sm mt-1">
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-            <img src="/str.png" alt="STR" className="w-5 h-5" />
+            <img src="/stat-icons/str.png" alt="STR" className="w-5 h-5" />
             <span className={`${item.stat.strength ? "text-white" : "text-gray-500"} text-sm font-medium`}>+{item.stat.strength ?? 0}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-            <img src="/agi.png" alt="AGI" className="w-5 h-5" />
+            <img src="/stat-icons/agi.png" alt="AGI" className="w-5 h-5" />
             <span className={`${item.stat.agility ? "text-white" : "text-gray-500"} text-sm font-medium`}>+{item.stat.agility ?? 0}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-            <img src="/int.png" alt="INT" className="w-5 h-5" />
+            <img src="/stat-icons/int.png" alt="INT" className="w-5 h-5" />
             <span className={`${item.stat.intelligence ? "text-white" : "text-gray-500"} text-sm font-medium`}>+{item.stat.intelligence ?? 0}</span>
             </div>
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-            <img src="/chr.png" alt="CHR" className="w-5 h-5" />
+            <img src="/stat-icons/chr.png" alt="CHR" className="w-5 h-5" />
             <span className={`${item.stat.charisma ? "text-white" : "text-gray-500"} text-sm font-medium`}>+{item.stat.charisma ?? 0}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-            <img src="/health.png" alt="HEALTH" className="w-5 h-5" />
+            <img src="/stat-icons/health.png" alt="HEALTH" className="w-5 h-5" />
             <span className={`${item.stat.health ? "text-white" : "text-gray-500"} text-sm font-medium`}>+{item.stat.health ?? 0}</span>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-600 rounded p-1 justify-center">
-            <img src="/wis.png" alt="WIS" className="w-5 h-5" />
+            <img src="/stat-icons/wis.png" alt="WIS" className="w-5 h-5" />
             <span className={`${item.stat.wisdom ? "text-white" : "text-gray-500"} text-sm font-medium`}>+{item.stat.wisdom ?? 0}</span>
             </div>            
         </div>
