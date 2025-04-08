@@ -4,8 +4,8 @@ import Image from 'next/image';
 const classImages: { [key: number]: string } = {
   1: '/character/magician.png',
   2: '/character/assassin.png',
-  4: '/character/bard.png',
   3: '/character/ranger.png',
+  4: '/character/bard.png',
   5: '/character/warrior.png',
 };
 

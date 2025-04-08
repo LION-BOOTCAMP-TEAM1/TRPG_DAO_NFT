@@ -10,7 +10,7 @@ interface BranchVotingProps {
   isVoting: boolean;
   voteStatus: 'idle' | 'success' | 'error';
   voteError: string;
-  handleVote: (choiceId: number) => void;
+  handleVote: (choiceIndex: number) => void;
 }
 
 export const BranchVoting = ({
@@ -38,16 +38,16 @@ export const BranchVoting = ({
 
   return (
     <div className="space-y-2 mt-6">
-      {branchPoint.DAOChoice?.map((choice: DAOChoice) => (
+      {branchPoint.DAOChoice?.map((choice: DAOChoice, index: number) => (
         <button
           key={choice.id}
           className="w-full text-left p-3 rounded-lg border border-fantasy-copper hover:bg-fantasy-surface transition"
-          onClick={() => handleVote(choice.id)}
+          onClick={() => handleVote(index + 1)}
           disabled={isVoting}
         >
           <span className="font-medium text-fantasy-text">{choice.text}</span>{' '}
           <span className="text-fantasy-text/60">
-            ({voteResults[choice.id - 1] ?? 0}표)
+            ({voteResults[index] ?? 0}표)
           </span>
         </button>
       ))}

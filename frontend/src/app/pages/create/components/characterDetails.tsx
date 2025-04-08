@@ -2,6 +2,9 @@ import Image from 'next/image';
 import CharacterImage from './CharacterImage';
 import Link from 'next/link';
 import UnloadHandler from '@/app/components/UnloadHandler';
+import { setCharacterInfo } from '@/store/characterSlice';
+import { AppDispatch } from "@/store";
+import { useDispatch } from "react-redux";
 
 export default function CharacterDetails({
   selectedClass,
@@ -13,9 +16,18 @@ export default function CharacterDetails({
   selectedClass: any;
   characterName: string;
   setCharacterName: (name: string) => void;
-  handleCreateCharacter: () => void;
+  handleCreateCharacter: () => any | null;
   isCreated: boolean;
-}) {
+}) {  
+  const dispatch = useDispatch<AppDispatch>();
+
+  const handleCreate = async () => {
+    const character = await handleCreateCharacter();
+    if(character) {
+      dispatch(setCharacterInfo(character));
+    }
+  }
+
   return (
     <div className="rounded shadow flex flex-col justify-center items-center">
       <p className="text-2xl font-bold">{selectedClass.name}</p>
@@ -62,7 +74,7 @@ export default function CharacterDetails({
       {!isCreated ? (
         <button
           className="mt-3 px-4 py-2 inline-block bg-[#1e40af] text-white text-sm rounded hover:bg-[#374fc9] transition-colors"
-          onClick={handleCreateCharacter}
+          onClick={handleCreate}
         >
           캐릭터 생성
         </button>

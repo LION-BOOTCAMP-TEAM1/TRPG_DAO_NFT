@@ -68,6 +68,9 @@ export function useProposalHandler({
   const refreshVoteResults = async () => {
     if (proposalId === null || !dao) return;
     try {
+      // 5초 대기
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
       const results: bigint[] = await dao.getProposalResults(proposalId);
       const numeric = results.map(Number);
       setVoteResults(numeric);
@@ -135,29 +138,21 @@ export function useProposalHandler({
           return;
         }
 
-        const tx = await dao.createProposal(
+        const res = await api.post('/api/dao/create', {
           description,
           duration,
           numOptions,
-          userAddresses,
-        );
-        const receipt = await tx.wait();
+          users: userAddresses,
+        });
 
-        const events = await dao.queryFilter(
-          dao.filters.ProposalCreated(),
-          receipt.blockNumber,
-        );
-
-        const created = events.find(
-          (e: EventLog): e is EventLog =>
-            'args' in e && e.args?.description === description,
-        );
-
-        if (created) {
-          setProposalId(Number(created.args.proposalId));
-          console.log('created proposalId: ', Number(created.args.proposalId));
-          setProposalCreated(true);
+        if (!res.data.success) {
+          throw new Error(res.data.message || '프로포절 생성 실패');
         }
+
+        const createdId = res.data.proposalId;
+        setProposalId(createdId);
+        console.log('created proposalId: ', createdId);
+        setProposalCreated(true);
       } catch (err: any) {
         console.error('Proposal 생성 오류:', err);
         setProposalError(err.message || 'Proposal 생성 실패');
@@ -167,43 +162,59 @@ export function useProposalHandler({
 
   // Proposal 상태 감시 (시간 + 이벤트 기준)
   useEffect(() => {
-    if (!dao || !branchPoint || proposalId === null) return;
+    if (!dao || proposalId === null) return;
 
-    (async () => {
+    const isClosingRef = { current: false };
+
+    const interval = setInterval(async () => {
+      if (isClosingRef.current) return;
+
       try {
         await refreshVoteResults();
 
         const proposals = await dao.getAllProposals();
-        const current = proposals[proposalId];
+        let current = proposals[proposalId];
         const now = Math.floor(Date.now() / 1000);
 
-        // 종료 조건 충족 + 아직 active일 경우 -> 종료 트리거
         if (current.active && Number(current.voteEndTime) < now) {
           console.log('⏰ Proposal 마감 시간 도달, closeProposal 실행');
+          isClosingRef.current = true;
+
           try {
-            const tx = await dao.closeProposal(proposalId);
-            await tx.wait();
+            const res = await api.post(`/api/dao/${proposalId}/close`, {});
+            if (!res.data.success) {
+              throw new Error(res.data.message || '프로포절 종료 실패');
+            }
+
+            const refreshedProposals = await dao.getAllProposals();
+            current = refreshedProposals[proposalId];
+
+            if (!current.active) {
+              setVoteEnded(true);
+              onVoteEnd?.();
+            }
           } catch (err) {
             console.error('closeProposal 실패:', err);
+          } finally {
+            isClosingRef.current = false;
           }
-        }
-
-        // 종료 여부 확인 (컨트랙트 상태 반영 확인용)
-        const updatedProposals = await dao.getAllProposals();
-        const updated = updatedProposals[proposalId];
-
-        if (!updated.active) {
-          setVoteEnded(true);
-          onVoteEnd?.();
+        } else {
+          if (!current.active) {
+            setVoteEnded(true);
+            onVoteEnd?.();
+          }
         }
       } catch (err) {
         console.error('Proposal 상태 조회 실패:', err);
       }
-    })();
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, [dao, proposalId]);
 
   // 투표 처리
   const handleVote = async (optionIndex: number) => {
+    console.log('Voting number', optionIndex);
     if (!dao || proposalId === null || isVoting) return;
     setIsVoting(true);
     setVoteStatus('idle');

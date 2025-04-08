@@ -60,8 +60,8 @@ export default function NFTMarketplace() {
 
       <div className="grid grid-cols-2 gap-8 h-[90%]">
         {/* 왼쪽: 시장에 등록된 상품 */}
-        <div className="flex flex-col h-full overflow-visible">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col h-full overflow-y-auto">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="text-fantasy-gold dark:text-[var(--fantasy-gold)] text-xl font-semibold">🔥 시장 상품</h2>
             <div className="flex gap-2">
               <button
@@ -82,7 +82,7 @@ export default function NFTMarketplace() {
         </div>
 
         {/* 오른쪽: 내가 보유한 NFT */}
-        <div className="flex flex-col h-full overflow-visible">
+        <div className="flex flex-col h-full overflow-y-auto">
           <div className="flex flex-row items-center gap-10 mb-3">
             <h2 className="text-fantasy-gold dark:text-[var(--fantasy-gold)] text-xl font-semibold">🎒 내 NFT</h2>
             <ApproveButton onApproved={() => setApprovedReady(true)} refresh={refreshApproval} />

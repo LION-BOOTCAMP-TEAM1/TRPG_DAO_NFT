@@ -21,9 +21,9 @@ export default function CharacterDescription({
       }
 
       <div className="flex flex-col gap-2 text-sm text-gray-800">
-        <div>❤️ HP: {stats.hp}</div>
-        <div>💧 MP: {stats.mp}</div>
-        <div>🧍‍♂️ Health: {stats.health}</div>
+        <div>🔴 HP: {stats.hp}</div>
+        <div>🔵 MT: {stats.mp}</div>
+        <div>❤️ Health: {stats.health}</div>
         <div>💪 Strength: {stats.strength}</div>
         <div>🏃 Agility: {stats.agility}</div>
         <div>🧠 Intelligence: {stats.intelligence}</div>
