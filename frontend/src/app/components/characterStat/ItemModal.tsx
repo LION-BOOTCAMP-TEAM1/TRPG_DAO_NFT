@@ -65,7 +65,7 @@ const ItemModal = ({ item, equippedItem, onClose, onEquip }: ItemModalProps) => 
     return (
         <AnimatePresence>
         <motion.div
-            className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center"
+            className="fixed inset-0 z-50 bg-fantasy-surface/80 dark:bg-[var(--fantasy-surface)]/80 bg-opacity-60 flex items-center justify-center"
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -90,7 +90,7 @@ const ItemModal = ({ item, equippedItem, onClose, onEquip }: ItemModalProps) => 
 
             {/* 왼쪽: 착용 중인 아이템 */}
             <div className="flex-1 border-r pr-4">
-                <h3 className="text-lg font-semibold mb-2">현재 착용 중</h3>
+                <h3 className="text-lg font-semibold mb-2 text-black">현재 착용 중</h3>
                 {equippedItem ? (
                 <div>
                     <img
@@ -103,20 +103,20 @@ const ItemModal = ({ item, equippedItem, onClose, onEquip }: ItemModalProps) => 
                     {renderStats(equippedItem)}
                 </div>
                 ) : (
-                <p className="text-sm text-gray-200">착용 중인 아이템 없음</p>
+                <p className="text-sm text-gray-500 text-center p-4">착용 중인 아이템 없음</p>
                 )}
             </div>
 
             {/* 오른쪽: 선택된 아이템 */}
             <div className="flex-1 flex flex-col justify-between">
                 <div>
-                <h3 className="text-lg font-semibold mb-2">선택한 아이템</h3>
+                <h3 className="text-lg font-semibold mb-2 text-black">선택한 아이템</h3>
                 <img
                     src={item.image}
                     alt={item.name}
                     className="w-full h-auto object-cover rounded"
                 />
-                <p className="mt-2 font-medium">{item.name}</p>
+                <p className="mt-2 font-medium text-black">{item.name}</p>
                 <p className="text-sm text-gray-500">{item.description ?? "설명 없음"}</p>
                 {renderStats(item)}
                 </div>

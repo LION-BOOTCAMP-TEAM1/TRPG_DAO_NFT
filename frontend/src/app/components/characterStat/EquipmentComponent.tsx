@@ -51,7 +51,7 @@ const EquipmentComponent = () => {
     <div>
       <div className='flex flex-col justify-start'>
         {/* 장비중 아이템 */}
-        <p className="m-1">장비중 아이템</p>
+        <p className="m-1 text-gray-600">장비중 아이템</p>
         <div className="flex flex-wrap justify-between mb-4">
           <EquipedItem image={myNFTs.equipment.weapon?.image} rarity={myNFTs.equipment.weapon?.rarity} defaultImage="/slot1.png" removeEvent={() => dispatch(disarmItem(1))}/>
           <EquipedItem image={myNFTs.equipment.armor?.image} rarity={myNFTs.equipment.armor?.rarity} defaultImage="/slot2.png" removeEvent={() => dispatch(disarmItem(2))}/>

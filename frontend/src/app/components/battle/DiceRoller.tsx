@@ -24,7 +24,7 @@ const DiceRoller = ({diceResult}: DiceRollerProps) => {
         <div className="p-6">
             <div className="flex flex-row items-center">
                 <div className="flex-1" /> {/* 왼쪽 여백 (비우기용) */}
-                <h2 className="text-xl font-bold mb-4 text-center flex-2">🎲 주사위</h2>
+                <h2 className="text-xl font-bold mb-4 text-center flex-2 text-black">🎲 주사위</h2>
                 <div className="flex-1">
                     {number && (
                         <button
@@ -36,7 +36,7 @@ const DiceRoller = ({diceResult}: DiceRollerProps) => {
                     )}
                 </div>
             </div>
-            <div className="text-6xl font-mono mb-4">
+            <div className="text-6xl font-mono mb-4 text-black">
                 {rolling ? "..." : number ?? "-"}
             </div>
             {number
