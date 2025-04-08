@@ -12,6 +12,7 @@ export default function CharacterClassSelection({
   setSelectedClass: (charClass: any) => void;
   isCreated: boolean;
 }) {
+
   return (
     <div className="mt-4 ">
       {characterClasses.length > 0 ? (

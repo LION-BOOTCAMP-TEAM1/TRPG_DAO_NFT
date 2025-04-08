@@ -68,8 +68,8 @@ const initialState: CharacterState = {
 const classImages: { [key: number]: string } = {
     1: '/character/magician.png',
     2: '/character/assassin.png',
-    3: '/character/ranger.png',
-    4: '/character/bard.png',
+    3: '/character/bard.png',
+    4: '/character/ranger.png',
     5: '/character/warrior.png',
 };
 
@@ -78,9 +78,10 @@ const characterSlice = createSlice({
   initialState,
   reducers: {
     setCharacterInfo(state, action: PayloadAction<any>) {
+      console.log(action.payload)
         const statData = {
-            HP: 4,
-            MT: 4,
+            HP: action.payload.hp,
+            MT: action.payload.mp,
             attack: action.payload.physicalAttack,
             magic: action.payload.magicAttack,
             strength: action.payload.strength,
