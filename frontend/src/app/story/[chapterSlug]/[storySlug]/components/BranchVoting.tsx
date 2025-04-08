@@ -41,18 +41,18 @@ export const BranchVoting = ({
       {branchPoint.DAOChoice?.map((choice: DAOChoice) => (
         <button
           key={choice.id}
-          className="w-full text-left p-3 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+          className="w-full text-left p-3 rounded-lg border border-fantasy-copper hover:bg-fantasy-surface transition"
           onClick={() => handleVote(choice.id)}
           disabled={isVoting}
         >
-          <span className="font-medium">{choice.text}</span>{' '}
-          <span className="text-gray-500">
+          <span className="font-medium text-fantasy-text">{choice.text}</span>{' '}
+          <span className="text-fantasy-text/60">
             ({voteResults[choice.id - 1] ?? 0}표)
           </span>
         </button>
       ))}
 
-      <p className="text-sm text-gray-500 mt-3">
+      <p className="text-sm text-fantasy-text/70 mt-3">
         총 투표 가능 인원: <strong>{totalVoters}</strong> / 현재 투표 인원:{' '}
         <strong>{totalVotes}</strong>
       </p>

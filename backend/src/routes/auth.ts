@@ -183,7 +183,7 @@ router.post('/verify', async (req, res) => {
     console.log(`사용할 nonce: ${user.nonce}`);
 
     // 서명 검증
-    const recovered = ethers.verifyMessage(user.nonce, signature);
+    const recovered = ethers.utils.verifyMessage(user.nonce, signature);
     console.log(`복구된 주소: ${recovered}, 원래 주소: ${address}`);
     
     if (recovered.toLowerCase() !== address.toLowerCase()) {
@@ -204,8 +204,9 @@ router.post('/verify', async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 86400000, // 1일
+      path: '/'
     });
 
     // nonce 초기화 (재사용 방지)
@@ -215,7 +216,11 @@ router.post('/verify', async (req, res) => {
     });
     console.log('nonce 초기화 완료');
 
-    return res.json({ success: true });
+    // 응답 본문에도 토큰 포함
+    return res.json({ 
+      success: true,
+      token: token
+    });
   } catch (error) {
     console.error('서명 검증 중 오류 발생:', error);
     return res.status(500).json({ error: '서버 오류가 발생했습니다' });

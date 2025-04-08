@@ -5,7 +5,7 @@
  * 메모리 누수를 방지하기 위한 유틸리티를 제공합니다.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { logMemoryUsage } from './memory-utils';
 
 // 환경 변수 설정

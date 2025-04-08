@@ -13,8 +13,8 @@ import { SceneDisplay } from './components/SceneDisplay';
 import { QuestSelector } from './components/QuestSelector';
 import { BranchVoting } from './components/BranchVoting';
 import { VotingResult } from './components/VotingResult';
-import { toast } from 'sonner';
-import { useEffect } from 'react';
+import BattleHandler from './components/BattleHandler';
+import EndStoryButton from './components/EndStoryButton';
 
 const DetailClient = () => {
   const { storySlug, chapterSlug } = useParams();
@@ -44,22 +44,9 @@ const DetailClient = () => {
     onVoteEnd: () => setIsSkipping(true),
   });
 
-  const errorToast = (err: string) => {
-    toast('Proposal 생성 오류', {
-      description: err,
-      id: 'proposal-error',
-    });
-  };
-
-  useEffect(() => {
-    if (proposalError) {
-      errorToast(proposalError);
-    }
-  }, [proposalError]);
-
   if (!story) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f4efe1]">
+      <div className="flex items-center justify-center min-h-screen bg-fantasy-background text-fantasy-text">
         Loading...
       </div>
     );
@@ -67,7 +54,7 @@ const DetailClient = () => {
 
   return (
     <div
-      className="p-6 space-y-6 min-h-screen bg-cover bg-no-repeat bg-center bg-[#f4efe1]"
+      className="p-6 space-y-6 min-h-screen bg-fantasy-background bg-cover bg-no-repeat bg-center"
       onClick={() => setIsSkipping(true)}
     >
       <StoryHeader story={story} imageSrc={storyImageSrc} />
@@ -110,6 +97,21 @@ const DetailClient = () => {
             chapterSlug={chapterSlug as string}
           />
         )}
+
+      {isSceneComplete &&
+        story?.quests?.length === 0 &&
+        !story?.BranchPoint?.[0] &&
+        storySlug != 'ancient-power-revealed' && (
+          <BattleHandler
+            isSceneComplete={isSceneComplete}
+            story={story}
+            chapterSlug={chapterSlug as string}
+          />
+        )}
+
+      {isSceneComplete && storySlug == 'ancient-power-revealed' && (
+        <EndStoryButton />
+      )}
     </div>
   );
 };

@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Header from '../../components/Header';
-import ThemeProvider from '../../components/ThemeProvider';
-import useAuth from '../../hook/useAuth';
+import ThemeProvider from '@/app/components/ThemeProvider';
+import useAuth from '@/app/hook/useAuth';
 import ClassModal from '@/app/components/classficationmodal';
 import CyberPunk from './cyberpunk';
-import MiddleAge from './middleage';
+import MiddleAge from './middleage';  
 import Galaxy from './galaxy';
 
 export default function PlayPage() {
@@ -18,7 +17,7 @@ export default function PlayPage() {
 
   /*헤더프롭스 */
   const {
-    connectWallet,
+    connectWallet,  
     registerWalletAddress,
     logout,
     signer,

@@ -35,7 +35,11 @@ async function getIPFSFile(uri: string) {
   }
 }
 
+let isFetching = false;
 async function getNFTList(dispatch: any) {
+  if (isFetching) return; // 중복 실행 방지
+  isFetching = true;
+
   dispatch(clearInventory());
   const contract = await getContract();
 

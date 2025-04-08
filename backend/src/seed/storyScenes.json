@@ -20,7 +20,6 @@
     "text": "🏕️ '이곳은 내가 알던 세계가 아니다. 무슨 일이 벌어진 거지?' 이제 생존을 위해 움직여야 한다. 당신의 운명을 선택하라."
   },
 
-
   {
     "storySlug": "royal-plain",
     "sequence": 1,
@@ -37,7 +36,6 @@
     "text": "당신은 이세계에서의 첫 인간들과 접촉하게 된다. 이제 어떻게 행동할 것인가?"
   },
 
-  
   {
     "storySlug": "royal-city-gate",
     "sequence": 1,
@@ -48,7 +46,6 @@
     "sequence": 2,
     "text": "👑 웅장한 성문이 열리며, 새로운 문명이 눈앞에 펼쳐진다. 당신은 이 세계의 일부가 되었음을 느낀다."
   },
-
 
   {
     "storySlug": "royal-market",
@@ -136,27 +133,6 @@
   },
 
   {
-    "storySlug": "cult-stirring",
-    "sequence": 1,
-    "text": "어딘가 익숙한 얼굴이 당신을 지켜보고 있는 듯한 기분이 든다. 그는 인기척도 없이 군중 속으로 사라진다."
-  },
-  {
-    "storySlug": "cult-stirring",
-    "sequence": 2,
-    "text": "다음 날, 시장 벽에 붉은 잉크로 그려진 이상한 상징을 발견한다. 마치 누군가 의도적으로 남긴 흔적처럼 느껴진다."
-  },
-  {
-    "storySlug": "cult-stirring",
-    "sequence": 3,
-    "text": "숙소로 돌아오는 길, 한 주민이 조용히 다가와 속삭인다. “그 거래… 당신도 본 건가요?”"
-  },
-  {
-    "storySlug": "cult-stirring",
-    "sequence": 4,
-    "text": "이제 선택의 시간이 다가온다. 이 수상한 움직임을 파헤칠지, 아니면 그냥 모른 체할지…"
-  },
-
-  {
     "storySlug": "deeper-infiltration",
     "sequence": 1,
     "text": "당신은 시장에서 들은 정보들을 조합해, 골목의 어두운 입구에 도달한다. 그곳엔 특이한 문양이 그려진 문이 있다."
@@ -196,7 +172,53 @@
     "storySlug": "ritual-chamber",
     "sequence": 4,
     "text": "당신은 칼을 집어들고 의식을 따라할지, 위기를 직감하고 거부할지를 결정해야 한다."
+  },
+
+  {
+    "storySlug": "royal-summons",
+    "sequence": 1,
+    "text": "이교도의 위협이 드러난 후, 왕국은 고대 유적으로 향하는 원정대를 조직한다. 당신은 선택받은 자로서 그 일원이 되었다."
+  },
+  {
+    "storySlug": "royal-summons",
+    "sequence": 2,
+    "text": "왕은 당신에게 명한다. '중앙 유적의 봉인을 해제하고, 그 안에 숨겨진 진실을 밝혀라.'"
+  },
+
+  {
+    "storySlug": "ruins-awakening",
+    "sequence": 1,
+    "text": "관이 완전히 열리자, 내부에서 날카로운 고동과 함께 거대한 실루엣이 서서히 모습을 드러낸다."
+  },
+  {
+    "storySlug": "ruins-awakening",
+    "sequence": 2,
+    "text": "공기 자체가 무겁게 짓눌린다."
+  },
+  {
+    "storySlug": "ruins-awakening",
+    "sequence": 3,
+    "text": "\"이 힘은 누구의 것도 아니다. 단지, 강자의 것일 뿐이다.\""
+  },
+  {
+    "storySlug": "ruins-awakening",
+    "sequence": 4,
+    "text": "순식간에 유적 내부가 붉게 타오르며, 고대 드래곤 ‘자르갈 오르디아’가 깨어난다!"
+  },
+
+  {
+    "storySlug": "ancient-power-revealed",
+    "sequence": 1,
+    "text": "자르갈 오르디아는 거대한 울음과 함께 무너지고, 붉은 결정과 룬이 남는다."
+  },
+  {
+    "storySlug": "ancient-power-revealed",
+    "sequence": 2,
+    "text": "유적이 붕괴를 시작한다. 그 안에서 마법의 문양으로 봉인된 방 하나가 드러난다."
+  },
+  {
+    "storySlug": "ancient-power-revealed",
+    "sequence": 3,
+    "text": "그 중심에는, 이 세계의 운명을 바꿀지도 모르는 고대 아티팩트가 잠들어 있다…"
   }
-
-
 ]

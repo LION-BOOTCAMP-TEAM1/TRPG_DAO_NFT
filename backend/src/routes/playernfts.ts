@@ -25,7 +25,7 @@ const getPlayerNFTs = async (req: Request, res: Response) => {
             walletAddress: true
           }
         },
-        choice: true
+        Choice: true
       }
     });
     
@@ -72,7 +72,7 @@ const getUserNFTs = async (req: Request, res: Response) => {
     const nfts = await prisma.playerNFT.findMany({
       where: { userId: Number(userId) },
       include: {
-        choice: {
+        Choice: {
           include: {
             quest: true
           }
@@ -121,7 +121,7 @@ const getPlayerNFT = async (req: Request, res: Response) => {
             walletAddress: true
           }
         },
-        choice: {
+        Choice: {
           include: {
             quest: {
               include: {
@@ -221,7 +221,7 @@ const createPlayerNFT = async (req: Request, res: Response) => {
       data: nftData,
       include: {
         user: true,
-        choice: true
+        Choice: true
       }
     });
 

@@ -2,6 +2,11 @@ import { useState, useEffect, FormEvent } from 'react';
 import { ethers } from 'ethers';
 import api, { setAuthToken, removeAuthToken } from '../../lib/axios';
 
+// get NFT
+import { AppDispatch } from "@/store";
+import { useDispatch } from "react-redux";
+import {getNFTList} from '@/utils/web3';
+
 interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -26,8 +31,11 @@ export default function useAuth() {
     signer: null,
   });
 
+  const dispatch = useDispatch<AppDispatch>();
+
   useEffect(() => {
     checkAuthStatus();
+    getNFTList(dispatch);
   }, []);
 
   /**
@@ -300,6 +308,12 @@ export default function useAuth() {
               user: userResponse.data.user,
               signer: signerToUse,
             });
+
+            // 토큰이 응답에 포함되었다면 로컬 스토리지에 저장
+            if (token) {
+              localStorage.setItem('auth_token', token);
+            }
+
             return true;
           }
         } catch (error) {

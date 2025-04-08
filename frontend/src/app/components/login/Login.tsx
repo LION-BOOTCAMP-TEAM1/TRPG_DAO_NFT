@@ -28,6 +28,7 @@ const Login: FC<LoginProps> = ({
   } = useAuth();
 
   const [isConnecting, setIsConnecting] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   
   const dispatch = useDispatch<AppDispatch>();
 
@@ -51,12 +52,22 @@ const Login: FC<LoginProps> = ({
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogoutButtonClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = async () => {
     try {
       await logout();
+      setShowLogoutModal(false);
     } catch (error) {
       console.error('로그아웃 중 오류 발생:', error);
+      setShowLogoutModal(false);
     }
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
   };
 
   const shortAddress = (address: string) => {
@@ -65,7 +76,7 @@ const Login: FC<LoginProps> = ({
   };
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center relative">
       {!isAuthenticated ? (
         <form onSubmit={handleLogin} className="flex">
           <button
@@ -117,11 +128,35 @@ const Login: FC<LoginProps> = ({
               : user?.walletAddress && shortAddress(user.walletAddress)}
           </span>
           <button
-            onClick={handleLogout}
+            onClick={handleLogoutButtonClick}
             className={`${buttonClassName} text-xs w-20`}
           >
             로그아웃
           </button>
+        </div>
+      )}
+
+      {/* 로그아웃 확인 모달 */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0}}>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h3 className="text-lg font-medium mb-4">로그아웃 확인</h3>
+            <p className="mb-6">정말 로그아웃 하시겠습니까?</p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={handleCancelLogout}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded"
+              >
+                취소
+              </button>
+              <button 
+                onClick={handleConfirmLogout}
+                className="px-4 py-2 bg-red-500 text-white rounded"
+              >
+                확인
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

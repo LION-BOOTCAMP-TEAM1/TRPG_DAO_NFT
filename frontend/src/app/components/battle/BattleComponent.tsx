@@ -45,9 +45,9 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
   const [monsterDamage, setMonsterDamage] = useState<number>(0);
 
   const [dragon, setDragon] = useState({
-    maxHP: 999,
-    HP: 999,
-    damage: 150,
+    maxHP: 3000,
+    HP: 3000,
+    damage: 300,
     speed: 213,
   });
 
