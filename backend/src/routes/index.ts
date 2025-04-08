@@ -158,7 +158,7 @@ router.use('/story-worlds', storyWorldRoutes);
 router.use('/chapters', chapterRoutes);
 
 // DAO Proposal 라우터 등록
-router.use('/proposals', daoProposalRouter);
+router.use('/dao', daoProposalRouter);
 
 // NFT 이벤트 리스너 설정 및 처리 스케줄 시작
 setupNFTEventListeners();

@@ -241,10 +241,8 @@ router.get('/session/:sessionId', async (req, res) => {
  *   post:
  *     tags:
  *       - NFT
- *     summary: 특정 토큰 ID로 직접 NFT를 민팅합니다 (관리자 전용)
- *     description: 관리자가 특정 지갑 주소로 지정된 토큰 ID의 NFT를 즉시 민팅합니다.
- *     security:
- *       - bearerAuth: []
+ *     summary: 특정 토큰 ID로 직접 NFT를 민팅합니다
+ *     description: 특정 지갑 주소로 지정된 토큰 ID의 NFT를 민팅하기 위한 트랜잭션 데이터를 생성합니다.
  *     requestBody:
  *       required: true
  *       content:
@@ -260,33 +258,15 @@ router.get('/session/:sessionId', async (req, res) => {
  *                 description: NFT를 받을 지갑 주소
  *               tokenId:
  *                 type: integer
- *                 description: 민팅할 NFT 토큰 ID (0-90 사이의 값)
+ *                 description: 민팅할 NFT 토큰 ID (0-92 사이의 값)
  *               metadataURI:
  *                 type: string
  *                 description: 커스텀 메타데이터 URI (선택 사항)
  *     responses:
  *       200:
- *         description: NFT가 성공적으로 민팅됨
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: NFT가 성공적으로 민팅되었습니다
- *                 txHash:
- *                   type: string
- *                   example: 0x1234...
- *                 tokenId:
- *                   type: string
- *                   example: 42
+ *         description: 트랜잭션 데이터가 성공적으로 생성됨
  *       400:
  *         description: 잘못된 요청 파라미터
- *       401:
- *         description: 인증되지 않은 사용자
- *       403:
- *         description: 권한 없음 (관리자만 사용 가능)
  *       500:
  *         description: 서버 오류
  */
@@ -294,93 +274,58 @@ router.post('/mintByID', async (req, res) => {
   try {
     const { walletAddress, tokenId, metadataURI } = req.body;
     
-    // 테스트를 위해 인증 체크 임시 제거
-    // const user = req.user as { userId: number; walletAddress: string; isAdmin?: boolean };
-    // if (!user.isAdmin) {
-    //   return res.status(403).json({ error: '관리자만 이 기능을 사용할 수 있습니다' });
-    // }
-    
     // 필수 파라미터 확인
     if (!walletAddress || tokenId === undefined) {
       return res.status(400).json({ error: '지갑 주소와 토큰 ID는 필수입니다' });
     }
     
-    // 토큰 ID 범위 확인 (0-92로 수정)
+    // 토큰 ID 범위 확인
     if (tokenId < 0 || tokenId > 92) {
       return res.status(400).json({ error: '토큰 ID는 0에서 92 사이여야 합니다' });
     }
     
-    // nftService에서 ethers, nftContract 가져오기
+    // ethers와 컨트랙트 ABI 가져오기
     const { ethers } = require('ethers');
     const GameNFTABI = require('../utils/abis/GameItem.json');
     
-    // 환경 변수 로드
+    // 환경 변수 로드 - 개인키를 사용하지 않음
     const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL || 'http://localhost:8545');
     const NFT_CONTRACT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS || '';
-    const privateKey = process.env.CONTRACT_PRIVATE_KEY || '';
     
-    if (!privateKey || !NFT_CONTRACT_ADDRESS) {
+    if (!NFT_CONTRACT_ADDRESS) {
       return res.status(500).json({ error: '컨트랙트 설정이 올바르지 않습니다' });
     }
     
-    // 컨트랙트 연결
-    const wallet = new ethers.Wallet(privateKey, provider);
-    const nftContract = new ethers.Contract(
-      NFT_CONTRACT_ADDRESS,
-      GameNFTABI,
-      wallet
-    );
+    // 컨트랙트 인터페이스 생성
+    const nftInterface = new ethers.utils.Interface(GameNFTABI);
     
-    // 민팅 트랜잭션 전송
-    const tx = await nftContract.mintByID(
+    // mintByID 함수 호출을 위한 데이터 생성
+    const data = nftInterface.encodeFunctionData('mintByID', [
       walletAddress,
-      tokenId,
-      { gasLimit: 500000 }
-    );
+      tokenId
+    ]);
     
-    console.log(`민팅 트랜잭션 전송: ${tx.hash} (토큰 ID: ${tokenId})`);
-    
-    // 트랜잭션 완료 대기
-    const receipt = await tx.wait();
-    
-    // 이벤트에서 토큰 ID 추출
-    const mintEvent = receipt.events?.find((e: any) => e.event === 'minted');
-    const confirmedTokenId = mintEvent?.args?.tokenId.toString();
-    
-    if (!confirmedTokenId) {
-      throw new Error('민팅 이벤트에서 토큰 ID를 추출할 수 없습니다');
-    }
-    
-    // PlayerNFT 레코드 생성 - userId가 있다면 연결, 없으면 일단 민팅만
-    const nftRecord = {
-      nftTokenId: confirmedTokenId,
-      txHash: tx.hash,
-      confirmed: true,
-      tokenURI: metadataURI || '',
-      name: `Game Item #${confirmedTokenId}`,
-      description: 'Direct minted TRPG game item',
-      image: metadataURI ? 'https://example.com/image.png' : ''
+    // 트랜잭션 객체 생성
+    const txObject = {
+      to: NFT_CONTRACT_ADDRESS,
+      data: data,
+      gasLimit: ethers.utils.hexlify(500000)
     };
     
-    // 커스텀 URI 설정이 필요한 경우
-    if (metadataURI) {
-      await nftContract.setCustomURI(confirmedTokenId, metadataURI);
-      console.log(`토큰 ${confirmedTokenId}의 커스텀 URI가 설정되었습니다: ${metadataURI}`);
-    }
-    
+    // 트랜잭션 객체 반환 - 클라이언트에서 서명하도록 함
     res.status(200).json({
-      message: 'NFT가 성공적으로 민팅되었습니다',
-      txHash: tx.hash,
-      tokenId: confirmedTokenId,
-      nft: nftRecord
+      message: '민팅 트랜잭션 데이터가 생성되었습니다. 클라이언트에서 서명이 필요합니다.',
+      transaction: txObject,
+      metadataURI,
+      tokenId
     });
     
   } catch (error) {
-    console.error('NFT 민팅 오류:', error);
+    console.error('NFT 민팅 데이터 생성 오류:', error);
     if (error instanceof Error) {
-      res.status(500).json({ error: '민팅 중 오류가 발생했습니다: ' + error.message });
+      res.status(500).json({ error: '민팅 데이터 생성 중 오류가 발생했습니다: ' + error.message });
     } else {
-      res.status(500).json({ error: '민팅 중 알 수 없는 오류가 발생했습니다' });
+      res.status(500).json({ error: '민팅 데이터 생성 중 알 수 없는 오류가 발생했습니다' });
     }
   }
 });
