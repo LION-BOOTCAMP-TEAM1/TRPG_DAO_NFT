@@ -1,7 +1,7 @@
 export const classStats = {
   1: {
-    hp: 100,
-    mp: 500,
+    hp: 4,
+    mp: 4,
     health: 3,
     strength: 1,
     agility: 4,
@@ -12,8 +12,8 @@ export const classStats = {
     magicAttack: 21,
   },
   2: {
-    hp: 350,
-    mp: 250,
+    hp: 4,
+    mp: 4,
     health: 3,
     strength: 5,
     agility: 6,
@@ -24,8 +24,8 @@ export const classStats = {
     magicAttack: 17,
   },
   3: {
-    hp: 200,
-    mp: 400,
+    hp: 4,
+    mp: 4,
     health: 2,
     strength: 5,
     agility: 4,
@@ -36,8 +36,8 @@ export const classStats = {
     magicAttack: 15,
   },
   4: {
-    hp: 250,
-    mp: 350,
+    hp: 4,
+    mp: 4,
     health: 2,
     strength: 5,
     agility: 7,
@@ -48,8 +48,8 @@ export const classStats = {
     magicAttack: 13,
   },
   5: {
-    hp: 500,
-    mp: 100,
+    hp: 4,
+    mp: 4,
     health: 6,
     strength: 8,
     agility: 2,
