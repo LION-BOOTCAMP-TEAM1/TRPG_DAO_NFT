@@ -68,10 +68,10 @@ const initialState: CharacterState = {
 const classImages: { [key: number]: string } = {
     1: '/character/magician.png',
     2: '/character/assassin.png',
-    3: '/character/bard.png',
-    4: '/character/ranger.png',
+    3: '/character/ranger.png',
+    4: '/character/bard.png',
     5: '/character/warrior.png',
-  };
+};
 
 const characterSlice = createSlice({
   name: "character",

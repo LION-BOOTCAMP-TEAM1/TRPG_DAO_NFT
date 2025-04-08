@@ -23,6 +23,7 @@ export default function useCharacterData() {
           api.get('/api/characterclasses'),
           api.get('/api/characters'),
         ]);
+        
         setCharacterClasses(classesResponse.data);
         setCharacters(charactersResponse.data);
       } catch (error) {
@@ -66,8 +67,7 @@ export default function useCharacterData() {
       return null;
     }
 
-    const stats =
-      classStats[selectedClass?.id as keyof typeof classStats] || {};
+    const stats = classStats[selectedClass?.id as keyof typeof classStats] || {};
 
     try {
       const response = await createCharacter({
