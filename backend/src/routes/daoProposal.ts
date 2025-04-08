@@ -10,7 +10,42 @@ const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
 const DAO_CONTRACT_ADDRESS = process.env.DAO_CONTRACT_ADDRESS || '0x0';
 
 /**
- * DAO 제안 목록 조회
+ * @swagger
+ * /api/dao/proposals:
+ *   get:
+ *     summary: DAO 제안 목록 조회
+ *     description: 상태별 필터링이 가능한 DAO 제안 목록을 조회합니다.
+ *     tags: [DAO]
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [ACTIVE, CLOSED, PENDING, ALL]
+ *         description: 조회할 제안의 상태 (기본값은 ALL)
+ *     responses:
+ *       200:
+ *         description: 제안 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   description:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                   votes:
+ *                     type: array
+ *       500:
+ *         description: 서버 오류
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
@@ -48,7 +83,42 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 /**
- * 특정 DAO 제안 상세 조회
+ * @swagger
+ * /api/dao/proposals/{proposalId}:
+ *   get:
+ *     summary: 특정 DAO 제안 상세 조회
+ *     description: 제안 ID를 이용하여 특정 DAO 제안의 상세 정보를 조회합니다.
+ *     tags: [DAO]
+ *     parameters:
+ *       - in: path
+ *         name: proposalId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 조회할 제안의 ID
+ *     responses:
+ *       200:
+ *         description: 제안 상세 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 description:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 votes:
+ *                   type: array
+ *       404:
+ *         description: 제안을 찾을 수 없음
+ *       500:
+ *         description: 서버 오류
  */
 router.get('/:proposalId', async (req: Request, res: Response) => {
   try {
@@ -83,7 +153,62 @@ router.get('/:proposalId', async (req: Request, res: Response) => {
 });
 
 /**
- * 새 DAO 제안 생성
+ * @swagger
+ * /api/dao/proposals:
+ *   post:
+ *     summary: 새 DAO 제안 생성
+ *     description: 새로운 DAO 제안을 생성합니다. 블록체인에 트랜잭션을 전송합니다.
+ *     tags: [DAO]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - description
+ *               - duration
+ *               - numOptions
+ *               - users
+ *               - privateKey
+ *             properties:
+ *               description:
+ *                 type: string
+ *                 description: 제안 설명
+ *               duration:
+ *                 type: integer
+ *                 description: 제안 기간(초)
+ *               numOptions:
+ *                 type: integer
+ *                 description: 투표 옵션 수
+ *               users:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: 투표 가능한 사용자 주소 목록
+ *               privateKey:
+ *                 type: string
+ *                 description: 트랜잭션 서명에 사용할 개인키
+ *     responses:
+ *       200:
+ *         description: 제안 생성 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 transactionHash:
+ *                   type: string
+ *                 proposalId:
+ *                   type: integer
+ *       400:
+ *         description: 잘못된 요청 또는 필수 매개변수 누락
+ *       500:
+ *         description: 서버 오류
  */
 router.post('/', async (req: Request, res: Response) => {
   try {
@@ -130,7 +255,51 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 /**
- * DAO 제안 종료
+ * @swagger
+ * /api/dao/proposals/{proposalId}/close:
+ *   post:
+ *     summary: DAO 제안 종료
+ *     description: 특정 DAO 제안을 종료합니다. 블록체인에 트랜잭션을 전송합니다.
+ *     tags: [DAO]
+ *     parameters:
+ *       - in: path
+ *         name: proposalId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 종료할 제안의 ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - privateKey
+ *             properties:
+ *               privateKey:
+ *                 type: string
+ *                 description: 트랜잭션 서명에 사용할 개인키
+ *     responses:
+ *       200:
+ *         description: 제안 종료 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 transactionHash:
+ *                   type: string
+ *       400:
+ *         description: 잘못된 요청 또는 이미 종료된 제안
+ *       404:
+ *         description: 제안을 찾을 수 없음
+ *       500:
+ *         description: 서버 오류
  */
 router.post('/:proposalId/close', async (req: Request, res: Response) => {
   try {
