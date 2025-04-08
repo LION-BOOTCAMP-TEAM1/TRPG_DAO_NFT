@@ -93,16 +93,16 @@ async function testNFTMint() {
     // 트랜잭션 전송
     console.log('\n트랜잭션 전송 중...');
     console.log(`- 수신자 주소: ${toAddress}`);
-    console.log(`- 메타데이터 URI: ${metadataURI}`);
     console.log(`- 민팅 타입: ${mintType}`);
     
-    // mintNFT 함수 호출을 위한 가스 한도 설정 (선택적)
-    const gasLimit = 500000; // 충분한 가스 한도 설정
+    // 가스 한도 설정
+    const gasLimit = 500000;
     
-    const tx = await nftContract.mintNFT(
+    // mintByID 사용 - 특정 토큰 ID 지정 (예: 1부터 90까지 가능)
+    const tokenID = 42; // 원하는 토큰 ID 선택 (0-90 범위 내에서)
+    const tx = await nftContract.mintByID(
       toAddress,
-      metadataURI,
-      mintType,
+      tokenID,
       { gasLimit }
     );
     
@@ -116,14 +116,16 @@ async function testNFTMint() {
     console.log(`- 블록 번호: ${receipt.blockNumber}`);
     console.log(`- 가스 사용량: ${receipt.gasUsed.toString()}`);
     
-    // 이벤트에서 토큰 ID 추출
-    const mintEvent = receipt.events?.find((e: any) => e.event === 'NFTMinted');
+    // 이벤트에서 토큰 ID 추출 - 이벤트 이름 수정
+    const mintEvent = receipt.events?.find((e: any) => e.event === 'minted');
     if (mintEvent && mintEvent.args) {
       const tokenId = mintEvent.args.tokenId.toString();
       console.log(`\nNFT가 성공적으로 민팅되었습니다!`);
       console.log(`- 토큰 ID: ${tokenId}`);
-      console.log(`- 소유자: ${mintEvent.args.player}`);
-      console.log(`- 토큰 URI: ${mintEvent.args.tokenURI}`);
+      console.log(`- 소유자: ${mintEvent.args.user}`); // 'player'에서 'user'로 변경
+      
+      // tokenURI는 이 이벤트에 포함되어 있지 않으므로 제거
+      // console.log(`- 토큰 URI: ${mintEvent.args.tokenURI}`);
     } else {
       console.warn('\n트랜잭션은 성공했지만 이벤트를 찾을 수 없습니다.');
     }
