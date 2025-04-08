@@ -17,14 +17,14 @@ export default function LoginClient() {
     walletExist,
     isLoading,
     user,
-    isAuthenticated
+    isAuthenticated,
   } = useAuth();
 
   const [signerAddress, setSignerAddress] = useState('');
 
   useEffect(() => {
     if (!signer) return;
-    
+
     // 지갑 주소 가져오기
     const getAddress = async () => {
       try {
@@ -34,7 +34,7 @@ export default function LoginClient() {
         console.error('Failed to get signer address:', error);
       }
     };
-    
+
     getAddress();
   }, [signer]);
 
@@ -60,7 +60,7 @@ export default function LoginClient() {
         <h1 className="text-6xl font-bold italic ">
           {signer ? (
             <Link
-              href="/pages/start"
+              href="/pages/create"
               className="cursor-pointer hover:text-yellow-500"
             >
               {walletExist && signer && <p>Start</p>}
@@ -91,12 +91,11 @@ export default function LoginClient() {
           )}
           <div className="LoginStyleWhite  top-12/17 left-1/2">
             <p className="text-2xl  font-bold italic">
-              {user?.walletAddress ? 
-                `${user.walletAddress.substring(0, 7)}...${user.walletAddress.substring(user.walletAddress.length - 5)}` :
-                signerAddress ? 
-                  `${signerAddress.substring(0, 7)}...${signerAddress.substring(signerAddress.length - 5)}` : 
-                  ''
-              }
+              {user?.walletAddress
+                ? `${user.walletAddress.substring(0, 7)}...${user.walletAddress.substring(user.walletAddress.length - 5)}`
+                : signerAddress
+                  ? `${signerAddress.substring(0, 7)}...${signerAddress.substring(signerAddress.length - 5)}`
+                  : ''}
             </p>
           </div>
         </div>
