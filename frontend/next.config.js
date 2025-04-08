@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   // Vercel 배포를 위해 빌드 시 ESLint 검사 비활성화
   eslint: {
     // 빌드 시 ESLint 에러가 있어도 배포 진행
@@ -11,6 +11,6 @@ const nextConfig = {
     // 빌드 시 타입 에러가 있어도 배포 진행
     ignoreBuildErrors: true,
   },
-}
+};
 
-module.exports = nextConfig 
+module.exports = nextConfig;

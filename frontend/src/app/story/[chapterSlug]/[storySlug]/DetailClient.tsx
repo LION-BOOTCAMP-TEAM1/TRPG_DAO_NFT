@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useScenePlayback } from '../[storySlug]/hooks/useScenePlayback';
 import { useImageLoader } from '../hooks/useImageLoader';
@@ -20,10 +21,13 @@ const DetailClient = () => {
   const { storySlug, chapterSlug } = useParams();
   const { chapter } = useChapterDetail(chapterSlug as string);
   const { story } = useStoryDetail(storySlug as string);
+  const { dao, signer } = useDaoContract();
+  const [walletAddress, setWalletAddress] = useState('');
+
   const { displayedScenes, currentText, setIsSkipping, isSceneComplete } =
     useScenePlayback(story?.StoryScene ?? []);
+
   const storyImageSrc = useImageLoader(story?.imageUrl);
-  const dao = useDaoContract();
 
   const {
     proposalId,
@@ -43,6 +47,16 @@ const DetailClient = () => {
     sessionId: chapter?.id ?? 1,
     onVoteEnd: () => setIsSkipping(true),
   });
+
+  useEffect(() => {
+    const loadAddress = async () => {
+      if (signer) {
+        const address = await signer.getAddress();
+        setWalletAddress(address);
+      }
+    };
+    loadAddress();
+  }, [signer]);
 
   if (!story) {
     return (
@@ -99,9 +113,7 @@ const DetailClient = () => {
         )}
 
       {isSceneComplete &&
-        story?.quests?.length === 0 &&
-        !story?.BranchPoint?.[0] &&
-        storySlug != 'ancient-power-revealed' && (
+        (storySlug == 'ruins-awakening' || story?.id == 14) && (
           <BattleHandler
             isSceneComplete={isSceneComplete}
             story={story}
@@ -109,9 +121,10 @@ const DetailClient = () => {
           />
         )}
 
-      {isSceneComplete && storySlug == 'ancient-power-revealed' && (
-        <EndStoryButton />
-      )}
+      {isSceneComplete &&
+        (storySlug == 'ancient-power-revealed' || story?.id == 15) && (
+          <EndStoryButton walletAddress={walletAddress} />
+        )}
     </div>
   );
 };
