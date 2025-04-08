@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
 import AppProvider from '@/app/providers/AppProvider';
 import LayoutWrapper from './components/LayoutWrapper';
+import { ReduxProvider } from '@/store/provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,11 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <ReduxProvider>
         <AppProvider>
           <LayoutWrapper>
             {children}
           </LayoutWrapper>
         </AppProvider>
+        </ReduxProvider>
       </body>
     </html>
   );
