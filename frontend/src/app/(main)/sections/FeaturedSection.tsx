@@ -49,21 +49,21 @@ export default function FeaturedSection({
     {
       title: "스토리 분기 투표",
       description: "플레이어들의 선택으로 다음 스토리 전개를 결정하세요. DAO 기반 투표를 통해 집단 지성이 반영됩니다.",
-      imageUrl: "/image1.png",
+      imageUrl: "/main/dao.png",
       linkText: "투표 참여하기",
       linkUrl: "/"
     },
     {
       title: "NFT 캐릭터 보상",
       description: "특정 이벤트나 선택에 따라 고유한 NFT 캐릭터와 아이템을 획득할 수 있습니다. 당신의 이야기를 기록하세요.",
-      imageUrl: "/image2.png",
+      imageUrl: "/main/nft.png",
       linkText: "보상 확인하기",
       linkUrl: "/"
     },
     {
       title: "온체인 히스토리 기록",
       description: "게임 내 주요 행동과 선택은 블록체인에 영구적으로 기록되어 당신의 여정을 증명합니다.",
-      imageUrl: "/image3.png",
+      imageUrl: "/main/blockchain.png",
       linkText: "기록 보기",
       linkUrl: "/"
     }

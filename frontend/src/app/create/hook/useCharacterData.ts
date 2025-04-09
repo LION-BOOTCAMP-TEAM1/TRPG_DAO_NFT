@@ -15,9 +15,11 @@ export default function useCharacterData() {
   const [attribute, setAttribute] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [isCreated, setIsCreated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const [classesResponse, charactersResponse] = await Promise.all([
           api.get('/api/characterclasses'),
@@ -27,6 +29,8 @@ export default function useCharacterData() {
         setCharacters(charactersResponse.data);
       } catch (error) {
         console.error('데이터 가져오기 실패:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -111,5 +115,6 @@ export default function useCharacterData() {
     handleCreateCharacter,
     isCreated,
     message,
+    isLoading,
   };
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { DAOChoice } from '../types/story';
 import { EventLog } from 'ethers';
 import api from '@/lib/axios';
@@ -8,6 +8,12 @@ interface UseProposalHandlerProps {
   branchPoint: any;
   sessionId: number;
   onVoteEnd?: () => void;
+  onVoteStart?: () => void;
+  onVoteComplete?: () => void;
+  onProposalInitStart?: () => void;
+  onProposalInitComplete?: () => void;
+  onProposalCloseStart?: () => void;
+  onProposalCloseComplete?: () => void;
 }
 
 interface Participant {
@@ -20,11 +26,26 @@ export function useProposalHandler({
   branchPoint,
   sessionId,
   onVoteEnd,
+  onVoteStart,
+  onVoteComplete,
+  onProposalInitStart,
+  onProposalInitComplete,
+  onProposalCloseStart,
+  onProposalCloseComplete,
 }: UseProposalHandlerProps) {
   const [proposalId, setProposalId] = useState<number | null>(null);
   const [proposalCreated, setProposalCreated] = useState(false);
   const [proposalChecked, setProposalChecked] = useState(false);
   const [proposalError, setProposalError] = useState('');
+  
+  // 로딩 상태 변수 추가
+  const [isInitializingProposal, setIsInitializingProposal] = useState(false);
+  const [isClosingProposal, setIsClosingProposal] = useState(false);
+  
+  // 폴링 관련 변수
+  const [isPolling, setIsPolling] = useState(false);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPollingTimeRef = useRef<number>(0);
 
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [voteResults, setVoteResults] = useState<number[]>([]);
@@ -64,13 +85,30 @@ export function useProposalHandler({
       });
   }, [sessionId]);
 
-  // ✅ 투표 결과 새로고침
+  // 폴링 중지 함수
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    setIsPolling(false);
+  };
+
+  // ✅ 투표 결과 새로고침 (Infura API 호출 최소화)
   const refreshVoteResults = async () => {
     if (proposalId === null || !dao) return;
+    
+    // 마지막 폴링 시간 확인 (최소 30초 간격으로 제한)
+    const now = Date.now();
+    if (now - lastPollingTimeRef.current < 30000) {
+      console.log('폴링 간격 제한으로 인해 스킵 (30초 간격)');
+      return;
+    }
+    
+    lastPollingTimeRef.current = now;
+    
     try {
-      // 5초 대기
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
+      console.log('투표 결과 폴링 중...');
       const results: bigint[] = await dao.getProposalResults(proposalId);
       const numeric = results.map(Number);
       setVoteResults(numeric);
@@ -80,6 +118,17 @@ export function useProposalHandler({
       const idx = numeric.findIndex((v) => v === max);
       const winning = branchPoint?.DAOChoice?.[idx] ?? null;
       setWinningChoice(winning);
+      
+      // 프로포절 상태 확인 (active 여부)
+      const proposals = await dao.getAllProposals();
+      const current = proposals[proposalId];
+      
+      if (!current.active && !voteEnded) {
+        console.log('프로포절이 종료되었습니다.');
+        setVoteEnded(true);
+        stopPolling();
+        onVoteEnd?.();
+      }
     } catch (err) {
       console.error('투표 결과 갱신 실패:', err);
     }
@@ -97,6 +146,8 @@ export function useProposalHandler({
       return;
 
     setProposalChecked(true);
+    setIsInitializingProposal(true); // 초기화 시작
+    onProposalInitStart?.(); // 콜백 호출
 
     (async () => {
       try {
@@ -133,6 +184,9 @@ export function useProposalHandler({
             const winning = branchPoint?.DAOChoice?.[idx] ?? null;
             setWinningChoice(winning);
             onVoteEnd?.();
+          } else {
+            // 활성화된 프로포절이면 폴링 시작
+            startPolling();
           }
 
           return;
@@ -153,64 +207,122 @@ export function useProposalHandler({
         setProposalId(createdId);
         console.log('created proposalId: ', createdId);
         setProposalCreated(true);
+        
+        // 생성 후 폴링 시작
+        startPolling();
       } catch (err: any) {
         console.error('Proposal 생성 오류:', err);
         setProposalError(err.message || 'Proposal 생성 실패');
+      } finally {
+        setIsInitializingProposal(false); // 초기화 완료
+        onProposalInitComplete?.(); // 콜백 호출
       }
     })();
   }, [dao, branchPoint, userAddresses, proposalCreated, proposalChecked]);
 
-  // Proposal 상태 감시 (시간 + 이벤트 기준)
+  // 상태 폴링 시작 함수
+  const startPolling = () => {
+    if (isPolling || !proposalId) return;
+    
+    setIsPolling(true);
+    lastPollingTimeRef.current = Date.now();
+    
+    // 초기 데이터 로드
+    refreshVoteResults();
+    
+    // 폴링 시작 (매 1분마다)
+    pollingIntervalRef.current = setInterval(refreshVoteResults, 60000);
+  };
+
+  // 컴포넌트 언마운트 시 폴링 중지
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, []);
+
+  // Proposal 상태 감시 - 폴링 방식으로 변경 (Infura API 호출 최소화)
   useEffect(() => {
     if (!dao || proposalId === null) return;
-
-    const isClosingRef = { current: false };
-
-    const interval = setInterval(async () => {
-      if (isClosingRef.current) return;
-
+    
+    // 이미 종료된 프로포절이면 폴링하지 않음
+    if (voteEnded) return;
+    
+    // 폴링 중이 아니면 시작
+    if (!isPolling) {
+      startPolling();
+    }
+    
+    // 투표 종료 시간 체크 (1분마다)
+    const timeCheckInterval = setInterval(async () => {
+      if (!dao || proposalId === null) return;
+      
       try {
-        await refreshVoteResults();
-
         const proposals = await dao.getAllProposals();
-        let current = proposals[proposalId];
+        const current = proposals[proposalId];
         const now = Math.floor(Date.now() / 1000);
-
-        if (current.active && Number(current.voteEndTime) < now) {
-          console.log('⏰ Proposal 마감 시간 도달, closeProposal 실행');
-          isClosingRef.current = true;
-
+        
+        // 종료 시간 도달했지만 아직 active인 경우 종료 요청
+        if (current.active && Number(current.voteEndTime) < now && !isClosingProposal) {
+          console.log('⏰ Proposal 마감 시간 도달, closeProposal 요청');
+          setIsClosingProposal(true);
+          onProposalCloseStart?.();
+          
           try {
+            // closeProposal API 호출
             const res = await api.post(`/api/dao/${proposalId}/close`, {});
-            if (!res.data.success) {
-              throw new Error(res.data.message || '프로포절 종료 실패');
+            console.log('Close API 응답:', res.data);
+            
+            // API 응답 후 바로 종료 처리하지 않고 폴링으로 확인
+            // 상태 변경을 감지할 때까지 폴링 주기 단축 (10초마다)
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
             }
-
-            const refreshedProposals = await dao.getAllProposals();
-            current = refreshedProposals[proposalId];
-
-            if (!current.active) {
-              setVoteEnded(true);
-              onVoteEnd?.();
-            }
-          } catch (err) {
-            console.error('closeProposal 실패:', err);
-          } finally {
-            isClosingRef.current = false;
-          }
-        } else {
-          if (!current.active) {
-            setVoteEnded(true);
-            onVoteEnd?.();
+            
+            pollingIntervalRef.current = setInterval(async () => {
+              try {
+                const refreshedProposals = await dao.getAllProposals();
+                const current = refreshedProposals[proposalId];
+                
+                if (!current.active) {
+                  console.log('프로포절이 성공적으로 종료되었습니다.');
+                  setVoteEnded(true);
+                  onVoteEnd?.();
+                  
+                  // 결과 업데이트
+                  await refreshVoteResults();
+                  
+                  // 폴링 중지
+                  stopPolling();
+                  
+                  // 이미 로딩 상태면 완료 처리
+                  if (isClosingProposal) {
+                    setIsClosingProposal(false);
+                    onProposalCloseComplete?.();
+                  }
+                }
+              } catch (error) {
+                console.error('폴링 중 오류:', error);
+              }
+            }, 10000);
+          } catch (error) {
+            console.error('closeProposal 요청 실패:', error);
+            // 실패해도 일정 시간 후 로딩 상태 해제
+            setTimeout(() => {
+              setIsClosingProposal(false);
+              onProposalCloseComplete?.();
+            }, 5000);
           }
         }
-      } catch (err) {
-        console.error('Proposal 상태 조회 실패:', err);
+      } catch (error) {
+        console.error('프로포절 시간 체크 중 오류:', error);
       }
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [dao, proposalId]);
+    }, 60000); // 1분마다 시간 체크
+    
+    return () => {
+      clearInterval(timeCheckInterval);
+    };
+  }, [dao, proposalId, voteEnded, isPolling, isClosingProposal]);
 
   // 투표 처리
   const handleVote = async (optionIndex: number) => {
@@ -219,6 +331,8 @@ export function useProposalHandler({
     setIsVoting(true);
     setVoteStatus('idle');
     setVoteError('');
+    
+    onVoteStart?.();
 
     try {
       const tx = await dao.vote(proposalId, optionIndex);
@@ -232,6 +346,7 @@ export function useProposalHandler({
       setVoteError(err.message || '투표에 실패했습니다.');
     } finally {
       setIsVoting(false);
+      onVoteComplete?.();
     }
   };
 
@@ -247,5 +362,7 @@ export function useProposalHandler({
     voteStatus,
     voteError,
     handleVote,
+    isInitializingProposal,
+    isClosingProposal,
   };
 }

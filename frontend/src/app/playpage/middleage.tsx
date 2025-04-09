@@ -19,7 +19,7 @@ export default function MiddleAge() {
           <button className="px-2 mr-4 classst">Look</button>
         </Link>
 
-        <Link href={'/pages/login'}>
+        <Link href={'/login'}>
           <button className="px-2 mr-5 classst">play</button>
         </Link>
       </div>

@@ -162,3 +162,14 @@ html.dark {
   border-color: #facc15; /* yellow-400 */
   background-color: #facc15; /* yellow-400 */
 }
+
+/* 트랜잭션 로딩 애니메이션 */
+@keyframes pulseWidth {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+.animate-pulse-width {
+  animation: pulseWidth 1.5s infinite;
+}

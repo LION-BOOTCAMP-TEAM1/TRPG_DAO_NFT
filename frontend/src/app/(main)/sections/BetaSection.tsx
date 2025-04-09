@@ -11,7 +11,7 @@ export default function BetaSection({
   title = "베타 테스터로 전설을 시작하세요!",
   subtitle = "지금 베타 테스트에 참여하고 무료 랜덤 NFT 캐릭터를 받아보세요. 여러분의 선택이 스토리를 만듭니다!",
   buttonText = "베타 테스트 참여하기",
-  buttonLink = "/pages/signup"
+  buttonLink = "/signup"
 }: Partial<BetaSectionProps>) {
   return (
     <section className="py-20 bg-fantasy-background dark:bg-[var(--fantasy-background)] relative transition-colors duration-300">
@@ -34,12 +34,20 @@ export default function BetaSection({
             {subtitle}
           </p>
           
-          <a 
-            href={buttonLink}
-            className="inline-block px-8 py-3 bg-gradient-to-r from-fantasy-blood to-fantasy-gold dark:from-[var(--fantasy-blood)] dark:to-[var(--fantasy-gold)] text-white font-bold rounded-lg transform transition-transform hover:scale-105 hover:shadow-lg shadow-fantasy-gold/20 dark:shadow-[var(--fantasy-gold)]/20"
-          >
-            {buttonText}
-          </a>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="/create"
+              className="py-3 px-8 bg-orange-600 hover:bg-orange-700 text-white text-center rounded-lg font-medium transition duration-200"
+            >
+              게임 시작하기
+            </a>
+            <a
+              href="/test-loading"
+              className="py-3 px-8 bg-blue-500 hover:bg-blue-600 text-white text-center rounded-lg font-medium transition duration-200"
+            >
+              로딩 모달 테스트
+            </a>
+          </div>
         </div>
       </div>
     </section>

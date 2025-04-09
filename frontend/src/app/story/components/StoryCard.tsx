@@ -42,7 +42,7 @@ const StoryCard = ({ story }: Props) => {
         <p className="text-sm text-fantasy-text/80 mb-4">{story.description}</p>
         
         {/* Using FantasyButton component */}
-        <FantasyButton href={`/story/${story.id}`} size="sm">
+        <FantasyButton href={`/create`} size="sm">
           Explore
         </FantasyButton>
       </div>
