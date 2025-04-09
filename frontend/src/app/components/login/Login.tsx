@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { AppDispatch } from "@/store";
 import { useDispatch } from "react-redux";
 import {getNFTList} from '@/utils/web3';
+import { saveLocalStorage } from '@/store/characterSlice';
 
 interface LoginProps {
   onLoginSuccess?: () => void;
@@ -40,12 +41,16 @@ const Login: FC<LoginProps> = ({
 
     try {
       const connectedSigner = await connectWallet(e);
-      
-      getNFTList(dispatch);
 
       if (connectedSigner) {
         const success = await login(connectedSigner);
-        if (success && onLoginSuccess) onLoginSuccess();
+        getNFTList(dispatch);
+        dispatch(saveLocalStorage(null));
+        console.log('saveLocalStorage(null)')
+        
+        if (success && onLoginSuccess) {
+          onLoginSuccess();
+        }
       }
     } catch (error) {
       console.error('로그인 중 오류 발생:', error);
