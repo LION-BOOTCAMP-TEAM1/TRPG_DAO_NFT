@@ -7,11 +7,16 @@ import StoryCard from './components/StoryCard';
 import { StorySummary } from './types/story';
 import Image from 'next/image';
 import FantasyButton from '../components/FantasyButton';
+import { loadStoryFromLocalStorage } from '@/utils/manageLocalStorage';
+import Link from 'next/link';
 
 const StoryListPage = () => {
   const [branchpoints, setBranchpoints] = useState<StorySummary[]>([]);
+  const [story, setStory] = useState<string>('');
 
   useEffect(() => {
+    const story = loadStoryFromLocalStorage();
+    if(story) setStory(loadStoryFromLocalStorage());
     api
       .get('/api/branchpoints')
       .then((response) => setBranchpoints(response.data))
@@ -63,6 +68,11 @@ const StoryListPage = () => {
                   모험 시작하기
                 </FantasyButton>
               </div>
+              {story && <div className="mt-4">
+                <FantasyButton href={story} size="lg" className='bg-red-500'>
+                  이어하기
+                </FantasyButton>
+              </div>}
             </div>
           </div>
         </div>

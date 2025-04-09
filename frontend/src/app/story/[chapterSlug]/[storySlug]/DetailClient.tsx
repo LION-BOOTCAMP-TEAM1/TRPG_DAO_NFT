@@ -144,7 +144,7 @@ const DetailClient = () => {
 
     
     dispatch(loadLocalStorage());
-    saveStoryToLocalStorage(`story/${chapterSlug}/${storySlug}`);
+    saveStoryToLocalStorage(`/story/${chapterSlug}/${storySlug}`);
     loadAddress();
   }, [signer]);
 
