@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
+import { toast } from 'sonner';
 
 interface EndStoryButtonProps {
   walletAddress: string;
@@ -27,6 +28,14 @@ const EndStoryButton = ({ walletAddress }: EndStoryButtonProps) => {
 
       if (res.data?.txHash) {
         setMintMessage(res.data.message || 'NFT 민팅 성공');
+        
+        toast(`[칭호] 드래곤 슬레이어`, {
+          description: '고대의 폭룡을 쓰러뜨린 자에게만 허락되는 칭호',
+          icon: <img src='https://violet-eligible-junglefowl-936.mypinata.cloud/ipfs/bafybeibvbkrcojhsli7lbnomhx7la3s2f5kmprpwl2jdcrzm3htdbxqaqa'
+            alt="item" width={64} height={64} 
+          />,
+        });
+
         console.log('✅ Minted:', res.data);
       } else {
         throw new Error('응답에 txHash 없음');
