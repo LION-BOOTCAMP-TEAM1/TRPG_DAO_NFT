@@ -5,10 +5,8 @@ import { useEffect, useState } from 'react';
 import FeatureSection from './components/FeatureSection';
 import StoryCard from './components/StoryCard';
 import { StorySummary } from './types/story';
-import useAuth from '../hooks/useAuth';
 import Image from 'next/image';
 import FantasyButton from '../components/FantasyButton';
-import axios from 'axios';
 
 const StoryListPage = () => {
   const [branchpoints, setBranchpoints] = useState<StorySummary[]>([]);

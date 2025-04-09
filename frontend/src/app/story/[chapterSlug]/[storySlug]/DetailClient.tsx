@@ -20,7 +20,12 @@ import TransactionLoadingModal from './components/TransactionLoadingModal';
 import GlobalAudioPlayer from '@/app/components/GlobalAudioPlayer';
 import { useAudio } from '@/app/contexts/AudioContext';
 
+import { loadLocalStorage } from '@/store/characterSlice';
+import { AppDispatch } from "@/store";
+import { useDispatch } from "react-redux";
+
 const DetailClient = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const { storySlug, chapterSlug } = useParams();
   const { chapter } = useChapterDetail(chapterSlug as string);
   const { story } = useStoryDetail(storySlug as string);
@@ -92,6 +97,7 @@ const DetailClient = () => {
 
   // 모든 로딩 상태를 관찰하여 통합된 로딩 상태를 설정
   useEffect(() => {
+    dispatch(loadLocalStorage());
     const isAnyTransactionInProgress = isInitializingProposal || isVoting || isClosingProposal;
     
     if (isAnyTransactionInProgress) {

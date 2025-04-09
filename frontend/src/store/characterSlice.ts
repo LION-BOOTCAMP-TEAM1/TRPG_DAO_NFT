@@ -77,8 +77,26 @@ const characterSlice = createSlice({
   name: 'character',
   initialState,
   reducers: {
+    saveLocalStorage(state, action: PayloadAction<any>) {
+      // 로컬 스토리지에 저장
+      try {
+        const serializedData = JSON.stringify(action);
+        localStorage.setItem("character", serializedData);
+      } catch (e) {
+        console.warn("Failed to save state to localStorage", e);
+      }
+    },
+    loadLocalStorage(state) {
+      try {
+        const serializedData = localStorage.getItem("character");
+        if (serializedData === null) return;
+        characterSlice.caseReducers.setCharacterInfo(state, JSON.parse(serializedData));
+      } catch (e) {
+        console.warn("Failed to load state from localStorage", e);
+      }
+    },
     setCharacterInfo(state, action: PayloadAction<any>) {
-      
+        console.log(action)
         const statData = {
             HP: action.payload.hp,
             MT: action.payload.mp,
@@ -100,7 +118,8 @@ const characterSlice = createSlice({
             stat: statData,
         };
 
-        state.stats = statData;        
+        state.stats = statData;
+        characterSlice.caseReducers.saveLocalStorage(state, action);
     },
     updateStat(state) {
       const statKeys = [
@@ -190,11 +209,13 @@ const characterSlice = createSlice({
 });
 
 export const {
-    setCharacterInfo,
-    equipItem,
-    disarmItem,
-    addItemToInventory,
-    clearInventory,
+  saveLocalStorage,
+  loadLocalStorage,
+  setCharacterInfo,
+  equipItem,
+  disarmItem,
+  addItemToInventory,
+  clearInventory,
 } = characterSlice.actions;
 
 export default characterSlice.reducer;
