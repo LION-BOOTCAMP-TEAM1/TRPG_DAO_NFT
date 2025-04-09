@@ -41,7 +41,7 @@ export const BranchVoting = ({
       {branchPoint.DAOChoice?.map((choice: DAOChoice, index: number) => (
         <button
           key={choice.id}
-          className="w-full text-left p-3 rounded-lg border border-fantasy-copper hover:bg-fantasy-surface transition"
+          className="w-full text-left p-3 rounded-lg border border-fantasy-copper hover:bg-fantasy-surface transition cursor-pointer"
           onClick={() => handleVote(index + 1)}
           disabled={isVoting}
         >

@@ -17,6 +17,8 @@ import { VotingResult } from './components/VotingResult';
 import BattleHandler from './components/BattleHandler';
 import EndStoryButton from './components/EndStoryButton';
 import TransactionLoadingModal from './components/TransactionLoadingModal';
+import GlobalAudioPlayer from '@/app/components/GlobalAudioPlayer';
+import { useAudio } from '@/app/contexts/AudioContext';
 
 const DetailClient = () => {
   const { storySlug, chapterSlug } = useParams();
@@ -24,6 +26,9 @@ const DetailClient = () => {
   const { story } = useStoryDetail(storySlug as string);
   const { dao, signer } = useDaoContract();
   const [walletAddress, setWalletAddress] = useState('');
+  
+  // 오디오 컨텍스트 훅
+  const { play } = useAudio();
   
   // 트랜잭션 상태 관리
   const [transactionStatus, setTransactionStatus] = useState({
@@ -132,6 +137,52 @@ const DetailClient = () => {
     loadAddress();
   }, [signer]);
 
+  // URL 및 씬에 따른 오디오 소스 결정 및 재생
+  useEffect(() => {
+    if (!story) return;
+    
+    let audioSrc = '/music/intro.mp3';
+    
+    // 특정 URL에 따른 음악 설정
+    if (chapterSlug === 'chapter-1-awakening') {
+      // URL의 숫자에 따라 다른 음악 재생
+      if (storySlug === '1') {
+        audioSrc = '/music/scene2.mp3';
+      } else if (storySlug === '2' || storySlug === '3' || storySlug === 'isekai-summoning') {
+        audioSrc = '/music/intro.mp3';
+      } else if (storySlug === '4' || storySlug === '5' || storySlug === '6') {
+        audioSrc = '/music/scene1.mp3';
+      } else if (storySlug === '15') {
+        // 15번 스토리에서는 다시 intro.mp3 재생
+        audioSrc = '/music/intro.mp3';
+      } else if (parseInt(storySlug as string) >= 13) {
+        // 13번 이상의 스토리에서는 battle.mp3 재생 (15번 제외)
+        audioSrc = '/music/battle.mp3';
+      } else if (parseInt(storySlug as string) >= 7) {
+        // 7-12번 스토리에서는 scene2.mp3 재생
+        audioSrc = '/music/scene2.mp3';
+      }
+    } else if (displayedScenes && displayedScenes.length > 0) {
+      // 현재 표시된 씬에 따라 오디오 결정
+      if (displayedScenes.length <= 1) {
+        audioSrc = '/music/intro.mp3';
+      } else if (displayedScenes.length <= 3) {
+        audioSrc = '/music/scene1.mp3';
+      } else {
+        audioSrc = '/music/scene2.mp3';
+      }
+      
+      // 특정 스토리에서 전투 음악 재생
+      if ((storySlug == 'ruins-awakening' || story?.id == 14) && isSceneComplete) {
+        audioSrc = '/music/battle.mp3';
+      }
+    }
+    
+    // AudioContext의 play 메서드로 오디오 재생
+    play(audioSrc);
+    
+  }, [displayedScenes, isSceneComplete, story, storySlug, chapterSlug, play]);
+
   if (!story) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-fantasy-background text-fantasy-text">
@@ -151,6 +202,11 @@ const DetailClient = () => {
         displayedScenes={displayedScenes}
         currentText={currentText}
       />
+      
+      {/* 글로벌 오디오 플레이어 */}
+      <div className="fixed bottom-5 right-5 z-50">
+        <GlobalAudioPlayer />
+      </div>
 
       {isSceneComplete && story?.quests?.length > 0 && (
         <QuestSelector story={story} chapterSlug={chapterSlug as string} />

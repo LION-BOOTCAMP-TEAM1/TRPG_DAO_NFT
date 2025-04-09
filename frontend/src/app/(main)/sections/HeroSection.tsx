@@ -40,7 +40,7 @@ export default function HeroSection({
           {subtitle}
         </p>
         <Link href={ctaButtonLink}>
-          <button className="px-8 py-3 bg-fantasy-blood hover:bg-red-800 dark:bg-[var(--fantasy-blood)] dark:hover:opacity-90 text-white dark:text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg">
+          <button className="px-8 py-3 bg-fantasy-blood hover:bg-red-800 dark:bg-[var(--fantasy-blood)] dark:hover:opacity-90 text-white dark:text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg cursor-pointer">
             {ctaButtonText}
           </button>
         </Link>

@@ -29,7 +29,7 @@ function FeatureCard({ title, description, imageUrl, linkText, linkUrl }: Featur
         </p>
         
         <Link href={linkUrl}>
-          <button className="w-full py-2 bg-fantasy-blood dark:bg-[var(--fantasy-blood)] hover:opacity-90 text-white font-medium rounded transition-colors">
+          <button className="w-full py-2 bg-fantasy-blood dark:bg-[var(--fantasy-blood)] hover:opacity-90 text-white font-medium rounded transition-colors cursor-pointer">
             {linkText}
           </button>
         </Link>

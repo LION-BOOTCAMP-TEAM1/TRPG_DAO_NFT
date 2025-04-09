@@ -121,7 +121,7 @@ const MarketItem = ({item, seller, price, refresh}: MarketItemProps) => {
             <button
                 onClick={() => handleBuy()}
                 disabled={isLoading}
-                className={`px-3 py-1 rounded text-sm transition 
+                className={`px-3 py-1 rounded text-sm transition cursor-pointer
                 ${isLoading 
                 ? "bg-blue-600 text-white cursor-pointer"
                 : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer hover:scale-110 duration-300"}`}

@@ -46,7 +46,7 @@ export default function PlayPage() {
           {/* Session 모달 */}
           <ClassModal
             trigger={
-              <button className="MST ml-30 mr-65 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.3)]">
+              <button className="MST ml-30 mr-65 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.3)] cursor-pointer">
                 Classfication
               </button>
             }
@@ -59,7 +59,7 @@ export default function PlayPage() {
           {/* Genre 모달 */}
           <ClassModal
             trigger={
-              <button className="MST mr-80 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.3)]">
+              <button className="MST mr-80 drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.3)] cursor-pointer">
                 Genre
               </button>
             }
@@ -99,7 +99,7 @@ export default function PlayPage() {
               {/* World 모달 */}
               <ClassModal
                 trigger={
-                  <button className="MST drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.3)]">
+                  <button className="MST drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.3)] cursor-pointer">
                     World
                   </button>
                 }

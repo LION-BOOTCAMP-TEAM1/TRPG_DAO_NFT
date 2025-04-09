@@ -82,7 +82,7 @@ const ItemModal = ({ item, equippedItem, onClose, onEquip }: ItemModalProps) => 
             >
             {/* 닫기 버튼 */}
             <button
-                className="absolute top-3 right-4 text-gray-500 hover:text-red-600 text-xl"
+                className="absolute top-3 right-4 text-gray-500 hover:text-red-600 text-xl cursor-pointer"
                 onClick={onClose}
             >
                 ✕
@@ -124,7 +124,7 @@ const ItemModal = ({ item, equippedItem, onClose, onEquip }: ItemModalProps) => 
                 {/* 👇 우측 하단 장비하기 버튼 */}
                 <div className="flex justify-end mt-4">
                 <button
-                    className="px-4 py-2 bg-[#413029] hover:bg-[#31241f] text-white rounded shadow"
+                    className="px-4 py-2 bg-[#413029] hover:bg-[#31241f] text-white rounded shadow cursor-pointer"
                     onClick={() => onEquip(item)}
                 >
                     장비하기
