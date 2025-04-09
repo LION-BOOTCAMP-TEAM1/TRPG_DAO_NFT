@@ -45,7 +45,7 @@ const EndStoryButton = ({ walletAddress }: EndStoryButtonProps) => {
       setMintMessage('민팅에 실패했습니다');
     } finally {
       setIsMinting(false);
-      setTimeout(() => router.push('/story'), 2000);
+      setTimeout(() => window.location.href = '/story', 2000);
     }
   };
 
