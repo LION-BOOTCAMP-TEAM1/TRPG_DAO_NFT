@@ -7,6 +7,7 @@ import useAuth from '../hooks/useAuth';
 import { ThemeContext } from '../components/ThemeProvider';
 import { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
+import { AudioProvider } from '../contexts/AudioContext';
 
 // Auth 컨텍스트 타입
 type AuthContextType = ReturnType<typeof useAuth>;
@@ -86,8 +87,10 @@ export default function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={auth}>
       <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-        {children}
-        <Toaster richColors position="top-right" />
+        <AudioProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+        </AudioProvider>
       </ThemeContext.Provider>
     </AuthContext.Provider>
   );
