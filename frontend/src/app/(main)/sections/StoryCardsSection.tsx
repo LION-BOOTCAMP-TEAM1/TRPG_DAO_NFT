@@ -44,16 +44,16 @@ export default function StoryCardsSection({
   title = "스토리 카드 목록",
   subtitle = "이세계에서 펼쳐지는 다양한 이야기들을 카드로 만나보세요. 당신의 선택이 다음 스토리를 결정합니다.",
   cards = [
-    { title: "잊혀진 무덤", imageUrl: "nft-card/grave.png", storyType: "모험", borderColor: "#FFD700" },
-    { title: "드래곤의 둥지", imageUrl: "nft-card/dragon.png", storyType: "퀘스트", borderColor: "#0096FF" },
-    { title: "마법의 숲", imageUrl: "nft-card/forest.png", storyType: "탐험", borderColor: "#C300FF" },
-    { title: "어두운 예언", imageUrl: "nft-card/dark.png", storyType: "미스터리", borderColor: "#0096FF" },
-    { title: "영웅의 여정", imageUrl: "nft-card/hero.png", storyType: "서사", borderColor: "#FFD700" },
-    { title: "고대 유적", imageUrl: "nft-card/ancient.png", storyType: "역사", borderColor: "#00FF66" },
-    { title: "마법 학교", imageUrl: "nft-card/school.png", storyType: "판타지", borderColor: "#C300FF" },
-    { title: "그림자의 영역", imageUrl: "nft-card/shadow.png", storyType: "공포", borderColor: "#0096FF" },
-    { title: "천상의 전쟁", imageUrl: "nft-card/war.png", storyType: "전투", borderColor: "#FFD700" },
-    { title: "잃어버린 문명", imageUrl: "nft-card/lost.png", storyType: "발견", borderColor: "#00FF66" }
+    { title: "잊혀진 무덤", imageUrl: "/main/nft-card/grave.png", storyType: "모험", borderColor: "#FFD700" },
+    { title: "드래곤의 둥지", imageUrl: "/main/nft-card/dragon.png", storyType: "퀘스트", borderColor: "#0096FF" },
+    { title: "마법의 숲", imageUrl: "/main/nft-card/forest.png", storyType: "탐험", borderColor: "#C300FF" },
+    { title: "어두운 예언", imageUrl: "/main/nft-card/dark.png", storyType: "미스터리", borderColor: "#0096FF" },
+    { title: "영웅의 여정", imageUrl: "/main/nft-card/hero.png", storyType: "서사", borderColor: "#FFD700" },
+    { title: "고대 유적", imageUrl: "/main/nft-card/ancient.png", storyType: "역사", borderColor: "#00FF66" },
+    { title: "마법 학교", imageUrl: "/main/nft-card/school.png", storyType: "판타지", borderColor: "#C300FF" },
+    { title: "그림자의 영역", imageUrl: "/main/nft-card/shadow.png", storyType: "공포", borderColor: "#0096FF" },
+    { title: "천상의 전쟁", imageUrl: "/main/nft-card/war.png", storyType: "전투", borderColor: "#FFD700" },
+    { title: "잃어버린 문명", imageUrl: "/main/nft-card/lost.png", storyType: "발견", borderColor: "#00FF66" }
   ]
 }: Partial<StoryCardsSectionProps>) {
   return (
