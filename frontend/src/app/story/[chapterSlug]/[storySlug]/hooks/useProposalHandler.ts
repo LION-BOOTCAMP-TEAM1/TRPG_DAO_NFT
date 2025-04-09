@@ -60,7 +60,7 @@ export function useProposalHandler({
   const [voteError, setVoteError] = useState('');
 
   const description = branchPoint?.slug || 'default-branch';
-  const duration = 300;
+  const duration = 180;
   const numOptions = branchPoint?.DAOChoice?.length || 2;
   const userAddresses = participants.map((p) => p.walletAddress);
 
@@ -253,6 +253,9 @@ export function useProposalHandler({
       startPolling();
     }
     
+    // 타임아웃 트래킹을 위한 변수
+    let forceCloseTimeout: NodeJS.Timeout | null = null;
+    
     // 투표 종료 시간 체크 (1분마다)
     const timeCheckInterval = setInterval(async () => {
       if (!dao || proposalId === null) return;
@@ -268,24 +271,30 @@ export function useProposalHandler({
           setIsClosingProposal(true);
           onProposalCloseStart?.();
           
+          // 강제 종료 타임아웃 설정 (2분 후 강제 종료)
+          forceCloseTimeout = setTimeout(() => {
+            console.log('⚠️ 타임아웃 발생: 모달 강제 종료');
+            setVoteEnded(true);
+            setIsClosingProposal(false);
+            onProposalCloseComplete?.();
+            onVoteEnd?.();
+            stopPolling();
+          }, 120000); // 2분
+          
           try {
             // closeProposal API 호출
             const res = await api.post(`/api/dao/${proposalId}/close`, {});
             console.log('Close API 응답:', res.data);
             
-            // API 응답 후 바로 종료 처리하지 않고 폴링으로 확인
-            // 상태 변경을 감지할 때까지 폴링 주기 단축 (10초마다)
-            if (pollingIntervalRef.current) {
-              clearInterval(pollingIntervalRef.current);
-            }
-            
-            pollingIntervalRef.current = setInterval(async () => {
+            // 5초 후 상태 확인 시도
+            setTimeout(async () => {
               try {
                 const refreshedProposals = await dao.getAllProposals();
                 const current = refreshedProposals[proposalId];
                 
+                // active 상태 확인
                 if (!current.active) {
-                  console.log('프로포절이 성공적으로 종료되었습니다.');
+                  console.log('✅ 프로포절이 성공적으로 종료되었습니다.');
                   setVoteEnded(true);
                   onVoteEnd?.();
                   
@@ -295,23 +304,80 @@ export function useProposalHandler({
                   // 폴링 중지
                   stopPolling();
                   
-                  // 이미 로딩 상태면 완료 처리
-                  if (isClosingProposal) {
-                    setIsClosingProposal(false);
-                    onProposalCloseComplete?.();
+                  // 모달 종료 처리
+                  setIsClosingProposal(false);
+                  onProposalCloseComplete?.();
+                  
+                  // 타임아웃 취소
+                  if (forceCloseTimeout) {
+                    clearTimeout(forceCloseTimeout);
+                    forceCloseTimeout = null;
                   }
+                } else {
+                  console.log('⚠️ API 호출 후에도 프로포절이 여전히 활성 상태입니다.');
+                  // 폴링 계속 (더 짧은 간격으로)
+                  if (pollingIntervalRef.current) {
+                    clearInterval(pollingIntervalRef.current);
+                  }
+                  
+                  // 더 짧은 간격으로 폴링 (5초마다)
+                  pollingIntervalRef.current = setInterval(async () => {
+                    try {
+                      const refreshedProposals = await dao.getAllProposals();
+                      const current = refreshedProposals[proposalId];
+                      
+                      if (!current.active) {
+                        console.log('✅ 폴링 중 프로포절 종료 감지');
+                        setVoteEnded(true);
+                        onVoteEnd?.();
+                        
+                        // 결과 업데이트
+                        await refreshVoteResults();
+                        
+                        // 폴링 중지
+                        stopPolling();
+                        
+                        // 모달 종료 처리
+                        setIsClosingProposal(false);
+                        onProposalCloseComplete?.();
+                        
+                        // 타임아웃 취소
+                        if (forceCloseTimeout) {
+                          clearTimeout(forceCloseTimeout);
+                          forceCloseTimeout = null;
+                        }
+                      }
+                    } catch (error) {
+                      console.error('폴링 중 오류:', error);
+                    }
+                  }, 5000); // 5초마다
                 }
               } catch (error) {
-                console.error('폴링 중 오류:', error);
+                console.error('상태 확인 시도 중 오류:', error);
+                // 오류 발생시 30초 후 모달 강제 종료
+                setTimeout(() => {
+                  console.log('⚠️ 오류 발생으로 모달 강제 종료');
+                  setVoteEnded(true);
+                  setIsClosingProposal(false);
+                  onProposalCloseComplete?.();
+                  
+                  // 타임아웃 취소
+                  if (forceCloseTimeout) {
+                    clearTimeout(forceCloseTimeout);
+                    forceCloseTimeout = null;
+                  }
+                }, 30000);
               }
-            }, 10000);
+            }, 5000); // 5초 후 상태 확인
+            
           } catch (error) {
             console.error('closeProposal 요청 실패:', error);
-            // 실패해도 일정 시간 후 로딩 상태 해제
+            // 실패해도 30초 후 로딩 상태 해제 (타임아웃 유지)
             setTimeout(() => {
+              console.log('⚠️ API 오류로 인한 모달 강제 종료');
               setIsClosingProposal(false);
               onProposalCloseComplete?.();
-            }, 5000);
+            }, 30000);
           }
         }
       } catch (error) {
@@ -321,6 +387,10 @@ export function useProposalHandler({
     
     return () => {
       clearInterval(timeCheckInterval);
+      // 타임아웃 제거
+      if (forceCloseTimeout) {
+        clearTimeout(forceCloseTimeout);
+      }
     };
   }, [dao, proposalId, voteEnded, isPolling, isClosingProposal]);
 

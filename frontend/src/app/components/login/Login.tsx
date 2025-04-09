@@ -1,6 +1,7 @@
 import { FC, useState } from 'react';
 import { FaWallet } from 'react-icons/fa';
 import useAuth from '../../hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 // get NFT
 import { AppDispatch } from "@/store";
@@ -31,6 +32,7 @@ const Login: FC<LoginProps> = ({
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,6 +62,7 @@ const Login: FC<LoginProps> = ({
     try {
       await logout();
       setShowLogoutModal(false);
+      router.push('/');
     } catch (error) {
       console.error('로그아웃 중 오류 발생:', error);
       setShowLogoutModal(false);
@@ -153,6 +156,7 @@ const Login: FC<LoginProps> = ({
                 onClick={handleConfirmLogout}
                 className="px-4 py-2 bg-red-500 text-white rounded"
               >
+                
                 확인
               </button>
             </div>
