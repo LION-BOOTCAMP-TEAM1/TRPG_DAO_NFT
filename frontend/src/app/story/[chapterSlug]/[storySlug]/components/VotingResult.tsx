@@ -45,7 +45,7 @@ export const VotingResult = ({
         <strong>{totalVotes}</strong>
       </p>
       <button
-        className="mt-4 px-6 py-3 bg-fantasy-surface dark:bg-fantasy-surface/80 text-fantasy-text font-bold rounded-lg shadow-md hover:shadow-lg transition-all border-2 border-fantasy-text flex items-center justify-center w-full md:w-auto"
+        className="mt-4 px-6 py-3 bg-fantasy-surface dark:bg-fantasy-surface/80 text-fantasy-text font-bold rounded-lg shadow-md hover:shadow-lg transition-all border-2 border-fantasy-text flex items-center justify-center w-full md:w-auto cursor-pointer"
         onClick={() =>
           router.push(
             `/story/${chapterSlug}/${

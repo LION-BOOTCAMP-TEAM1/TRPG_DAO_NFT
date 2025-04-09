@@ -18,7 +18,7 @@ export const QuestSelector = ({
           {quest.choices.map((choice) => (
             <button
               key={choice.id}
-              className="block w-full text-left p-2 mt-1 rounded border border-fantasy-copper hover:bg-fantasy-surface"
+              className="block w-full text-left p-2 mt-1 rounded border border-fantasy-copper hover:bg-fantasy-surface cursor-pointer"
               onClick={() =>
                 router.push(
                   `/story/${chapterSlug}/${choice.nextStorySlug ?? choice.nextStoryId}`,

@@ -84,7 +84,7 @@ const Login: FC<LoginProps> = ({
         <form onSubmit={handleLogin} className="flex">
           <button
             type="submit"
-            className={`${buttonClassName}`}
+            className={`${buttonClassName} cursor-pointer`}
             disabled={isLoading || isConnecting}
           >
             {isLoading || isConnecting ? (
@@ -132,7 +132,7 @@ const Login: FC<LoginProps> = ({
           </span>
           <button
             onClick={handleLogoutButtonClick}
-            className={`${buttonClassName} text-xs w-20`}
+            className={`${buttonClassName} text-xs w-20 cursor-pointer`}
           >
             로그아웃
           </button>
@@ -148,13 +148,13 @@ const Login: FC<LoginProps> = ({
             <div className="flex justify-end gap-3">
               <button 
                 onClick={handleCancelLogout}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded"
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded cursor-pointer"
               >
                 취소
               </button>
               <button 
                 onClick={handleConfirmLogout}
-                className="px-4 py-2 bg-red-500 text-white rounded"
+                className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer"
               >
                 
                 확인

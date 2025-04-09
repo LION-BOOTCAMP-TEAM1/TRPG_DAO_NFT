@@ -13,8 +13,8 @@ export default function CyberPunk() {
         </p>
         <p> against AI. Survive until the end.</p>
       </div>
-      <button className="px-2 classst">Look</button>
-      <button className="px-2 mr-5 classst">play</button>
+      <button className="px-2 classst cursor-pointer">Look</button>
+      <button className="px-2 mr-5 classst cursor-pointer">play</button>
     </div>
   );
 }

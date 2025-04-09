@@ -10,7 +10,7 @@ interface CategoryItemProps {
 
 function CategoryItem({ title, description, imageUrl }: CategoryItemProps) {
   return (
-    <div className="bg-fantasy-surface/90 dark:bg-[var(--fantasy-surface)]/90 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-fantasy-gold/20 hover:-translate-y-1">
+    <div className="bg-fantasy-surface/90 dark:bg-[var(--fantasy-surface)]/90 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-fantasy-gold/20 hover:-translate-y-1 cursor-pointer">
       <div className="h-48 overflow-hidden">
         <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
       </div>
@@ -54,7 +54,7 @@ function CategoryTab({ active, label, onClick }: CategoryTabProps) {
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 rounded-t-lg transition-all duration-300 ${
+      className={`px-4 py-2 rounded-t-lg transition-all duration-300 cursor-pointer  ${
         active 
           ? 'bg-fantasy-surface/90 dark:bg-[var(--fantasy-surface)]/90 text-fantasy-gold dark:text-[var(--fantasy-gold)] font-bold border-b-2 border-fantasy-gold'
           : 'bg-fantasy-surface/50 dark:bg-[var(--fantasy-surface)]/50 text-fantasy-text dark:text-[var(--fantasy-text)] hover:bg-fantasy-surface/70'

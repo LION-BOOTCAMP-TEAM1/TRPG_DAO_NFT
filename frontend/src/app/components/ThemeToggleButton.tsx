@@ -19,7 +19,7 @@ const LightModeButton = ({ onClick }: ButtonProps) => (
 const DarkModeButton = ({ onClick }: ButtonProps) => (
   <button
     onClick={onClick}
-    className="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 w-10 h-10 flex items-center justify-center transition-colors duration-300"
+    className="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 w-10 h-10 flex items-center justify-center transition-colors duration-300 cursor-pointer"
     aria-label="Switch to light mode"
   >
     <FaSun className="text-xl text-fantasy-gold dark:text-[var(--fantasy-gold)]" />

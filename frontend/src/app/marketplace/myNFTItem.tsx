@@ -127,7 +127,7 @@ const MyNFTItem = ({ nft, approve, refresh }: MyNFTItemProps) => {
           <button
             onClick={handleSale}
             disabled={!approve || isLoading}
-            className={`px-3 py-1 rounded text-sm transition 
+            className={`px-3 py-1 rounded text-sm transition cursor-pointer
               ${approve
                 ? isLoading
                   ? "bg-green-600 text-white cursor-pointer"

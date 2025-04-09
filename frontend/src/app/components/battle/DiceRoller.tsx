@@ -28,7 +28,7 @@ const DiceRoller = ({diceResult}: DiceRollerProps) => {
                 <div className="flex-1">
                     {number && (
                         <button
-                        className="text-sm font-bold mb-4"
+                        className="text-sm font-bold mb-4 cursor-pointer"
                         onClick={rollDice}
                         >
                         🔁
@@ -41,13 +41,13 @@ const DiceRoller = ({diceResult}: DiceRollerProps) => {
             </div>
             {number
             ? <button
-                className='bg-green-500 rounded-lg p-2 text-white hover:bg-green-600'
+                className='bg-green-500 rounded-lg p-2 text-white hover:bg-green-600 cursor-pointer'
                 onClick={() => diceResult(number)}
                 disabled={rolling}
             >
                 결정하기
             </button>
-            : <button className={`bg-amber-600 rounded-lg p-2 text-white hover:bg-amber-700`} onClick={rollDice} disabled={rolling}>
+            : <button className={`bg-amber-600 rounded-lg p-2 text-white hover:bg-amber-700 cursor-pointer`} onClick={rollDice} disabled={rolling}>
                 {rolling ? "굴리는 중..." : "주사위 굴리기"}
             </button>
             }

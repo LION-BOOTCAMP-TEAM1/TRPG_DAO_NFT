@@ -9,7 +9,7 @@ interface StoryCardProps {
 
 function StoryCard({ title, imageUrl, storyType, borderColor }: StoryCardProps) {
   return (
-    <div className={`relative transform transition-transform duration-300 hover:scale-105 hover:z-10`}>
+    <div className={`relative transform transition-transform duration-300 hover:scale-105 hover:z-10 cursor-pointer`}>
       <div 
         className={`absolute inset-0 rounded-lg`}
         style={{ 

@@ -13,7 +13,7 @@ function FaqItem({ question, answer }: FaqItemProps) {
   return (
     <div className="border-b border-fantasy-bronze/30 dark:border-[var(--fantasy-bronze)]/30">
       <button
-        className="flex justify-between items-center w-full py-4 text-left"
+        className="flex justify-between items-center w-full py-4 text-left cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="text-fantasy-text dark:text-[var(--fantasy-text)] text-sm hover:text-fantasy-gold dark:hover:text-[var(--fantasy-gold)]">{question}</span>

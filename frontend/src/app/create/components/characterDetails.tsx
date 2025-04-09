@@ -95,7 +95,7 @@ export default function CharacterDetails({
       <div className="flex justify-center">
         {!isCreated ? (
           <button
-            className={`px-4 py-2 rounded ${
+            className={`px-4 py-2 rounded cursor-pointer ${
               isDark 
                 ? 'bg-[#634a2f] text-[#e0d2c0] hover:bg-[#73583b]' 
                 : 'bg-[#8c6e43] text-[#f4e8d3] hover:bg-[#9e7c4c]'
@@ -106,7 +106,7 @@ export default function CharacterDetails({
           </button>
         ) : (
           <Link href={'/story/1'}>
-            <button className={`px-4 py-2 rounded ${
+            <button className={`px-4 py-2 rounded cursor-pointer ${
               isDark 
                 ? 'bg-[#5d3b15] text-[#e0d2c0] hover:bg-[#6d4519]' 
                 : 'bg-[#7b4f1b] text-[#f4e8d3] hover:bg-[#8c5a1e]'

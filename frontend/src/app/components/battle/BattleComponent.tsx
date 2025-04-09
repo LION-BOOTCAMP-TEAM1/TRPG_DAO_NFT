@@ -271,7 +271,7 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
               {diceNumber && !isFighting
               ? <div className="flex flex-row">
                 <button
-                  className="bg-[#4e4e4e] hover:bg-[#333333] px-4 py-2 rounded border border-gray-700 text-white font-bold"
+                  className="bg-[#4e4e4e] hover:bg-[#333333] px-4 py-2 rounded border border-gray-700 text-white font-bold cursor-pointer"
                   onClick={() => startBattle()}
                 >
                   ⚔️ 전투하기
@@ -279,7 +279,7 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
                 <div className="flex gap-2 mt-4">
                   <button
                     onClick={changeSpeed}
-                    className={`px-3 py-1 rounded font-bold bg-gray-200 text-gray-800`}
+                    className={`px-3 py-1 rounded font-bold bg-gray-200 text-gray-800 cursor-pointer`}
                   >
                     x{battleSpeed}
                   </button>
@@ -288,7 +288,7 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
               : <div />
               }
               <button
-                className="bg-[#ff1b1b] hover:bg-[#ff491be7] px-4 py-2 rounded border border-gray-700 text-white font-bold"
+                className="bg-[#ff1b1b] hover:bg-[#ff491be7] px-4 py-2 rounded border border-gray-700 text-white font-bold cursor-pointer"
                 onClick={() => onClose(false)}
               >
                 포기하기
@@ -300,7 +300,7 @@ const BattleComponent = ({ speed = 500, onClose }: BattleComponentProps) => {
                 <div className="bg-white rounded-lg p-6 shadow-lg text-center w-64">
                   <h2 className="text-lg font-bold mb-4">{resultMessage}</h2>
                   <button
-                    className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                    className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
                     onClick={() => onClose(dragon.HP === 0)}
                   >
                     확인

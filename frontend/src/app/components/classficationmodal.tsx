@@ -37,7 +37,7 @@ const ClassModal: FC<ModalProps> = ({
 
       {isVisible && (
         <div
-          className={`absolute ${position} p-4 rounded-lg shadow-lg border border-gray-100 z-50 ${isDarkMode ? 'bg-white text-black border-gray-200' : 'bg-white text-black'}`}
+          className={`absolute ${position} p-4 rounded-lg shadow-lg border border-gray-100 z-50 cursor-pointer ${isDarkMode ? 'bg-white text-black border-gray-200' : 'bg-white text-black'}`}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >

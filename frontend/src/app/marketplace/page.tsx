@@ -66,11 +66,11 @@ export default function NFTMarketplace() {
             <div className="flex gap-2">
               <button
                 onClick={() => setSortPriceAsc((v) => !v )}
-                className="bg-zinc-700 px-3 py-1 rounded text-sm hover:bg-zinc-600"
+                className="bg-zinc-700 px-3 py-1 rounded text-sm hover:bg-zinc-600 cursor-pointer"
               >
                 가격순{sortPriceAsc ? '⬆️' : '⬇️'}
                 </button>
-              <button onClick={() => setSortRarityAsc((v) => !v )} className="bg-zinc-700 px-3 py-1 rounded text-sm hover:bg-zinc-600">등급순{sortRarityAsc ? '⬆️' : '⬇️'}</button>
+              <button onClick={() => setSortRarityAsc((v) => !v )} className="bg-zinc-700 px-3 py-1 rounded text-sm hover:bg-zinc-600 cursor-pointer">등급순{sortRarityAsc ? '⬆️' : '⬇️'}</button>
             </div>
           </div>
           <p className="text-right text-xs text-gray-200 dark:text-gray-500 mb-2">판매 수수료는 1%입니다. 해당 수익은 서비스 운영 및 지속적인 품질 향상을 위해 사용됩니다.</p>

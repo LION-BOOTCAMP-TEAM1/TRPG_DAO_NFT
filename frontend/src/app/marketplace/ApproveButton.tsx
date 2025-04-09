@@ -35,7 +35,7 @@ export default function ApproveButton({onApproved, refresh}: any) {
 
   return (
     <button
-      className={`px-3 py-1 rounded text-xs text-white ${
+      className={`px-3 py-1 rounded text-xs text-white cursor-pointer ${
         isApproved ? "bg-gray-600 cursor-default" : "bg-green-600"
       }`}
       onClick={handleApproval}

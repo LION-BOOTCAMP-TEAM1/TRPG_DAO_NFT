@@ -35,7 +35,7 @@ const BattleHandler = ({
       {!startBattle && !battleEnded && (
         <button
           onClick={() => setStartBattle(true)}
-          className="px-6 py-3 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition"
+          className="px-6 py-3 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition cursor-pointer"
         >
           🐉 용과 싸우러 가기
         </button>
@@ -55,7 +55,7 @@ const BattleHandler = ({
         <div className="mt-6 flex flex-col items-center gap-4">
           {isVictory ? (
             <button
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 cursor-pointer"
               onClick={() =>
                 router.push(`/story/${chapterSlug}/ancient-power-revealed`)
               }
@@ -64,7 +64,7 @@ const BattleHandler = ({
             </button>
           ) : (
             <button
-              className="bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700"
+              className="bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 cursor-pointer"
               onClick={() => {
                 setStartBattle(false);
                 setBattleEnded(false);

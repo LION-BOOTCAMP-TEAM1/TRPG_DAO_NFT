@@ -16,11 +16,11 @@ export default function MiddleAge() {
           <p>another world and the kingdom or to help the Demon King.</p>
         </div>
         <Link href={'/story'}>
-          <button className="px-2 mr-4 classst">Look</button>
+          <button className="px-2 mr-4 classst cursor-pointer">Look</button>
         </Link>
 
         <Link href={'/login'}>
-          <button className="px-2 mr-5 classst">play</button>
+          <button className="px-2 mr-5 classst cursor-pointer">play</button>
         </Link>
       </div>
 
