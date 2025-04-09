@@ -80,51 +80,51 @@ export default function StoryBoardSection({
     {
       title: "단발성 세션",
       description: "한 번의 모임으로 완결되는 이야기입니다. 2-4시간 정도의 짧은 시간 동안 플레이할 수 있습니다.",
-      imageUrl: "images/storyBoard/storyBoard-session.jpeg",
+      imageUrl: "/main/storyBoard/storyBoard-session.jpeg",
     },
     {
       title: "캠페인 세션",
       description: "여러 번의 세션으로 이어지는 장기 이야기입니다. 캐릭터의 성장과 깊이 있는 스토리를 경험할 수 있습니다.",
-      imageUrl: "images/storyBoard/storyBoard-campaign.png",
+      imageUrl: "/main/storyBoard/storyBoard-campaign.png",
     },
     {
       title: "이벤트 세션",
       description: "특별한 테마나 이벤트를 중심으로 구성된 세션입니다. 계절 행사나 특별 이벤트에 맞춰 진행됩니다.",
-      imageUrl: "images/storyBoard/storyBoard-event.png",
+      imageUrl: "/main/storyBoard/storyBoard-event.png",
     },
   ],
   worldSettings = [
     {
       title: "판타지 세계",
       description: "마법과 신비로운 생물이 존재하는 중세 판타지 세계에서 모험을 즐깁니다.",
-      imageUrl: "images/storyBoard/storyBoard-fantasy.png",
+      imageUrl: "/main/storyBoard/storyBoard-fantasy.png",
     },
     {
       title: "사이버펑크",
       description: "첨단 기술과 디스토피아적 사회가 공존하는 미래 세계에서의 이야기입니다.",
-      imageUrl: "images/storyBoard/storyBoard-cyberpunk.png",
+      imageUrl: "/main/storyBoard/storyBoard-cyberpunk.png",
     },
     {
       title: "현대 판타지",
       description: "현대 세계에 마법과 초자연적 요소가 숨겨져 있는 세계관입니다.",
-      imageUrl: "images/storyBoard/storyBoard-modern.png",
+      imageUrl: "/main/storyBoard/storyBoard-modern.png",
     },
   ],
   genres = [
     {
       title: "모험",
       description: "미지의 땅을 탐험하고 보물을 찾는 여정을 다룹니다.",
-      imageUrl: "https://placehold.co/600x400/FFD700/1A1A1A?text=모험",
+      imageUrl: "/main/storyBoard/storyBoard-adventure.png",
     },
     {
       title: "미스터리",
       description: "사건과 수수께끼를 해결하는 추리 중심의 이야기입니다.",
-      imageUrl: "https://placehold.co/600x400/0096FF/FFFFFF?text=미스터리",
+      imageUrl: "/main/nft-card/dark.png",
     },
     {
       title: "호러",
       description: "공포와 긴장감을 주는 요소들이 중심인 이야기입니다.",
-      imageUrl: "https://placehold.co/600x400/C300FF/FFFFFF?text=호러",
+      imageUrl: "/main/nft-card/shadow.png",
     },
   ],
 }: Partial<StoryBoardSectionProps>) {
