@@ -28,33 +28,33 @@ interface CharacterState {
 const initialState: CharacterState = {
   character: {
     id: 1,
-    class: '매지션',
-    name: '게리메일',
-    image: '/character/magician.png',
+    class: '아기',
+    name: '새로고침 금지요~',
+    image: '/character/baby.png',
     stat: {
       HP: 4,
       MT: 4,
-      attack: 10,
-      magic: 40,
-      strength: 4,
-      agility: 4,
-      intelligence: 10,
-      charisma: 6,
-      health: 4,
-      wisdom: 8,
+      attack: 0,
+      magic: 0,
+      strength: 0,
+      agility: 0,
+      intelligence: 0,
+      charisma: 0,
+      health: 0,
+      wisdom: 0,
     },
   },
   stats: {
     HP: 4,
     MT: 4,
-    attack: 10,
-    magic: 40,
-    strength: 4,
-    agility: 4,
-    intelligence: 10,
-    charisma: 6,
-    health: 4,
-    wisdom: 8,
+    attack: 0,
+    magic: 0,
+    strength: 0,
+    agility: 0,
+    intelligence: 0,
+    charisma: 0,
+    health: 0,
+    wisdom: 0,
   },
   equipment: {
     weapon: null,
@@ -78,7 +78,7 @@ const characterSlice = createSlice({
   initialState,
   reducers: {
     setCharacterInfo(state, action: PayloadAction<any>) {
-      console.log(action.payload)
+      
         const statData = {
             HP: action.payload.hp,
             MT: action.payload.mp,
