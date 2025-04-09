@@ -60,7 +60,7 @@ export function useProposalHandler({
   const [voteError, setVoteError] = useState('');
 
   const description = branchPoint?.slug || 'default-branch';
-  const duration = 60;
+  const duration = 180;
   const numOptions = branchPoint?.DAOChoice?.length || 2;
   const userAddresses = participants.map((p) => p.walletAddress);
 
