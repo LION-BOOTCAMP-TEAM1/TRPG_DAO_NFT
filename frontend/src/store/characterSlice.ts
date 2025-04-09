@@ -96,7 +96,8 @@ const characterSlice = createSlice({
       }
     },
     setCharacterInfo(state, action: PayloadAction<any>) {
-        console.log(action)
+      if(action.payload === null) return;
+      
         const statData = {
             HP: action.payload.hp,
             MT: action.payload.mp,

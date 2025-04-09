@@ -24,6 +24,8 @@ import { loadLocalStorage } from '@/store/characterSlice';
 import { AppDispatch } from "@/store";
 import { useDispatch } from "react-redux";
 
+import {saveStoryToLocalStorage} from "@/utils/manageLocalStorage";
+
 const DetailClient = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { storySlug, chapterSlug } = useParams();
@@ -97,7 +99,6 @@ const DetailClient = () => {
 
   // 모든 로딩 상태를 관찰하여 통합된 로딩 상태를 설정
   useEffect(() => {
-    dispatch(loadLocalStorage());
     const isAnyTransactionInProgress = isInitializingProposal || isVoting || isClosingProposal;
     
     if (isAnyTransactionInProgress) {
@@ -140,6 +141,10 @@ const DetailClient = () => {
         setWalletAddress(address);
       }
     };
+
+    
+    dispatch(loadLocalStorage());
+    saveStoryToLocalStorage(`story/${chapterSlug}/${storySlug}`);
     loadAddress();
   }, [signer]);
 

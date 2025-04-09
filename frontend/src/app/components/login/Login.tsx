@@ -8,6 +8,7 @@ import { AppDispatch } from "@/store";
 import { useDispatch } from "react-redux";
 import {getNFTList} from '@/utils/web3';
 import { saveLocalStorage } from '@/store/characterSlice';
+import { clearStory } from '@/utils/manageLocalStorage';
 
 interface LoginProps {
   onLoginSuccess?: () => void;
@@ -46,7 +47,7 @@ const Login: FC<LoginProps> = ({
         const success = await login(connectedSigner);
         getNFTList(dispatch);
         dispatch(saveLocalStorage(null));
-        console.log('saveLocalStorage(null)')
+        clearStory();
         
         if (success && onLoginSuccess) {
           onLoginSuccess();
