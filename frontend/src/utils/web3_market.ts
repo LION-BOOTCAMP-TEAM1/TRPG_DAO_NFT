@@ -3,7 +3,7 @@ import CONTRACT_ABI from "./abis/MarketPlace.json";
 import {getContract, getIPFSFile} from "./web3";
 import { Item, saleContent } from "@/store/types"
 
-const CONTRACT_ADDRESS = "0x16FE8D89Cb7Bf27c72660d7bDf8b9905B4455807";
+const CONTRACT_ADDRESS = "0xA3ee2e7ff521Ba77acEf9B80F6F7757386AE4779";
 
 function getProvider() {
   if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -28,10 +28,10 @@ async function getSaleList() {
   const result: saleContent[] = [];
   try {
       const saleList = await contract.getAllListings();
-      
+      console.log(saleList)
       await Promise.all(
         Object.values(saleList).map(async (value: any) => {
-          const nftID = Number(value[1]);
+          const nftID = Number(value[2]);
           const uri = await NFTContract.uri(nftID);
           const newURI = uri.replace("{id}", String(nftID));
           const item = await getIPFSFile(newURI);
@@ -57,10 +57,11 @@ async function getSaleList() {
           }
 
           const sale: saleContent = {
-            seller: value[0],
-            nft_id: Number(value[1]),
-            price: Number(value[2]),
-            amount: Number(value[3]),
+            id: Number(value[0]),
+            seller: value[1],
+            nft_id: Number(value[2]),
+            price: Number(value[3]),
+            amount: Number(value[4]),
             item: newItem,
           }
           
@@ -77,10 +78,10 @@ async function getSaleList() {
 
 async function buyNFT(id: number, seller: String, amount: number, price: number) {
   const contract = await getMarketContract();
-  console.log(id, seller, amount, price)
+  
   try {
     const totalPrice = BigInt(price) * BigInt(amount);
-    const tx = await contract.buy(id, seller, amount, {
+    const tx = await contract.buy(id, amount, {
       value: totalPrice
     });
 

@@ -13,20 +13,28 @@ contract Marketplace is ReentrancyGuard, Ownable {
     }
 
     struct Listing {
+        uint256 id;
         address seller;
         uint256 tokenId;
         uint256 pricePerItem;
         uint256 amountAvailable;
     }
 
-    Listing[] public allListings;
-    mapping(uint256 => mapping(address => Listing)) public listings;
-    mapping(uint256 => mapping(address => uint256)) public listingIndex;
-
+    uint256 public nextListingId;
     uint256 public accumulatedFees;
 
     uint256 public constant FEE_PERCENT = 100; // 1%
     uint256 public constant BASIS_POINTS = 10000;
+
+    mapping(uint256 => Listing) public listingsById;
+    mapping(address => uint256[]) public listingIdsBySeller;
+    uint256[] public activeListingIds;
+    mapping(uint256 => uint256) private activeListingIndex;
+
+    event Listed(uint256 indexed listingId, address indexed seller, uint256 tokenId, uint256 amount, uint256 price);
+    event Purchase(uint256 indexed listingId, address indexed buyer, uint256 amount);
+    event Canceled(uint256 indexed listingId);
+    event FeesWithdrawn(uint256 amount);
 
     function setForSale(uint256 tokenId, uint256 amount, uint256 pricePerItem) external {
         require(amount > 0, "Nothing to sell");
@@ -36,27 +44,25 @@ contract Marketplace is ReentrancyGuard, Ownable {
         uint256 balance = token.balanceOf(msg.sender, tokenId);
         require(balance >= amount, "Not enough balance to list");
 
+        uint256 listingId = nextListingId++;
         Listing memory newListing = Listing({
+            id: listingId,
             seller: msg.sender,
             tokenId: tokenId,
             pricePerItem: pricePerItem,
             amountAvailable: amount
         });
 
-        listings[tokenId][msg.sender] = newListing;
+        listingsById[listingId] = newListing;
+        listingIdsBySeller[msg.sender].push(listingId);
+        activeListingIndex[listingId] = activeListingIds.length;
+        activeListingIds.push(listingId);
 
-        if (listingIndex[tokenId][msg.sender] == 0 && 
-            (allListings.length == 0 || allListings[0].seller != msg.sender || allListings[0].tokenId != tokenId)) {
-            allListings.push(newListing);
-            listingIndex[tokenId][msg.sender] = allListings.length - 1;
-        } else {
-            uint256 index = listingIndex[tokenId][msg.sender];
-            allListings[index] = newListing;
-        }
+        emit Listed(listingId, msg.sender, tokenId, amount, pricePerItem);
     }
 
-    function buy(uint256 tokenId, address seller, uint256 amount) external payable nonReentrant {
-        Listing storage listing = listings[tokenId][seller];
+    function buy(uint256 listingId, uint256 amount) external payable nonReentrant {
+        Listing storage listing = listingsById[listingId];
         require(listing.amountAvailable >= amount, "Not enough quantity");
 
         uint256 totalPrice = listing.pricePerItem * amount;
@@ -66,8 +72,8 @@ contract Marketplace is ReentrancyGuard, Ownable {
         uint256 sellerAmount = totalPrice - fee;
         accumulatedFees += fee;
 
-        token.safeTransferFrom(seller, msg.sender, tokenId, amount, "");
-        payable(seller).transfer(sellerAmount);
+        token.safeTransferFrom(listing.seller, msg.sender, listing.tokenId, amount, "");
+        payable(listing.seller).transfer(sellerAmount);
 
         if (msg.value > totalPrice) {
             payable(msg.sender).transfer(msg.value - totalPrice);
@@ -75,51 +81,63 @@ contract Marketplace is ReentrancyGuard, Ownable {
 
         listing.amountAvailable -= amount;
 
-        uint256 index = listingIndex[tokenId][seller];
-        allListings[index].amountAvailable -= amount;
+        emit Purchase(listingId, msg.sender, amount);
 
         if (listing.amountAvailable == 0) {
-            delete listings[tokenId][seller];
-
-            uint256 last = allListings.length - 1;
-
-            if (index != last) {
-                allListings[index] = allListings[last];
-                listingIndex[allListings[index].tokenId][allListings[index].seller] = index;
-            }
-
-            allListings.pop();
-            delete listingIndex[tokenId][seller];
+            _removeListing(listingId);
         }
     }
 
-    function cancelListing(uint256 tokenId) external {
-        delete listings[tokenId][msg.sender];
+    function cancelListing(uint256 listingId) external {
+        Listing memory listing = listingsById[listingId];
+        require(listing.seller == msg.sender, "Only seller can cancel");
 
-        uint256 index = listingIndex[tokenId][msg.sender];
-        uint256 last = allListings.length - 1;
+        _removeListing(listingId);
+        emit Canceled(listingId);
+    }
 
-        if (index != last) {
-            allListings[index] = allListings[last];
-            listingIndex[allListings[index].tokenId][allListings[index].seller] = index;
-        }
+    function _removeListing(uint256 listingId) internal {
+        delete listingsById[listingId];
 
-        allListings.pop();
-        delete listingIndex[tokenId][msg.sender];
+        // Remove from activeListingIds
+        uint256 index = activeListingIndex[listingId];
+        uint256 lastId = activeListingIds[activeListingIds.length - 1];
+
+        activeListingIds[index] = lastId;
+        activeListingIndex[lastId] = index;
+
+        activeListingIds.pop();
+        delete activeListingIndex[listingId];
+
+        // (Optional) You can also remove from listingIdsBySeller[msg.sender] if you need
     }
 
     function getAllListings() external view returns (Listing[] memory) {
-        return allListings;
+        Listing[] memory result = new Listing[](activeListingIds.length);
+        for (uint256 i = 0; i < activeListingIds.length; i++) {
+            result[i] = listingsById[activeListingIds[i]];
+        }
+        return result;
+    }
+
+    function getMyListings() external view returns (Listing[] memory) {
+        uint256[] memory ids = listingIdsBySeller[msg.sender];
+        Listing[] memory result = new Listing[](ids.length);
+        for (uint256 i = 0; i < ids.length; i++) {
+            result[i] = listingsById[ids[i]];
+        }
+        return result;
+    }
+
+    function getListing(uint256 listingId) external view returns (Listing memory) {
+        return listingsById[listingId];
     }
 
     function withdrawFees() external onlyOwner {
         uint256 amount = accumulatedFees;
         accumulatedFees = 0;
         payable(owner()).transfer(amount);
-    }
-
-    function getListing(uint256 tokenId, address seller) external view returns (Listing memory) {
-        return listings[tokenId][seller];
+        emit FeesWithdrawn(amount);
     }
 
     function getAccumulatedFees() external view returns (uint256) {

@@ -5,13 +5,14 @@ import { buyNFT } from "@/utils/web3_market";
 import TooltipPortal from "@/app/components/TooltipPortal";
 
 interface MarketItemProps {
+    id: number;
     item: Item;
     seller: String;
     price: number;
     refresh: () => void;
 }
 
-const MarketItem = ({item, seller, price, refresh}: MarketItemProps) => {
+const MarketItem = ({id, item, seller, price, refresh}: MarketItemProps) => {
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [tooltipVisible, setTooltipVisible] = useState(false);
@@ -53,7 +54,7 @@ const MarketItem = ({item, seller, price, refresh}: MarketItemProps) => {
     }
 
     setIsLoading(true);
-    const result = await buyNFT(item.id, seller, Number(amount), Number(price));
+    const result = await buyNFT(id, seller, Number(amount), Number(price));
     console.log(result)
     if(result) {
         setAmount('');

@@ -5,7 +5,7 @@ import {Item} from "../store/types";
 import {addItemToInventory, clearInventory} from "../store/characterSlice"
 
 const CONTRACT_ADDRESS = "0x994fDDa7215E84202e3585B8EBCcA89960b42705";
-const MARKET_CONTRACT_ADDRESS = '0x16FE8D89Cb7Bf27c72660d7bDf8b9905B4455807';
+const MARKET_CONTRACT_ADDRESS = '0xA3ee2e7ff521Ba77acEf9B80F6F7757386AE4779';
 
 function getProvider() {
   if (typeof window !== "undefined" && (window as any).ethereum) {

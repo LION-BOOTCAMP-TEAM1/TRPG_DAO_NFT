@@ -38,9 +38,10 @@ export interface Character {
   }>;
 }
 export interface saleContent {
-    seller: string;
-    price: number;
-    nft_id: number;  
-    amount: number;
-    item: Item;
+  id: number;
+  seller: string;
+  price: number;
+  nft_id: number;  
+  amount: number;
+  item: Item;
 }

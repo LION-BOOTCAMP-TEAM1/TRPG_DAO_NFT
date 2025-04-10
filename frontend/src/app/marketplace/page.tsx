@@ -76,8 +76,8 @@ export default function NFTMarketplace() {
           <p className="text-right text-xs text-gray-200 dark:text-gray-500 mb-2">판매 수수료는 1%입니다. 해당 수익은 서비스 운영 및 지속적인 품질 향상을 위해 사용됩니다.</p>
           <div className="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-transparent pb-6">
             {marketItems.length === 0 && <p className="text-fantasy-gold dark:text-[var(--fantasy-gold)] p-4 text-center">판매중인 NFT가 없습니다</p>}
-            {marketItems.map(({ item, seller, price }, index) => (
-              <MarketItem key={index} item={item} seller={seller} price={price} refresh={refresh} />
+            {marketItems.map(({ id, item, seller, price }, index) => (
+              <MarketItem key={index} id={id} item={item} seller={seller} price={price} refresh={refresh} />
             ))}
           </div>
         </div>
