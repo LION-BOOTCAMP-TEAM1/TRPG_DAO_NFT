@@ -18,13 +18,13 @@ export const useUnloadWarning = (shouldBlock: boolean = true) => {
         '정말 페이지를 떠나시겠습니까? 변경 사항이 저장되지 않습니다.',
       );
       if (!confirmLeave) {
-        history.pushState(null, '', location.href); // 뒤로가기를 취소
+        history.pushState(null, '', location.href);
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
-    history.pushState(null, '', location.href); // 진입 시 스택 하나 추가
+    history.pushState(null, '', location.href);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);

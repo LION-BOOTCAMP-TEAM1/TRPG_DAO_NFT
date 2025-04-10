@@ -3,9 +3,9 @@ import { ethers } from 'ethers';
 import api, { setAuthToken, removeAuthToken } from '../../lib/axios';
 
 // get NFT
-import { AppDispatch } from "@/store";
-import { useDispatch } from "react-redux";
-import {getNFTList} from '@/utils/web3';
+import { AppDispatch } from '@/store';
+import { useDispatch } from 'react-redux';
+import { getNFTList } from '@/utils/web3';
 import { saveLocalStorage } from '@/store/characterSlice';
 
 interface AuthState {
