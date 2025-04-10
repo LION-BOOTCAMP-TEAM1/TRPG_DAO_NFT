@@ -10,6 +10,7 @@ import { useImageLoader } from './hooks/useImageLoader';
 import { useSession } from './hooks/useSession';
 import { useCurrentUser } from './hooks/useCurrentUser';
 import FantasyButton from '../../components/FantasyButton';
+import { saveAllowedChapterPath } from '@/utils/manageLocalStorage';
 
 export default function ChapterClient() {
   const router = useRouter();
@@ -38,7 +39,9 @@ export default function ChapterClient() {
       setIsJoining(false);
     }
 
-    router.push(`/story/${chapter.slug}/${chapter.story.slug}`);
+    const path = `/story/${chapter.slug}/${chapter.story.slug}`;
+    await saveAllowedChapterPath(path);
+    router.push(path);
   };
 
   useEffect(() => {
