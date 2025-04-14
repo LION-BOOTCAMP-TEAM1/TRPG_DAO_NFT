@@ -1,3 +1,4 @@
+import { saveAllowedChapterPath } from '@/utils/manageLocalStorage';
 import { DAOChoice } from '../types/story';
 import { useRouter } from 'next/navigation';
 
@@ -46,13 +47,12 @@ export const VotingResult = ({
       </p>
       <button
         className="mt-4 px-6 py-3 bg-fantasy-surface dark:bg-fantasy-surface/80 text-fantasy-text font-bold rounded-lg shadow-md hover:shadow-lg transition-all border-2 border-fantasy-text flex items-center justify-center w-full md:w-auto cursor-pointer"
-        onClick={() =>
-          router.push(
-            `/story/${chapterSlug}/${
-              winningChoice.nextStorySlug ?? winningChoice.nextStoryId
-            }`,
-          )
-        }
+        onClick={async () => {
+          const path = `/story/${chapterSlug}/${winningChoice.nextStorySlug ?? winningChoice.nextStoryId}`;
+
+          await saveAllowedChapterPath(path);
+          router.push(path);
+        }}
       >
         다음 스토리로 이동 <span className="ml-2">→</span>
       </button>

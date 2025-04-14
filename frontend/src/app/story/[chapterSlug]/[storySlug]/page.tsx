@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import DetailClient from './DetailClient';
 import CharacterStat from '@/app/components/characterStat/CharacterStat';
 import UnloadHandler from '@/app/components/UnloadHandler';
+import ChapterAccessGuard from './components/ChapterAccessGuard';
 
 export const metadata: Metadata = {
   title: 'Story Detail',
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 export default function StoryDetailPage() {
   return (
     <div className="flex flex-row w-full pt-12 bg-fantasy-background text-fantasy-text">
+      <ChapterAccessGuard />
       <div className="flex-[4]">
         <DetailClient />
       </div>
